@@ -16,7 +16,6 @@ Run:
     or
     flask run --host=0.0.0.0 --port=5000
 """
-
 import os
 import io
 import json
@@ -26,43 +25,27 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
-
 from flask import Flask, request, jsonify, send_from_directory, render_template_string
 from flask_cors import CORS
 import sqlite3
-
-# Audio
+# text to speech
 from gtts import gTTS
-
-# Whisper STT
+# speech to text
 from faster_whisper import WhisperModel
-
 # Translation
 import ctranslate2
 import sentencepiece as spm
 from huggingface_hub import snapshot_download
-
-# LangChain
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import Ollama
-
 # Video Generation
 from swag_video import VideoGenerator
 from pipeline.director import create_visual_prompt_llm, create_visual_prompt_offline
-
 # Initialize video generator (lazy load)
 video_gen = VideoGenerator()
-
-# Video Generation
-from swag_video import VideoGenerator
-from pipeline.director import create_visual_prompt_llm, create_visual_prompt_offline
-
-# Initialize video generator (lazy load)
-video_gen = VideoGenerator()
-
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -73,12 +56,8 @@ SWAG_MODELS_PATH = "./swag_models"
 TRAINING_DB_PATH = "./training_audit.db"
 OLLAMA_MODEL = "llama3"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-WHISPER_MODEL = "large-v3"
+WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
-
-# ============================================================================
-# SUPPORTED LANGUAGES
-# ============================================================================
 SUPPORTED_LANGUAGES: Dict[str, Dict] = {
     "eng_Latn": {"name": "English", "flag": "EN", "tts": "en"},
     "nld_Latn": {"name": "Dutch", "flag": "NL", "tts": "nl"},
@@ -96,16 +75,10 @@ WHISPER_TO_NLLB = {
     "pl": "pol_Latn", "tr": "tur_Latn", "ro": "ron_Latn", "pt": "por_Latn",
     "es": "spa_Latn",
 }
-
-# ============================================================================
-# FLASK APP SETUP
-# ============================================================================
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
-
 # Global model cache
 models_cache = {}
-
 # ============================================================================
 # DATABASE FUNCTIONS
 # ============================================================================
@@ -181,11 +154,6 @@ def get_user_training_count(user_id: str) -> int:
     count = cursor.fetchone()[0]
     conn.close()
     return count
-
-
-# ============================================================================
-# MODEL LOADING FUNCTIONS
-# ============================================================================
 
 def load_whisper():
     """Load Whisper model (cached)."""
@@ -295,11 +263,7 @@ def load_translator():
     
     return models_cache['translator']
 
-
-# ============================================================================
-# AI PIPELINE FUNCTIONS
-# ============================================================================
-
+#FIXME no more api, local model
 def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
     """Transcribe audio using OpenAI Whisper API (cloud-based, fast)."""
     try:
@@ -411,7 +375,7 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
 
 
 def text_to_speech(text: str, lang_code: str) -> bytes:
-    """Convert text to speech audio."""
+    """Convert text to speech audio for vocal feedback."""
     lang_info = SUPPORTED_LANGUAGES.get(lang_code, SUPPORTED_LANGUAGES["eng_Latn"])
     tts_lang = lang_info.get("tts", "en")
     
@@ -423,11 +387,6 @@ def text_to_speech(text: str, lang_code: str) -> bytes:
         return audio_buffer.read()
     except:
         return None
-
-
-# ============================================================================
-# API ROUTES
-# ============================================================================
 
 @app.route('/')
 def index():
@@ -622,7 +581,7 @@ def training_count(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+#FIXME no more api, local model
 @app.route('/api/detect', methods=['POST'])
 def detect_objects():
     """Object detection endpoint using Roboflow cloud API."""
@@ -655,12 +614,6 @@ def detect_objects():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# ============================================================================
-# MAIN
-# ============================================================================
-
 
 @app.route('/api/generate_video', methods=['POST'])
 def generate_video():
