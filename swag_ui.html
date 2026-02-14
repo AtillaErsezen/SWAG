@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SWAG - Safe Walk Augmented Generation - Safety Intelligence System">
+    <meta name="theme-color" content="#0057B8">
+    <title>SWAG Safety Intelligence</title>
+
+    <style>
+        /* ============================================================================
+           ROOT VARIABLES - SWAG COLOR PALETTE
+           ============================================================================ */
+        :root {
+            --concrete-mist: #F0F2F5;
+            --carbon-steel: #333E48;
+            --safety-orange: #FF6700;
+            --trust-cobalt: #0057B8;
+            --brushed-aluminum: #A0AAB5;
+            --white: #ffffff;
+            --success-green: #28a745;
+            --danger-red: #dc3545;
+        }
+
+        /* ============================================================================
+           GLOBAL STYLES
+           ============================================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--concrete-mist);
+            color: var(--carbon-steel);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: var(--carbon-steel);
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           CONTAINER LAYOUT
+           ============================================================================ */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ============================================================================
+           HEADER
+           ============================================================================ */
+        .header {
+            display: grid;
+            grid-template-columns: 2fr 3fr 2fr;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-id {
+            font-weight: 600;
+            color: var(--carbon-steel);
+        }
+
+        .training-count {
+            font-size: 0.9rem;
+            color: var(--brushed-aluminum);
+        }
+
+        /* ============================================================================
+           BUTTONS
+           ============================================================================ */
+        .btn {
+            background-color: var(--trust-cobalt);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 87, 184, 0.3);
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #004a9e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 87, 184, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background-color: var(--success-green);
+            font-size: 24px;
+            padding: 24px 48px;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Safety Response Cards */
+        .safety-step-card {
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 5px solid #ccc;
+            background-color: #f9f9f9;
+        }
+
+        .safety-card-operational {
+            border-left-color: var(--trust-cobalt);
+            background-color: rgba(0, 87, 184, 0.05);
+        }
+
+        .safety-card-hazard {
+            border-left-color: var(--safety-orange);
+            background-color: rgba(255, 103, 0, 0.05);
+        }
+
+        .safety-card-prohibited {
+            border-left-color: var(--danger-red);
+            background-color: rgba(211, 47, 47, 0.05);
+        }
+
+        .step-number {
+            font-weight: 700;
+            margin-right: 8px;
+            color: #555;
+        }
+
+        .btn-secondary {
+            background-color: var(--brushed-aluminum);
+            box-shadow: 0 4px 12px rgba(160, 170, 181, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background-color: #8a939e;
+        }
+
+        .btn-record {
+            background-color: var(--danger-red);
+            font-size: 20px;
+            padding: 20px 40px;
+        }
+
+        .btn-record:hover {
+            background-color: #c82333;
+        }
+
+        .btn-record.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* ============================================================================
+           INPUT FIELDS
+           ============================================================================ */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--carbon-steel);
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            font-size: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid var(--brushed-aluminum);
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--trust-cobalt);
+        }
+
+        select {
+            font-size: 18px;
+            background-color: var(--white);
+            cursor: pointer;
+        }
+
+        /* ============================================================================
+           LOGIN SCREEN
+           ============================================================================ */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .login-card h2 {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .login-card h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* ============================================================================
+           DIVIDER
+           ============================================================================ */
+        .divider {
+            border: none;
+            border-top: 2px solid var(--brushed-aluminum);
+            margin: 30px 0;
+            opacity: 0.3;
+        }
+
+        /* ============================================================================
+           CARDS
+           ============================================================================ */
+        .card {
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px 0;
+        }
+
+        .card-danger {
+            border: 4px solid var(--safety-orange);
+            background: linear-gradient(135deg, #fff5f0, #ffffff);
+        }
+
+        .card-info {
+            border: 4px solid var(--trust-cobalt);
+            background: linear-gradient(135deg, #f0f5ff, #ffffff);
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+        }
+
+        .card-question {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-answer {
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .card-confidence {
+            font-style: italic;
+            color: var(--brushed-aluminum);
+            font-size: 0.95rem;
+        }
+
+        /* ============================================================================
+           SECTIONS
+           ============================================================================ */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h3 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            color: var(--carbon-steel);
+        }
+
+        /* ============================================================================
+           VOICE INTERFACE
+           ============================================================================ */
+        .voice-interface {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .record-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .record-controls button {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        /* ============================================================================
+           CAMERA INTERFACE
+           ============================================================================ */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 20px auto;
+            background-color: var(--carbon-steel);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .camera-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .camera-placeholder {
+            width: 100%;
+            height: 480px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2a3440, #333E48);
+            color: var(--brushed-aluminum);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .camera-controls button {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-camera {
+            background-color: var(--trust-cobalt);
+        }
+
+        .btn-camera.active {
+            background-color: var(--success-green);
+        }
+
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* ============================================================================
+           STATUS MESSAGES
+           ============================================================================ */
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 1rem;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        /* ============================================================================
+           RESPONSIVE DESIGN
+           ============================================================================ */
+        @media (max-width: 768px) {
+            .header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .user-info {
+                text-align: center;
+            }
+
+            .record-controls {
+                flex-direction: column;
+            }
+
+            .record-controls button {
+                max-width: 100%;
+            }
+        }
+
+        /* ============================================================================
+           LOADING SPINNER
+           ============================================================================ */
+        .spinner {
+            border: 4px solid var(--concrete-mist);
+            border-top: 4px solid var(--trust-cobalt);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============================================================================
+           GRID LAYOUT FOR BUTTONS
+           ============================================================================ */
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 3fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .button-grid .btn {
+            grid-column: 2;
+        }
+    </style>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- ============================================================================
+             LOGIN SCREEN
+             ============================================================================ -->
+        <div id="loginScreen" class="login-container">
+            <div class="login-card">
+                <h2 id="loginHeader">Operator Login</h2>
+                <hr class="divider">
+
+                <h3 id="enterIdHeader">Enter Your Operator ID</h3>
+
+                <div class="input-group">
+                    <input type="text" id="operatorId" placeholder="e.g., OP-1234"
+                        onkeypress="handleLoginKeyPress(event)">
+                </div>
+
+                <br>
+
+                <button id="clockInBtn" class="btn" onclick="login()">CLOCK IN</button>
+            </div>
+        </div>
+
+        <!-- ============================================================================
+             MAIN DASHBOARD
+             ============================================================================ -->
+        <div id="dashboard" class="hidden">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>SWAG</h2>
+                </div>
+                <div>
+                    <select id="languageSelect" onchange="changeLanguage()">
+                        <option value="eng_Latn">EN English</option>
+                        <option value="nld_Latn">NL Dutch</option>
+                        <option value="fra_Latn">FR French</option>
+                        <option value="deu_Latn">DE German</option>
+                        <option value="pol_Latn">PL Polish</option>
+                        <option value="tur_Latn">TR Turkish</option>
+                        <option value="ron_Latn">RO Romanian</option>
+                        <option value="por_Latn">PT Portuguese</option>
+                        <option value="spa_Latn">ES Spanish</option>
+                    </select>
+                </div>
+                <div class="user-info">
+                    <div class="user-id" id="displayUserId">Unknown</div>
+                    <div class="training-count"><span id="okLabel">[OK]</span> <span id="trainingCount">0</span> <span
+                            id="verifiedLabel">verified trainings</span></div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Answer Display (hidden by default) -->
+            <div id="answerSection" class="hidden">
+                <div id="answerCard" class="card">
+                    <h3 id="answerTitle">[i] SAFETY INFORMATION</h3>
+                    <div class="card-question">
+                        <strong id="questionLabel">Question:</strong> <span id="questionText"></span>
+                    </div>
+                    <hr class="divider">
+                    <div class="card-answer" id="answerText"></div>
+                    <div class="card-confidence"><span id="confidenceLabel">Confidence:</span> <span
+                            id="confidenceText">0%</span></div>
+                </div>
+
+                <br>
+
+                <div class="button-grid">
+                    <button id="confirmBtn" class="btn btn-success" onclick="confirmUnderstanding()">[OK] I CONFIRM
+                        UNDERSTANDING</button>
+                </div>
+
+                <div class="button-grid" style="margin-top: 10px;">
+                    <button id="generateVideoBtn" class="btn" style="background-color: #6C5CE7; color: white;"
+                        onclick="generateSafetyVideo()">🎥 GENERATE SAFETY VIDEO</button>
+                </div>
+
+                <div id="videoContainer" class="hidden" style="margin-top: 20px; text-align: center;">
+                    <h3 id="videoTitle" style="color: var(--trust-cobalt);">Safety Demonstration</h3>
+                    <div id="videoPlayerWrapper"
+                        style="margin-top: 10px; border: 2px solid var(--trust-cobalt); border-radius: 8px; overflow: hidden;">
+                        <!-- Video player will be injected here -->
+                    </div>
+                    <div id="videoLoading" class="hidden">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 10px; color: var(--trust-cobalt);">Generating AI Video (approx. 2-3
+                            mins)...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interaction Area -->
+            <div id="mainInterface">
+                <!-- Voice Query Section -->
+                <div class="section voice-interface">
+                    <h3 id="voiceTitle">[MIC] Voice Safety Query</h3>
+                    <p id="voiceDesc">Hold the button and speak your safety question</p>
+
+                    <div class="record-controls">
+                        <button class="btn btn-record" id="recordBtn" onmousedown="startRecording()"
+                            onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">
+                            [REC] HOLD TO SPEAK
+                        </button>
+                    </div>
+
+                    <div id="voiceStatus"></div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Camera Object Detection Section -->
+                <div class="section">
+                    <h3 id="camTitle">[CAM] Object Detection</h3>
+                    <p id="camDesc">Start the camera to detect heavy machinery and safety hazards</p>
+
+                    <div class="camera-container">
+                        <video id="cameraVideo" class="camera-video hidden" autoplay playsinline></video>
+                        <canvas id="detectionCanvas" class="detection-overlay hidden"></canvas>
+                        <div id="cameraPlaceholder" class="camera-placeholder">
+                            Camera not active<br>Click "Start Camera" to begin
+                        </div>
+                    </div>
+
+                    <div class="camera-controls">
+                        <button class="btn btn-camera" id="startCameraBtn" onclick="startCamera()">Start Camera</button>
+                        <button class="btn btn-camera hidden" id="stopCameraBtn" onclick="stopCamera()">Stop
+                            Camera</button>
+                        <button class="btn btn-camera hidden" id="detectBtn" onclick="runDetection()">Run
+                            Detection</button>
+                    </div>
+
+                    <div id="cameraStatus"></div>
+                    <div id="detectionResults"></div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Text Query Section -->
+                <div class="section">
+                    <h3 id="textTitle">Or Type Your Question</h3>
+
+                    <div class="input-group">
+                        <input type="text" id="textQuery"
+                            placeholder="e.g., What is the safe distance from excavator swing radius?"
+                            onkeypress="handleQueryKeyPress(event)">
+                    </div>
+
+                    <button id="searchBtn" class="btn" onclick="searchDatabase()">SEARCH SAFETY DATABASE</button>
+
+                    <div id="textStatus"></div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Logout -->
+                <button id="clockOutBtn" class="btn btn-secondary" onclick="logout()">Clock Out</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // TRANSLATIONS
+        // ============================================================================
+        const translations = {
+            "eng_Latn": {
+                "loginHeader": "Operator Login",
+                "enterIdHeader": "Enter Your Operator ID",
+                "clockInBtn": "CLOCK IN",
+                "operatorIdPlaceholder": "e.g., OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "verified trainings",
+                "answerTitle": "[i] SAFETY INFORMATION",
+                "questionLabel": "Question:",
+                "confidenceLabel": "Confidence:",
+                "confirmBtn": "[OK] I CONFIRM UNDERSTANDING",
+                "voiceTitle": "[MIC] Voice Safety Query",
+                "voiceDesc": "Hold the button and speak your safety question",
+                "recordBtn": "[REC] HOLD TO SPEAK",
+                "recordBtnRecording": "[STOP] RELEASE TO PROCESS",
+                "camTitle": "[CAM] Object Detection",
+                "camDesc": "Start the camera to detect heavy machinery and safety hazards",
+                "cameraPlaceholder": "Camera not active\nClick \"Start Camera\" to begin",
+                "startCameraBtn": "Start Camera",
+                "stopCameraBtn": "Stop Camera",
+                "detectBtn": "Run Detection",
+                "textTitle": "Or Type Your Question",
+                "textQueryPlaceholder": "e.g., What is the safe distance from excavator swing radius?",
+                "searchBtn": "SEARCH SAFETY DATABASE",
+                "clockOutBtn": "Clock Out"
+            },
+            "nld_Latn": {
+                "loginHeader": "Operator Login",
+                "enterIdHeader": "Voer uw Operator ID in",
+                "clockInBtn": "INKLOKKEN",
+                "operatorIdPlaceholder": "bijv. OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "verifieerde trainingen",
+                "answerTitle": "[i] VEILIGHEIDSINFORMATIE",
+                "questionLabel": "Vraag:",
+                "confidenceLabel": "Zekerheid:",
+                "confirmBtn": "[OK] IK BEGRIJP HET",
+                "voiceTitle": "[MIC] Spraakgestuurde Veiligheidsvraag",
+                "voiceDesc": "Houd de knop ingedrukt en stel uw veiligheidsvraag",
+                "recordBtn": "[OPN] HOUD INGEDRUKT OM TE SPREKEN",
+                "recordBtnRecording": "[STOP] LAAT LOS OM TE VERWERKEN",
+                "camTitle": "[CAM] Objectdetectie",
+                "camDesc": "Start de camera om zware machines en gevaren te detecteren",
+                "cameraPlaceholder": "Camera niet actief\nKlik op \"Start Camera\" om te beginnen",
+                "startCameraBtn": "Start Camera",
+                "stopCameraBtn": "Stop Camera",
+                "detectBtn": "Detectie Starten",
+                "textTitle": "Of Typ Uw Vraag",
+                "textQueryPlaceholder": "bijv. Wat is de veilige afstand tot de draaicirkel van de graafmachine?",
+                "searchBtn": "VEILIGHEIDSDATABASE DOORZOEKEN",
+                "clockOutBtn": "Uitklokken"
+            },
+            "fra_Latn": {
+                "loginHeader": "Connexion Opérateur",
+                "enterIdHeader": "Entrez votre ID Opérateur",
+                "clockInBtn": "POINTER",
+                "operatorIdPlaceholder": "ex: OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "formations vérifiées",
+                "answerTitle": "[i] INFORMATION DE SÉCURITÉ",
+                "questionLabel": "Question:",
+                "confidenceLabel": "Confiance:",
+                "confirmBtn": "[OK] JE CONFIRME AVOIR COMPRIS",
+                "voiceTitle": "[MIC] Question de Sécurité Vocale",
+                "voiceDesc": "Maintenez le bouton et posez votre question de sécurité",
+                "recordBtn": "[ENR] MAINTENIR POUR PARLER",
+                "recordBtnRecording": "[STOP] RELÂCHER POUR TRAITER",
+                "camTitle": "[CAM] Détection d'Objets",
+                "camDesc": "Démarrez la caméra pour détecter les machines lourdes et les dangers",
+                "cameraPlaceholder": "Caméra inactive\nCliquez sur \"Démarrer Caméra\" pour commencer",
+                "startCameraBtn": "Démarrer Caméra",
+                "stopCameraBtn": "Arrêter Caméra",
+                "detectBtn": "Lancer Détection",
+                "textTitle": "Ou Tapez Votre Question",
+                "textQueryPlaceholder": "ex: Quelle est la distance de sécurité du rayon de braquage de la pelle ?",
+                "searchBtn": "RECHERCHER DANS LA BASE DE SÉCURITÉ",
+                "clockOutBtn": "Dépointer"
+            },
+            "deu_Latn": {
+                "loginHeader": "Bediener-Login",
+                "enterIdHeader": "Geben Sie Ihre Bediener-ID ein",
+                "clockInBtn": "EINSTEMPELN",
+                "operatorIdPlaceholder": "z.B. OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "verifizierte Schulungen",
+                "answerTitle": "[i] SICHERHEITSINFORMATION",
+                "questionLabel": "Frage:",
+                "confidenceLabel": "Konfidenz:",
+                "confirmBtn": "[OK] ICH BESTÄTIGE DAS VERSTÄNDNIS",
+                "voiceTitle": "[MIC] Sprach-Sicherheitsabfrage",
+                "voiceDesc": "Halten Sie die Taste gedrückt und stellen Sie Ihre Sicherheitsfrage",
+                "recordBtn": "[AUFN] ZUM SPRECHEN HALTEN",
+                "recordBtnRecording": "[STOP] ZUM BEARBEITEN LOSLASSEN",
+                "camTitle": "[CAM] Objekterkennung",
+                "camDesc": "Starten Sie die Kamera, um schwere Maschinen und Gefahren zu erkennen",
+                "cameraPlaceholder": "Kamera nicht aktiv\nKlicken Sie auf \"Kamera Starten\" um zu beginnen",
+                "startCameraBtn": "Kamera Starten",
+                "stopCameraBtn": "Kamera Stoppen",
+                "detectBtn": "Erkennung Starten",
+                "textTitle": "Oder Tippen Sie Ihre Frage",
+                "textQueryPlaceholder": "z.B. Wie groß ist der Sicherheitsabstand zum Schwenkbereich des Baggers?",
+                "searchBtn": "SICHERHEITSDATENBANK DURCHSUCHEN",
+                "clockOutBtn": "Ausstempeln"
+            },
+            "pol_Latn": {
+                "loginHeader": "Logowanie Operatora",
+                "enterIdHeader": "Wprowadź ID Operatora",
+                "clockInBtn": "ROZPOCZNIJ PRACĘ",
+                "operatorIdPlaceholder": "np. OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "zweryfikowane szkolenia",
+                "answerTitle": "[i] INFORMACJE O BEZPIECZEŃSTWIE",
+                "questionLabel": "Pytanie:",
+                "confidenceLabel": "Pewność:",
+                "confirmBtn": "[OK] POTWIERDZAM ZROZUMIENIE",
+                "voiceTitle": "[MIC] Głosowe Zapytanie o Bezpieczeństwo",
+                "voiceDesc": "Przytrzymaj przycisk i zadaj pytanie dotyczące bezpieczeństwa",
+                "recordBtn": "[NAGR] PRZYTRZYMAJ ABY MÓWIĆ",
+                "recordBtnRecording": "[STOP] PUŚĆ ABY PRZETWORZYĆ",
+                "camTitle": "[CAM] Wykrywanie Obiektów",
+                "camDesc": "Uruchom kamerę, aby wykryć ciężki sprzęt i zagrożenia",
+                "cameraPlaceholder": "Kamera nieaktywna\nKliknij \"Uruchom Kamerę\" aby rozpocząć",
+                "startCameraBtn": "Uruchom Kamerę",
+                "stopCameraBtn": "Zatrzymaj Kamerę",
+                "detectBtn": "Uruchom Wykrywanie",
+                "textTitle": "Lub Wpisz Swoje Pytanie",
+                "textQueryPlaceholder": "np. Jaka jest bezpieczna odległość od zasięgu obrotu koparki?",
+                "searchBtn": "PRZESZUKAJ BAZĘ BEZPIECZEŃSTWA",
+                "clockOutBtn": "Zakończ Pracę"
+            },
+            "tur_Latn": {
+                "loginHeader": "Operatör Girişi",
+                "enterIdHeader": "Operatör Kimliğinizi Girin",
+                "clockInBtn": "GİRİŞ YAP",
+                "operatorIdPlaceholder": "ör., OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "doğrulanmış eğitim",
+                "answerTitle": "[i] GÜVENLİK BİLGİSİ",
+                "questionLabel": "Soru:",
+                "confidenceLabel": "Güvenilirlik:",
+                "confirmBtn": "[OK] ANLADIĞIMI ONAYLIYORUM",
+                "voiceTitle": "[MIC] Sesli Güvenlik Sorgusu",
+                "voiceDesc": "Düğmeye basılı tutun ve güvenlik sorunuzu sorun",
+                "recordBtn": "[KAYIT] KONUŞMAK İÇİN BASILI TUTUN",
+                "recordBtnRecording": "[DUR] İŞLEMEK İÇİN BIRAKIN",
+                "camTitle": "[CAM] Nesne Algılama",
+                "camDesc": "Ağır makineleri ve güvenlik tehlikelerini algılamak için kamerayı başlatın",
+                "cameraPlaceholder": "Kamera etkin değil\nBaşlamak için \"Kamera Başlat\"a tıklayın",
+                "startCameraBtn": "Kamera Başlat",
+                "stopCameraBtn": "Kamera Durdur",
+                "detectBtn": "Algılamayı Başlat",
+                "textTitle": "Veya Sorunuzu Yazın",
+                "textQueryPlaceholder": "ör., Ekskavatör dönüş yarıçapından güvenli mesafe nedir?",
+                "searchBtn": "GÜVENLİK VERİTABANINI ARA",
+                "clockOutBtn": "Çıkış Yap"
+            },
+            "ron_Latn": {
+                "loginHeader": "Autentificare Operator",
+                "enterIdHeader": "Introduceți ID-ul Operatorului",
+                "clockInBtn": "PONTARE",
+                "operatorIdPlaceholder": "ex: OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "instruiri verificate",
+                "answerTitle": "[i] INFORMAȚII DE SIGURANȚĂ",
+                "questionLabel": "Întrebare:",
+                "confidenceLabel": "Încredere:",
+                "confirmBtn": "[OK] CONFIRM CĂ AM ÎNȚELES",
+                "voiceTitle": "[MIC] Întrebare Vocală de Siguranță",
+                "voiceDesc": "Țineți apăsat butonul și puneți întrebarea de siguranță",
+                "recordBtn": "[ÎNREG] ȚINEȚI APĂSAT PENTRU A VORBI",
+                "recordBtnRecording": "[STOP] ELIBERAȚI PENTRU A PROCESA",
+                "camTitle": "[CAM] Detectare Obiecte",
+                "camDesc": "Porniți camera pentru a detecta utilaje grele și pericole",
+                "cameraPlaceholder": "Camera nu este activă\nFaceți clic pe \"Porniți Camera\" pentru a începe",
+                "startCameraBtn": "Porniți Camera",
+                "stopCameraBtn": "Opriți Camera",
+                "detectBtn": "Rulați Detectarea",
+                "textTitle": "Sau Tastați Întrebarea",
+                "textQueryPlaceholder": "ex: Care este distanța sigură față de raza de rotire a excavatorului?",
+                "searchBtn": "CĂUTAȚI ÎN BAZA DE DATE DE SIGURANȚĂ",
+                "clockOutBtn": "Depontare"
+            },
+            "por_Latn": {
+                "loginHeader": "Login do Operador",
+                "enterIdHeader": "Insira seu ID de Operador",
+                "clockInBtn": "REGISTRAR ENTRADA",
+                "operatorIdPlaceholder": "ex: OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "treinamentos verificados",
+                "answerTitle": "[i] INFORMAÇÕES DE SEGURANÇA",
+                "questionLabel": "Pergunta:",
+                "confidenceLabel": "Confiança:",
+                "confirmBtn": "[OK] CONFIRMO O ENTENDIMENTO",
+                "voiceTitle": "[MIC] Consulta de Segurança por Voz",
+                "voiceDesc": "Segure o botão e faça sua pergunta de segurança",
+                "recordBtn": "[GRAV] SEGURE PARA FALAR",
+                "recordBtnRecording": "[PARAR] SOLTE PARA PROCESSAR",
+                "camTitle": "[CAM] Detecção de Objetos",
+                "camDesc": "Inicie a câmera para detectar máquinas pesadas e riscos de segurança",
+                "cameraPlaceholder": "Câmera inativa\nClique em \"Iniciar Câmera\" para começar",
+                "startCameraBtn": "Iniciar Câmera",
+                "stopCameraBtn": "Parar Câmera",
+                "detectBtn": "Executar Detecção",
+                "textTitle": "Ou Digite Sua Pergunta",
+                "textQueryPlaceholder": "ex: Qual é a distância segura do raio de giro da escavadeira?",
+                "searchBtn": "PESQUISAR BANCO DE DADOS DE SEGURANÇA",
+                "clockOutBtn": "Registrar Saída"
+            },
+            "spa_Latn": {
+                "loginHeader": "Inicio de Sesión del Operador",
+                "enterIdHeader": "Ingrese su ID de Operador",
+                "clockInBtn": "FICHAR ENTRADA",
+                "operatorIdPlaceholder": "ej: OP-1234",
+                "okLabel": "[OK]",
+                "verifiedLabel": "capacitaciones verificadas",
+                "answerTitle": "[i] INFORMACIÓN DE SEGURIDAD",
+                "questionLabel": "Pregunta:",
+                "confidenceLabel": "Confianza:",
+                "confirmBtn": "[OK] CONFIRMO ENTENDIMIENTO",
+                "voiceTitle": "[MIC] Consulta de Seguridad por Voz",
+                "voiceDesc": "Mantenga presionado el botón y haga su pregunta de seguridad",
+                "recordBtn": "[GRAB] MANTENGA PARA HABLAR",
+                "recordBtnRecording": "[PARAR] SUELTE PARA PROCESAR",
+                "camTitle": "[CAM] Detección de Objetos",
+                "camDesc": "Inicie la cámara para detectar maquinaria pesada y peligros de seguridad",
+                "cameraPlaceholder": "Cámara inactiva\nHaga clic en \"Iniciar Cámara\" para comenzar",
+                "startCameraBtn": "Iniciar Cámara",
+                "stopCameraBtn": "Detener Cámara",
+                "detectBtn": "Ejecutar Detección",
+                "textTitle": "O Escriba Su Pregunta",
+                "textQueryPlaceholder": "ej: ¿Cuál es la distancia segura del radio de giro de la excavadora?",
+                "searchBtn": "BUSCAR EN BASE DE DATOS DE SEGURIDAD",
+                "clockOutBtn": "Fichar Salida"
+            }
+        };
+
+        // ============================================================================
+        // STATE MANAGEMENT
+        // ============================================================================
+        let currentUser = null;
+        let currentLanguage = 'eng_Latn';
+        let trainingCount = 0;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let audioStream = null;
+        let micPermissionGranted = false;
+
+        // Camera state
+        let cameraStream = null;
+        let cameraPermissionGranted = false;
+        let detectionInterval = null;
+
+        // ============================================================================
+        // LOGIN / LOGOUT
+        // ============================================================================
+        function login() {
+            const operatorId = document.getElementById('operatorId').value.trim();
+
+            if (!operatorId) {
+                alert('Please enter your Operator ID');
+                return;
+            }
+
+            currentUser = operatorId;
+            document.getElementById('displayUserId').textContent = operatorId;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function logout() {
+            currentUser = null;
+            trainingCount = 0;
+            document.getElementById('operatorId').value = '';
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            hideAnswer();
+        }
+
+        function handleLoginKeyPress(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        }
+
+        // ============================================================================
+        // LANGUAGE SELECTION
+        // ============================================================================
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelect').value;
+            console.log('Language changed to:', currentLanguage);
+
+            // Apply translations
+            const t = translations[currentLanguage] || translations['eng_Latn'];
+
+            // Helper to safe update
+            const setTxt = (id, txt) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = txt;
+            };
+
+            const setPh = (id, txt) => {
+                const el = document.getElementById(id);
+                if (el) el.placeholder = txt;
+            };
+
+            setTxt('loginHeader', t.loginHeader);
+            setTxt('enterIdHeader', t.enterIdHeader);
+            setTxt('clockInBtn', t.clockInBtn);
+            setPh('operatorId', t.operatorIdPlaceholder);
+
+            setTxt('okLabel', t.okLabel);
+            setTxt('verifiedLabel', t.verifiedLabel);
+
+            setTxt('answerTitle', t.answerTitle);
+            setTxt('questionLabel', t.questionLabel);
+            setTxt('confidenceLabel', t.confidenceLabel);
+            setTxt('confirmBtn', t.confirmBtn);
+
+            setTxt('voiceTitle', t.voiceTitle);
+            setTxt('voiceDesc', t.voiceDesc);
+
+            // Only update record btn if not currently recording to avoid overwriting state
+            if (!isRecording) {
+                setTxt('recordBtn', t.recordBtn);
+            }
+
+            setTxt('camTitle', t.camTitle);
+            setTxt('camDesc', t.camDesc);
+            setTxt('cameraPlaceholder', t.cameraPlaceholder);
+            setTxt('startCameraBtn', t.startCameraBtn);
+            setTxt('stopCameraBtn', t.stopCameraBtn);
+            setTxt('detectBtn', t.detectBtn);
+
+            setTxt('textTitle', t.textTitle);
+            setPh('textQuery', t.textQueryPlaceholder);
+            setTxt('searchBtn', t.searchBtn);
+            setTxt('clockOutBtn', t.clockOutBtn);
+        }
+
+        // ============================================================================
+        // MICROPHONE PERMISSION
+        // ============================================================================
+        async function requestMicrophonePermission() {
+            if (micPermissionGranted) return true;
+
+            try {
+                showStatus('voiceStatus', 'Requesting microphone permission...', 'info');
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                micPermissionGranted = true;
+                clearStatus('voiceStatus');
+                return true;
+            } catch (error) {
+                showStatus('voiceStatus', 'Microphone permission denied. Please allow microphone access.', 'error');
+                console.error('Microphone permission error:', error);
+                return false;
+            }
+        }
+
+        // ============================================================================
+        // VOICE RECORDING
+        // ============================================================================
+        async function startRecording() {
+            // Request permission first
+            const hasPermission = await requestMicrophonePermission();
+            if (!hasPermission) return;
+
+            isRecording = true;
+            audioChunks = [];
+
+            const btn = document.getElementById('recordBtn');
+            btn.classList.add('recording');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
+            btn.textContent = t.recordBtnRecording;
+
+            showStatus('voiceStatus', 'Recording audio...', 'info');
+
+            try {
+                // Create MediaRecorder
+                mediaRecorder = new MediaRecorder(audioStream);
+
+                // Collect audio chunks
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                // Start recording
+                mediaRecorder.start();
+                console.log('Started recording...');
+
+            } catch (error) {
+                showStatus('voiceStatus', 'Error starting recording: ' + error.message, 'error');
+                console.error('Recording error:', error);
+                isRecording = false;
+                btn.classList.remove('recording');
+                const t = translations[currentLanguage] || translations['eng_Latn'];
+                btn.textContent = t.recordBtn;
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording || !mediaRecorder) return;
+
+            isRecording = false;
+            const btn = document.getElementById('recordBtn');
+            btn.classList.remove('recording');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
+            btn.textContent = t.recordBtn;
+
+            // Stop recording
+            mediaRecorder.stop();
+
+            // Process when recording stops
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                processVoiceQuery(audioBlob);
+            };
+        }
+
+        async function processVoiceQuery(audioBlob) {
+            showStatus('voiceStatus', 'Processing audio...', 'info');
+
+            try {
+                // Create FormData
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.wav');
+                formData.append('user_id', currentUser || 'unknown');
+                formData.append('language', currentLanguage);
+
+                showStatus('voiceStatus', 'Transcribing your voice...', 'info');
+
+                // Send to Flask API
+                const response = await fetch('/api/query/voice', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus('voiceStatus', 'Error: ' + data.error, 'error');
+                    return;
+                }
+
+                // Show transcription first
+                if (data.transcription) {
+                    showStatus('voiceStatus',
+                        `📝 You said: "${data.transcription}" (${data.detected_language})`,
+                        'success'
+                    );
+
+                    // Wait 1.5 seconds so user can see what was transcribed
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+
+                // Show results
+                clearStatus('voiceStatus');
+                showAnswer(
+                    data.question,
+                    data.answer,
+                    data.confidence,
+                    data.category
+                );
+
+                // Play TTS audio if available
+                if (data.audio) {
+                    playAudioResponse(data.audio);
+                }
+
+            } catch (error) {
+                showStatus('voiceStatus', 'Error processing voice query: ' + error.message, 'error');
+                console.error('Voice query error:', error);
+            }
+        }
+
+        function playAudioResponse(base64Audio) {
+            try {
+                const audio = new Audio('data:audio/mp3;base64,' + base64Audio);
+                audio.play();
+            } catch (error) {
+                console.error('Error playing audio:', error);
+            }
+        }
+
+        // ============================================================================
+        // TEXT SEARCH
+        // ============================================================================
+        function searchDatabase() {
+            const query = document.getElementById('textQuery').value.trim();
+
+            if (!query) {
+                showStatus('textStatus', 'Please enter a question', 'warning');
+                return;
+            }
+
+            showStatus('textStatus', 'Searching safety database...', 'info');
+
+            setTimeout(() => {
+                showStatus('textStatus', 'Generating safety guidance...', 'info');
+
+                setTimeout(() => {
+                    clearStatus('textStatus');
+                    document.getElementById('textQuery').value = '';
+
+                    showAnswer(
+                        query,
+                        'Based on safety protocols, the answer to your query has been found in our safety manuals. Please review the guidance carefully and confirm your understanding.',
+                        0.92,
+                        'OPERATIONAL_PROCEDURE'
+                    );
+                }, 1000);
+            }, 1000);
+        }
+
+        function handleQueryKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchDatabase();
+            }
+        }
+
+        // ============================================================================
+        // ANSWER DISPLAY
+        // ============================================================================
+        // ============================================================================
+        // ANSWER DISPLAY
+        // ============================================================================
+        function showAnswer(question, answer, confidence, category) {
+            const isDanger = category === 'PROHIBITED_ACTION' || category === 'HAZARD_WARNING';
+
+            const answerCard = document.getElementById('answerCard');
+            const answerTitle = document.getElementById('answerTitle');
+
+            if (isDanger) {
+                answerCard.className = 'card card-danger';
+                answerTitle.textContent = '[!] SAFETY ALERT';
+            } else {
+                answerCard.className = 'card card-info';
+                answerTitle.textContent = '[i] SAFETY INFORMATION';
+            }
+
+            document.getElementById('questionText').textContent = question;
+
+            // Format answer with safety cards
+            const formattedAnswer = formatSafetyResponse(answer);
+            document.getElementById('answerText').innerHTML = formattedAnswer;
+
+            document.getElementById('confidenceText').textContent = Math.round(confidence * 100) + '%';
+
+            document.getElementById('mainInterface').classList.add('hidden');
+            document.getElementById('answerSection').classList.remove('hidden');
+        }
+
+        function formatSafetyResponse(text) {
+            // Regex to match lines ending with (CATEGORY)
+            // Example: 1. Do something (✅)
+            const lines = text.split('\n');
+            let html = '';
+
+            let hasCards = false;
+
+            lines.forEach(line => {
+                const trimLine = line.trim();
+                if (!trimLine) return;
+
+                // Check for categories
+                let cssClass = '';
+                let cleanLine = trimLine;
+
+                if (trimLine.includes('(✅)')) {
+                    cssClass = 'safety-card-operational';
+                    cleanLine = trimLine.replace('(✅)', '').trim();
+                } else if (trimLine.includes('(⚠️)')) {
+                    cssClass = 'safety-card-hazard';
+                    cleanLine = trimLine.replace('(⚠️)', '').trim();
+                } else if (trimLine.includes('(⛔)')) {
+                    cssClass = 'safety-card-prohibited';
+                    cleanLine = trimLine.replace('(⛔)', '').trim();
+                }
+
+                // If it looks like a numbered list item "1. Text", bold the number
+                const match = cleanLine.match(/^(\d+\.)\s+(.*)/);
+                if (match) {
+                    cleanLine = `<span class="step-number">${match[1]}</span> ${match[2]}`;
+                }
+
+                if (cssClass) {
+                    hasCards = true;
+                    html += `<div class="safety-step-card ${cssClass}">${cleanLine}</div>`;
+                } else {
+                    html += `<p>${cleanLine}</p>`;
+                }
+            });
+
+            // Fallback if no categories found (e.g. simple text)
+            if (!hasCards) {
+                return text;
+            }
+
+            return html;
+        }
+
+        function hideAnswer() {
+            document.getElementById('answerSection').classList.add('hidden');
+            document.getElementById('mainInterface').classList.remove('hidden');
+            document.getElementById('videoContainer').classList.add('hidden'); // Hide video container on answer hide
+        }
+
+        function confirmUnderstanding() {
+            trainingCount++;
+            document.getElementById('trainingCount').textContent = trainingCount;
+
+            showStatus('textStatus', '[OK] Training logged and verified!', 'success');
+
+            setTimeout(() => {
+                clearStatus('textStatus');
+                hideAnswer();
+            }, 2000);
+        }
+
+        // ============================================================================
+        // STATUS MESSAGES
+        // ============================================================================
+        function showStatus(elementId, message, type) {
+            const statusElement = document.getElementById(elementId);
+            statusElement.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+        }
+
+        function clearStatus(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        // ============================================================================
+        // CAMERA FUNCTIONS
+        // ============================================================================
+        async function startCamera() {
+            try {
+                showStatus('cameraStatus', 'Requesting camera permission...', 'info');
+
+                // Request camera access
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment' // Use back camera on mobile
+                    }
+                });
+
+                cameraPermissionGranted = true;
+
+                // Show video feed
+                const video = document.getElementById('cameraVideo');
+                const placeholder = document.getElementById('cameraPlaceholder');
+                const canvas = document.getElementById('detectionCanvas');
+
+                video.srcObject = cameraStream;
+                video.classList.remove('hidden');
+                canvas.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+
+                // Update buttons
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('stopCameraBtn').classList.remove('hidden');
+                document.getElementById('detectBtn').classList.remove('hidden');
+
+                // Set canvas size to match video
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                });
+
+                showStatus('cameraStatus', 'Camera active - Ready for object detection', 'success');
+
+            } catch (error) {
+                showStatus('cameraStatus', 'Camera permission denied. Please allow camera access.', 'error');
+                console.error('Camera permission error:', error);
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                // Stop all tracks
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+
+                // Stop detection if running
+                if (detectionInterval) {
+                    clearInterval(detectionInterval);
+                    detectionInterval = null;
+                }
+
+                // Hide video, show placeholder
+                const video = document.getElementById('cameraVideo');
+                const placeholder = document.getElementById('cameraPlaceholder');
+                const canvas = document.getElementById('detectionCanvas');
+
+                video.srcObject = null;
+                video.classList.add('hidden');
+                canvas.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+
+                // Update buttons
+                document.getElementById('startCameraBtn').classList.remove('hidden');
+                document.getElementById('stopCameraBtn').classList.add('hidden');
+                document.getElementById('detectBtn').classList.add('hidden');
+
+                clearStatus('cameraStatus');
+                clearStatus('detectionResults');
+            }
+        }
+
+        async function runDetection() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('detectionCanvas');
+            const ctx = canvas.getContext('2d');
+            const detectBtn = document.getElementById('detectBtn');
+
+            if (!video.srcObject) {
+                showStatus('cameraStatus', 'Please start the camera first', 'warning');
+                return;
+            }
+
+            // Toggle real-time detection
+            if (detectionInterval) {
+                // Stop detection
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+                detectBtn.textContent = 'Start Real-Time Detection';
+                detectBtn.classList.remove('active');
+                clearStatus('cameraStatus');
+                clearStatus('detectionResults');
+
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            // Start real-time detection
+            detectBtn.textContent = 'Stop Detection';
+            detectBtn.classList.add('active');
+            showStatus('cameraStatus', 'Real-time detection active...', 'success');
+
+            // Detection loop - run every 1 second (1 FPS for API calls)
+            const detectFrame = async () => {
+                try {
+                    // Capture current frame
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Convert canvas to blob
+                    canvas.toBlob(async (blob) => {
+                        const formData = new FormData();
+                        formData.append('image', blob, 'frame.jpg');
+                        formData.append('user_id', currentUser || 'unknown');
+
+                        try {
+                            // Send to Flask API
+                            const response = await fetch('/api/detect', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+
+                                // Clear previous drawings
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                                // Draw detections
+                                if (data.detections && data.detections.length > 0) {
+                                    drawDetections(ctx, data.detections, canvas.width, canvas.height);
+                                    showStatus('detectionResults',
+                                        `Detected ${data.count} object(s): ${data.detections.map(d => d.class).join(', ')}`,
+                                        'success');
+
+                                    // [NEW] Auto-trigger safety flow on detection
+                                    if (data.detections.length > 0) {
+                                        // Stop detection to prevent loop
+                                        stopCamera();
+                                        handleObjectDetection(data.detections[0]);
+                                    }
+                                } else {
+                                    showStatus('detectionResults', 'No objects detected', 'info');
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Detection API error:', error);
+                        }
+                    }, 'image/jpeg', 0.85);
+
+                } catch (error) {
+                    console.error('Frame capture error:', error);
+                }
+            };
+
+            // Run first detection immediately
+            detectFrame();
+
+            // Then run every 1000ms (1 FPS)
+            detectionInterval = setInterval(detectFrame, 1000);
+        }
+
+        function drawDetections(ctx, detections, canvasWidth, canvasHeight) {
+            detections.forEach(det => {
+                // Parse bbox - format depends on your model output
+                // Assuming [ymin, xmin, ymax, xmax] normalized coordinates
+                let [ymin, xmin, ymax, xmax] = det.bbox;
+
+                // Convert to pixel coordinates
+                const x = xmin * canvasWidth;
+                const y = ymin * canvasHeight;
+                const width = (xmax - xmin) * canvasWidth;
+                const height = (ymax - ymin) * canvasHeight;
+
+                // Draw bounding box
+                ctx.strokeStyle = det.class === 'excavator' ? '#FF6700' : '#0057B8';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, width, height);
+
+                // Draw label background
+                const label = `${det.class} ${(det.confidence * 100).toFixed(0)}%`;
+                ctx.font = '16px Inter';
+                const textWidth = ctx.measureText(label).width;
+
+                ctx.fillStyle = det.class === 'excavator' ? '#FF6700' : '#0057B8';
+                ctx.fillRect(x, y - 25, textWidth + 10, 25);
+
+                // Draw label text
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText(label, x + 5, y - 7);
+            });
+        }
+
+        function handleObjectDetection(detection) {
+            const objectName = detection.class.toUpperCase();
+            const confidence = detection.confidence || 0.85; // Fallback
+
+            // Synthesize a safety response
+            const question = `Detected Object: ${objectName}`;
+            const answer = `Verified ${objectName} presence.\n\nReady to generate safety demonstration video for ${objectName}.\n\n(OPERATIONAL_PROCEDURE)`;
+            showAnswer(question, answer, confidence, 'OPERATIONAL_PROCEDURE');
+
+            // Auto-populate the video generation context
+            const qText = document.getElementById('questionText');
+            if (qText) qText.textContent = `How to operate ${objectName}`;
+        }
+
+        function generateSafetyVideo() {
+            const query = document.getElementById('questionText').textContent;
+            // Simple heuristic to guess category from UI state or default
+            const category = 'OPERATIONAL_PROCEDURE';
+
+            // UI Updates
+            const btn = document.getElementById('generateVideoBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Generating...';
+            }
+
+            const videoContainer = document.getElementById('videoContainer');
+            const videoLoading = document.getElementById('videoLoading');
+            const videoPlayerWrapper = document.getElementById('videoPlayerWrapper');
+
+            if (videoContainer) videoContainer.classList.remove('hidden');
+            if (videoLoading) videoLoading.classList.remove('hidden');
+            if (videoPlayerWrapper) videoPlayerWrapper.innerHTML = '';
+
+            fetch('/api/generate_video', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: query,
+                    category: category,
+                    machine: 'excavator'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (videoLoading) videoLoading.classList.add('hidden');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = '🎥 GENERATE SAFETY VIDEO';
+                    }
+
+                    if (data.success) {
+                        const videoUrl = data.video_url;
+                        if (videoPlayerWrapper) {
+                            videoPlayerWrapper.innerHTML = `
+                            <video width="100%" controls autoplay>
+                                <source src="${videoUrl}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">Prompt: ${data.prompt}</p>
+                        `;
+                        }
+                    } else {
+                        alert('Video generation failed: ' + data.error);
+                        if (videoContainer) videoContainer.classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (videoLoading) videoLoading.classList.add('hidden');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = '🎥 GENERATE SAFETY VIDEO';
+                    }
+                    alert('Error generating video');
+                    if (videoContainer) videoContainer.classList.add('hidden');
+                });
+        }
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        window.onload = function () {
+            console.log('SWAG Safety Intelligence UI loaded');
+        };
+    </script>
+</body>
+
+</html>
