@@ -8,19 +8,23 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 # Add pipeline to path
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Define absolute output directory (SWAG/output)
+OUTPUT_DIR = Path(__file__).parent.parent / "output"
 
 from classifier import process_all_markdowns
 from director import process_classified_file
 
 
 def run_full_pipeline(
-    output_base: str = "../pipeline/output",
+    output_base: Optional[str] = None,
     use_llm: bool = False,
     ollama_model: str = "llama3",
-    limit: int = None
+    limit: Optional[int] = None
 ) -> dict:
     """
     Run the complete 3-phase pipeline using existing markdown files.
@@ -34,10 +38,17 @@ def run_full_pipeline(
     Returns:
         Summary statistics dict
     """
+    # Use default output directory if not specified
+    if output_base is None:
+        output_base = str(OUTPUT_DIR)
+    else:
+        output_base = str(Path(output_base).resolve())
+    
     print("=" * 60)
     print("🏭 SAFETY VIDEO GENERATION PIPELINE")
     print("=" * 60)
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Output Directory: {output_base}")
     print()
     
     stats = {
@@ -121,7 +132,7 @@ def run_full_pipeline(
 
 def run_single_markdown(
     markdown_path: str,
-    output_base: str = "../output",
+    output_base: Optional[str] = None,
     use_llm: bool = False,
     ollama_model: str = "llama3"
 ) -> dict:
@@ -142,9 +153,16 @@ def run_single_markdown(
     from director import create_visual_prompt_offline, create_visual_prompt_llm
     from dataclasses import asdict
     
+    # Use default output directory if not specified
+    if output_base is None:
+        output_base = str(OUTPUT_DIR)
+    else:
+        output_base = str(Path(output_base).resolve())
+    
     markdown_name = Path(markdown_path).stem
     
     print(f"🔧 Processing markdown file: {markdown_path}")
+    print(f"Output Directory: {output_base}")
     
     # Use existing markdown file
     md_path = markdown_path
@@ -206,7 +224,7 @@ Examples:
     
     parser.add_argument("--full", action="store_true", help="Run full pipeline on existing markdown files")
     parser.add_argument("--markdown", type=str, help="Process a single markdown file")
-    parser.add_argument("--output", default="../output", help="Output directory")
+    parser.add_argument("--output", default=None, help=f"Output directory (default: {OUTPUT_DIR})")
     parser.add_argument("--llm", action="store_true", help="Use Ollama LLM for prompt generation")
     parser.add_argument("--model", default="llama3", help="Ollama model name")
     parser.add_argument("--limit", type=int, help="Limit prompts for testing")
