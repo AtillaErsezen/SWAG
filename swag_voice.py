@@ -18,6 +18,7 @@ MacOS Note: Grant Terminal/iTerm "Input Monitoring" permission in:
 
 import json
 import os
+import time
 import sys
 import wave
 import threading
@@ -203,14 +204,17 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
     global whisper_model, vectorstore
     
     console.print("\n[swag.info][SYS] Booting SWAG Voice Systems...[/]\n")
+    boot_start = time.time()
     
     # ========== PHASE 1: Vector Database ==========
+    t0 = time.time()
     console.print("[swag.info][SYS] Loading embedding model: all-MiniLM-L6-v2[/]")
     embeddings = HuggingFaceEmbeddings(
         model_name=EMBEDDING_MODEL,
         model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": True}
     )
+    console.print(f"[swag.info][TIME] Embedding model loaded in {time.time() - t0:.2f}s[/]")
     
     db_path = Path(SWAG_BRAIN_PATH)
     
@@ -220,7 +224,7 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
             persist_directory=SWAG_BRAIN_PATH,
             embedding_function=embeddings
         )
-        console.print(f"[swag.success][OK] SWAG Brain: {vectorstore._collection.count()} vectors loaded[/]")
+        console.print(f"[swag.success][OK] SWAG Brain: {vectorstore._collection.count()} vectors loaded ({time.time() - t0:.2f}s)[/]")
     else:
         console.print("[swag.info][SYS] Building new SWAG Brain index...[/]")
         
@@ -241,9 +245,10 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
             embedding=embeddings,
             persist_directory=SWAG_BRAIN_PATH
         )
-        console.print(f"[swag.success][OK] SWAG Brain indexed: {len(all_documents)} vectors[/]")
+        console.print(f"[swag.success][OK] SWAG Brain indexed: {len(all_documents)} vectors ({time.time() - t0:.2f}s)[/]")
     
     # ========== PHASE 2: Whisper STT ==========
+    t0 = time.time()
     console.print(f"\n[swag.info][SYS] Loading Whisper model: {WHISPER_MODEL} (this may take a moment)...[/]")
     try:
         whisper_model = WhisperModel(
@@ -251,12 +256,13 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
             device="cpu",
             compute_type="int8"
         )
-        console.print("[swag.success][OK] Whisper STT engine loaded[/]")
+        console.print(f"[swag.success][OK] Whisper STT engine loaded ({time.time() - t0:.2f}s)[/]")
     except Exception as e:
         console.print(f"[swag.warning][ERR] Failed to load Whisper: {e}[/]")
         return vectorstore, None, None
     
     # ========== PHASE 3: Ollama LLM ==========
+    t0 = time.time()
     console.print(f"\n[swag.info][SYS] Connecting to Ollama ({OLLAMA_MODEL})...[/]")
     try:
         llm = Ollama(
@@ -264,12 +270,13 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
             temperature=0.1
         )
         llm.invoke("test")
-        console.print("[swag.success][OK] Ollama connection established[/]")
+        console.print(f"[swag.success][OK] Ollama connection established ({time.time() - t0:.2f}s)[/]")
     except Exception as e:
         console.print(f"[swag.warning][ERR] Ollama connection failed: {e}[/]")
         console.print("[swag.info][TIP] Make sure Ollama is running: ollama serve[/]")
         return vectorstore, whisper_model, None
     
+    console.print(f"\n[swag.info][TIME] Total boot time: {time.time() - boot_start:.2f}s[/]")
     return vectorstore, whisper_model, llm
 
 
@@ -364,20 +371,27 @@ def process_voice_query(llm: Ollama, chain):
     # Save audio
     save_audio(audio_frames, TEMP_AUDIO_PATH)
     audio_frames = []
+    pipeline_start = time.time()
     
     try:
         # Step A: Transcribe (The Ear)
+        t0 = time.time()
         raw_text = transcribe_audio(TEMP_AUDIO_PATH)
+        console.print(f"[swag.info][TIME] Transcription: {time.time() - t0:.2f}s[/]")
         
         if not raw_text or len(raw_text) < 3:
             console.print("[swag.warning][WARN] Could not transcribe audio[/]")
             return
         
         # Step B: Refine (The Refiner)
+        t0 = time.time()
         cleaned_text = refine_query(raw_text, llm)
+        console.print(f"[swag.info][TIME] Refinement: {time.time() - t0:.2f}s[/]")
         
         # Step C: Answer (The Brain)
+        t0 = time.time()
         answer, source_docs = query_swag_brain(cleaned_text, chain)
+        console.print(f"[swag.info][TIME] RAG query: {time.time() - t0:.2f}s[/]")
         
         # Check for critical content
         is_critical = any(
@@ -403,7 +417,9 @@ def process_voice_query(llm: Ollama, chain):
         
         if source_docs:
             sources_text = format_sources(source_docs)
-            console.print(f"[swag.info][SOURCE] {sources_text}[/]\n")
+            console.print(f"[swag.info][SOURCE] {sources_text}[/]")
+        
+        console.print(f"[swag.info][TIME] Total pipeline: {time.time() - pipeline_start:.2f}s[/]\n")
         
     except Exception as e:
         console.print(f"[swag.warning][ERR] Processing failed: {e}[/]")
