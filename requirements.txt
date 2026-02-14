@@ -61,7 +61,7 @@ flask>=3.0.0
 flask-cors>=4.0.0
 
 # TFLite only (lightweight TensorFlow)
-tensorflow-lite==2.20.0  # Much smaller than full tensorflow
+tflite==2.3.0 # Much smaller than full tensorflow
 
 # Basic dependencies
 numpy>=1.24.0
@@ -70,4 +70,13 @@ requests>=2.31.0
 
 # Optional: If you need basic TTS
 gtts>=2.3.0
-
+flask
+flask_cors
+langchain_text_splitters
+langchain_core
+langchain_huggingface
+langchain_community
+sentencepiece
+faster-whisper
+gtts
+diffusers
