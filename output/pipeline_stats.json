@@ -1,0 +1,16 @@
+{
+  "phase_2_sentences": 4658,
+  "phase_3_prompts": 4658,
+  "categories": {
+    "HAZARD_WARNING": 1097,
+    "OPERATIONAL_PROCEDURE": 2821,
+    "PROHIBITED_ACTION": 740
+  },
+  "machines": {
+    "backhoe_loader": 924,
+    "bulldozer": 413,
+    "dump_truck": 2482,
+    "excavator": 699,
+    "general": 140
+  }
+}

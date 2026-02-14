@@ -17,7 +17,7 @@ from director import process_classified_file
 
 
 def run_full_pipeline(
-    output_base: str = "../output",
+    output_base: str = "../pipeline/output",
     use_llm: bool = False,
     ollama_model: str = "llama3",
     limit: int = None
