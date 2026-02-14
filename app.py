@@ -41,11 +41,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import Ollama
-# Video Generation
-from swag_video import VideoGenerator
-from pipeline.director import create_visual_prompt_llm, create_visual_prompt_offline
-# Initialize video generator (lazy load)
-video_gen = VideoGenerator()
+# Video Generation (lazy import - only when needed)
+# Moved imports inside generate_video() to avoid slow startup
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -158,8 +155,9 @@ def get_user_training_count(user_id: str) -> int:
 def load_whisper():
     """Load Whisper model (cached)."""
     if 'whisper' not in models_cache:
-        print(f"Loading Whisper model: {WHISPER_MODEL}...")
-        models_cache['whisper'] = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
+        # Using 'tiny' model for speed - can be changed to 'base', 'small', 'medium', 'large-v3'
+        print(f"Loading Whisper model: tiny (fast startup)...")
+        models_cache['whisper'] = WhisperModel("tiny", device="cpu", compute_type="int8")
     return models_cache['whisper']
 
 
@@ -264,34 +262,43 @@ def load_translator():
     return models_cache['translator']
 
 #FIXME no more api, local model
+#TODO may not require another model for translation, whisper can do it
 def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
-    """Transcribe audio using OpenAI Whisper API (cloud-based, fast)."""
+    """Transcribe audio using local Whisper model (tiny for speed)."""
+    temp_path = None
     try:
-        # Use cloud Whisper for speed
-        from cloud_whisper import get_whisper, WHISPER_TO_NLLB
-        whisper = get_whisper()
-        text, lang = whisper.transcribe_from_bytes(audio_bytes)
-        nllb_lang = WHISPER_TO_NLLB.get(lang, "eng_Latn")
-        return text, nllb_lang
-    except Exception as e:
-        print(f"Cloud Whisper error, falling back to local: {e}")
-        # Fallback to local if cloud fails
-        whisper = load_whisper()
+        # Use cached Whisper model instead of creating new one each time
+        model = load_whisper()
         
-        # Save to temp file
+        # Save to temp file - Whisper needs file path
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(audio_bytes)
             temp_path = f.name
+        # File is now closed and can be accessed by Whisper
         
-        try:
-            segments, info = whisper.transcribe(temp_path, beam_size=5)
-            text = " ".join([s.text for s in segments]).strip()
-            lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
-            return text, lang
-        finally:
-            os.unlink(temp_path)
-
-
+        # Transcribe
+        segments, info = model.transcribe(temp_path, beam_size=5)
+        text = " ".join([s.text for s in segments]).strip()
+        lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
+        
+        return text, lang
+        
+    except Exception as e:
+        print(f"Whisper transcription error: {e}")
+        return "", ""
+    finally:
+        # Clean up temp file (Windows-safe deletion)
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except PermissionError:
+                # Windows sometimes holds file locks briefly
+                import time
+                time.sleep(0.1)  # Wait 100ms
+                try:
+                    os.unlink(temp_path)
+                except:
+                    pass  # Give up if still locked
 def translate_text(text: str, source_lang: str, target_lang: str) -> str:
     """Translate text using NLLB."""
     if source_lang == target_lang:
@@ -627,6 +634,13 @@ def generate_video():
         return jsonify({"error": "Query required"}), 400
         
     try:
+        # Lazy import - only load heavy libraries when this endpoint is called
+        from swag_video import VideoGenerator
+        from pipeline.director import create_visual_prompt_offline
+        
+        # Initialize video generator on-demand
+        video_gen = VideoGenerator()
+        
         # 1. Create visual prompt
         # Using offline template for speed, but could use LLM if requested
         visual_prompt_obj = create_visual_prompt_offline(query, category, machine)
@@ -657,8 +671,10 @@ if __name__ == '__main__':
     print("Models will be loaded on first request.")
     
     # Run Flask app
+    # use_reloader=False prevents double-startup from watchdog (faster development)
     app.run(
         host='0.0.0.0',
         port=5000,
-        debug=True
+        debug=True,
+        use_reloader=False  # Disable auto-reload to prevent slow double-startup
     )
