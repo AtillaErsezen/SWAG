@@ -22,6 +22,7 @@ import json
 import base64
 import tempfile
 import hashlib
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
@@ -76,6 +77,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
 # Global model cache
 models_cache = {}
+_yolo_lock = threading.Lock()
 # ============================================================================
 # DATABASE FUNCTIONS
 # ============================================================================
@@ -233,6 +235,17 @@ def load_llm():
         print(f"Loading LLM: {OLLAMA_MODEL}...")
         models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1)
     return models_cache['llm']
+
+
+def load_yolo():
+    """Load YOLO26n-cls TFLite classification model (cached, thread-safe)."""
+    if 'yolo' not in models_cache:
+        with _yolo_lock:
+            if 'yolo' not in models_cache:  # double-check after acquiring lock
+                from ultralytics import YOLO
+                print("Loading YOLO26n-cls TFLite model...")
+                models_cache['yolo'] = YOLO("weights/best.pt")
+    return models_cache['yolo']
 
 
 def load_translator():
@@ -588,10 +601,9 @@ def training_count(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-#FIXME no more api, local model
 @app.route('/api/detect', methods=['POST'])
 def detect_objects():
-    """Object detection endpoint using Roboflow cloud API."""
+    """Image classification endpoint using local YOLO26n-cls TFLite model."""
     if 'image' not in request.files:
         return jsonify({"error": "Image file required"}), 400
     
@@ -600,15 +612,28 @@ def detect_objects():
     
     try:
         # Save image temporarily
-        import tempfile
         with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
             image_file.save(f.name)
             temp_path = f.name
         
-        # Run detection using Roboflow cloud API
-        from roboflow_inference import get_detector
-        detector = get_detector()
-        detections = detector.detect(temp_path, confidence_threshold=0.4)
+        # Run classification using local YOLO26n-cls TFLite
+        model = load_yolo()
+        results = model.predict(temp_path, verbose=False)
+        
+        # Process classification results (probs, not boxes)
+        detections = []
+        probs = results[0].probs
+        if probs is not None:
+            # Get top-5 predictions
+            top5_indices = probs.top5
+            top5_confs = probs.top5conf.tolist()
+            names = results[0].names
+            for idx, conf in zip(top5_indices, top5_confs):
+                if conf >= 0.05:  # skip negligible predictions
+                    detections.append({
+                        "class": names[idx],
+                        "confidence": round(float(conf), 3)
+                    })
         
         # Clean up
         os.unlink(temp_path)

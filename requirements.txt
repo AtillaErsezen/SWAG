@@ -36,8 +36,7 @@ ollama>=0.2.0
 
 # AI - Specialized (Safety Intelligence / Classification)
 setfit>=1.0.0
-roboflow
-ultralytics
+ultralytics>=8.3.0
 
 # Web Frameworks & UI
 flask>=3.0.0
@@ -80,3 +79,5 @@ sentencepiece
 faster-whisper
 gtts
 diffusers
+tensorflow
+tf-keras

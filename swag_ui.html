@@ -627,7 +627,7 @@
                 <!-- Camera Object Detection Section -->
                 <div class="section">
                     <h3 id="camTitle">[CAM] Object Detection</h3>
-                    <p id="camDesc">Start the camera to detect heavy machinery and safety hazards</p>
+                    <p id="camDesc">Take a photo to detect heavy machinery and safety hazards</p>
 
                     <div class="camera-container">
                         <video id="cameraVideo" class="camera-video hidden" autoplay playsinline></video>
@@ -639,10 +639,11 @@
 
                     <div class="camera-controls">
                         <button class="btn btn-camera" id="startCameraBtn" onclick="startCamera()">Start Camera</button>
+                        <button class="btn btn-camera hidden" id="takePhotoBtn" onclick="takePhoto()"
+                            style="background-color: var(--safety-orange);">📸 Take Photo</button>
+                        <button class="btn btn-camera hidden" id="retakeBtn" onclick="retakePhoto()">↩ Retake</button>
                         <button class="btn btn-camera hidden" id="stopCameraBtn" onclick="stopCamera()">Stop
                             Camera</button>
-                        <button class="btn btn-camera hidden" id="detectBtn" onclick="runDetection()">Run
-                            Detection</button>
                     </div>
 
                     <div id="cameraStatus"></div>
@@ -695,11 +696,12 @@
                 "recordBtn": "[REC] HOLD TO SPEAK",
                 "recordBtnRecording": "[STOP] RELEASE TO PROCESS",
                 "camTitle": "[CAM] Object Detection",
-                "camDesc": "Start the camera to detect heavy machinery and safety hazards",
+                "camDesc": "Take a photo to detect heavy machinery and safety hazards",
                 "cameraPlaceholder": "Camera not active\nClick \"Start Camera\" to begin",
                 "startCameraBtn": "Start Camera",
                 "stopCameraBtn": "Stop Camera",
-                "detectBtn": "Run Detection",
+                "takePhotoBtn": "📸 Take Photo",
+                "retakeBtn": "↩ Retake",
                 "textTitle": "Or Type Your Question",
                 "textQueryPlaceholder": "e.g., What is the safe distance from excavator swing radius?",
                 "searchBtn": "SEARCH SAFETY DATABASE",
@@ -721,11 +723,12 @@
                 "recordBtn": "[OPN] HOUD INGEDRUKT OM TE SPREKEN",
                 "recordBtnRecording": "[STOP] LAAT LOS OM TE VERWERKEN",
                 "camTitle": "[CAM] Objectdetectie",
-                "camDesc": "Start de camera om zware machines en gevaren te detecteren",
+                "camDesc": "Maak een foto om zware machines en gevaren te detecteren",
                 "cameraPlaceholder": "Camera niet actief\nKlik op \"Start Camera\" om te beginnen",
                 "startCameraBtn": "Start Camera",
                 "stopCameraBtn": "Stop Camera",
-                "detectBtn": "Detectie Starten",
+                "takePhotoBtn": "📸 Foto Maken",
+                "retakeBtn": "↩ Opnieuw",
                 "textTitle": "Of Typ Uw Vraag",
                 "textQueryPlaceholder": "bijv. Wat is de veilige afstand tot de draaicirkel van de graafmachine?",
                 "searchBtn": "VEILIGHEIDSDATABASE DOORZOEKEN",
@@ -747,11 +750,12 @@
                 "recordBtn": "[ENR] MAINTENIR POUR PARLER",
                 "recordBtnRecording": "[STOP] RELÂCHER POUR TRAITER",
                 "camTitle": "[CAM] Détection d'Objets",
-                "camDesc": "Démarrez la caméra pour détecter les machines lourdes et les dangers",
+                "camDesc": "Prenez une photo pour détecter les machines lourdes et les dangers",
                 "cameraPlaceholder": "Caméra inactive\nCliquez sur \"Démarrer Caméra\" pour commencer",
                 "startCameraBtn": "Démarrer Caméra",
                 "stopCameraBtn": "Arrêter Caméra",
-                "detectBtn": "Lancer Détection",
+                "takePhotoBtn": "📸 Prendre Photo",
+                "retakeBtn": "↩ Reprendre",
                 "textTitle": "Ou Tapez Votre Question",
                 "textQueryPlaceholder": "ex: Quelle est la distance de sécurité du rayon de braquage de la pelle ?",
                 "searchBtn": "RECHERCHER DANS LA BASE DE SÉCURITÉ",
@@ -773,11 +777,12 @@
                 "recordBtn": "[AUFN] ZUM SPRECHEN HALTEN",
                 "recordBtnRecording": "[STOP] ZUM BEARBEITEN LOSLASSEN",
                 "camTitle": "[CAM] Objekterkennung",
-                "camDesc": "Starten Sie die Kamera, um schwere Maschinen und Gefahren zu erkennen",
+                "camDesc": "Machen Sie ein Foto, um schwere Maschinen und Gefahren zu erkennen",
                 "cameraPlaceholder": "Kamera nicht aktiv\nKlicken Sie auf \"Kamera Starten\" um zu beginnen",
                 "startCameraBtn": "Kamera Starten",
                 "stopCameraBtn": "Kamera Stoppen",
-                "detectBtn": "Erkennung Starten",
+                "takePhotoBtn": "📸 Foto Aufnehmen",
+                "retakeBtn": "↩ Wiederholen",
                 "textTitle": "Oder Tippen Sie Ihre Frage",
                 "textQueryPlaceholder": "z.B. Wie groß ist der Sicherheitsabstand zum Schwenkbereich des Baggers?",
                 "searchBtn": "SICHERHEITSDATENBANK DURCHSUCHEN",
@@ -799,11 +804,12 @@
                 "recordBtn": "[NAGR] PRZYTRZYMAJ ABY MÓWIĆ",
                 "recordBtnRecording": "[STOP] PUŚĆ ABY PRZETWORZYĆ",
                 "camTitle": "[CAM] Wykrywanie Obiektów",
-                "camDesc": "Uruchom kamerę, aby wykryć ciężki sprzęt i zagrożenia",
+                "camDesc": "Zrób zdjęcie, aby wykryć ciężki sprzęt i zagrożenia",
                 "cameraPlaceholder": "Kamera nieaktywna\nKliknij \"Uruchom Kamerę\" aby rozpocząć",
                 "startCameraBtn": "Uruchom Kamerę",
                 "stopCameraBtn": "Zatrzymaj Kamerę",
-                "detectBtn": "Uruchom Wykrywanie",
+                "takePhotoBtn": "📸 Zrób Zdjęcie",
+                "retakeBtn": "↩ Ponownie",
                 "textTitle": "Lub Wpisz Swoje Pytanie",
                 "textQueryPlaceholder": "np. Jaka jest bezpieczna odległość od zasięgu obrotu koparki?",
                 "searchBtn": "PRZESZUKAJ BAZĘ BEZPIECZEŃSTWA",
@@ -825,11 +831,12 @@
                 "recordBtn": "[KAYIT] KONUŞMAK İÇİN BASILI TUTUN",
                 "recordBtnRecording": "[DUR] İŞLEMEK İÇİN BIRAKIN",
                 "camTitle": "[CAM] Nesne Algılama",
-                "camDesc": "Ağır makineleri ve güvenlik tehlikelerini algılamak için kamerayı başlatın",
+                "camDesc": "Ağır makineleri ve güvenlik tehlikelerini algılamak için fotoğraf çekin",
                 "cameraPlaceholder": "Kamera etkin değil\nBaşlamak için \"Kamera Başlat\"a tıklayın",
                 "startCameraBtn": "Kamera Başlat",
                 "stopCameraBtn": "Kamera Durdur",
-                "detectBtn": "Algılamayı Başlat",
+                "takePhotoBtn": "📸 Fotoğraf Çek",
+                "retakeBtn": "↩ Tekrar Çek",
                 "textTitle": "Veya Sorunuzu Yazın",
                 "textQueryPlaceholder": "ör., Ekskavatör dönüş yarıçapından güvenli mesafe nedir?",
                 "searchBtn": "GÜVENLİK VERİTABANINI ARA",
@@ -851,11 +858,12 @@
                 "recordBtn": "[ÎNREG] ȚINEȚI APĂSAT PENTRU A VORBI",
                 "recordBtnRecording": "[STOP] ELIBERAȚI PENTRU A PROCESA",
                 "camTitle": "[CAM] Detectare Obiecte",
-                "camDesc": "Porniți camera pentru a detecta utilaje grele și pericole",
+                "camDesc": "Faceți o fotografie pentru a detecta utilaje grele și pericole",
                 "cameraPlaceholder": "Camera nu este activă\nFaceți clic pe \"Porniți Camera\" pentru a începe",
                 "startCameraBtn": "Porniți Camera",
                 "stopCameraBtn": "Opriți Camera",
-                "detectBtn": "Rulați Detectarea",
+                "takePhotoBtn": "📸 Faceți Fotografie",
+                "retakeBtn": "↩ Refaceți",
                 "textTitle": "Sau Tastați Întrebarea",
                 "textQueryPlaceholder": "ex: Care este distanța sigură față de raza de rotire a excavatorului?",
                 "searchBtn": "CĂUTAȚI ÎN BAZA DE DATE DE SIGURANȚĂ",
@@ -877,11 +885,12 @@
                 "recordBtn": "[GRAV] SEGURE PARA FALAR",
                 "recordBtnRecording": "[PARAR] SOLTE PARA PROCESSAR",
                 "camTitle": "[CAM] Detecção de Objetos",
-                "camDesc": "Inicie a câmera para detectar máquinas pesadas e riscos de segurança",
+                "camDesc": "Tire uma foto para detectar máquinas pesadas e riscos de segurança",
                 "cameraPlaceholder": "Câmera inativa\nClique em \"Iniciar Câmera\" para começar",
                 "startCameraBtn": "Iniciar Câmera",
                 "stopCameraBtn": "Parar Câmera",
-                "detectBtn": "Executar Detecção",
+                "takePhotoBtn": "📸 Tirar Foto",
+                "retakeBtn": "↩ Refazer",
                 "textTitle": "Ou Digite Sua Pergunta",
                 "textQueryPlaceholder": "ex: Qual é a distância segura do raio de giro da escavadeira?",
                 "searchBtn": "PESQUISAR BANCO DE DADOS DE SEGURANÇA",
@@ -903,11 +912,12 @@
                 "recordBtn": "[GRAB] MANTENGA PARA HABLAR",
                 "recordBtnRecording": "[PARAR] SUELTE PARA PROCESAR",
                 "camTitle": "[CAM] Detección de Objetos",
-                "camDesc": "Inicie la cámara para detectar maquinaria pesada y peligros de seguridad",
+                "camDesc": "Tome una foto para detectar maquinaria pesada y peligros de seguridad",
                 "cameraPlaceholder": "Cámara inactiva\nHaga clic en \"Iniciar Cámara\" para comenzar",
                 "startCameraBtn": "Iniciar Cámara",
                 "stopCameraBtn": "Detener Cámara",
-                "detectBtn": "Ejecutar Detección",
+                "takePhotoBtn": "📸 Tomar Foto",
+                "retakeBtn": "↩ Retomar",
                 "textTitle": "O Escriba Su Pregunta",
                 "textQueryPlaceholder": "ej: ¿Cuál es la distancia segura del radio de giro de la excavadora?",
                 "searchBtn": "BUSCAR EN BASE DE DATOS DE SEGURIDAD",
@@ -930,7 +940,6 @@
         // Camera state
         let cameraStream = null;
         let cameraPermissionGranted = false;
-        let detectionInterval = null;
 
         // ============================================================================
         // LOGIN / LOGOUT
@@ -1011,7 +1020,8 @@
             setTxt('cameraPlaceholder', t.cameraPlaceholder);
             setTxt('startCameraBtn', t.startCameraBtn);
             setTxt('stopCameraBtn', t.stopCameraBtn);
-            setTxt('detectBtn', t.detectBtn);
+            setTxt('takePhotoBtn', t.takePhotoBtn);
+            setTxt('retakeBtn', t.retakeBtn);
 
             setTxt('textTitle', t.textTitle);
             setPh('textQuery', t.textQueryPlaceholder);
@@ -1341,13 +1351,14 @@
 
                 video.srcObject = cameraStream;
                 video.classList.remove('hidden');
-                canvas.classList.remove('hidden');
+                canvas.classList.add('hidden');
                 placeholder.classList.add('hidden');
 
                 // Update buttons
                 document.getElementById('startCameraBtn').classList.add('hidden');
                 document.getElementById('stopCameraBtn').classList.remove('hidden');
-                document.getElementById('detectBtn').classList.remove('hidden');
+                document.getElementById('takePhotoBtn').classList.remove('hidden');
+                document.getElementById('retakeBtn').classList.add('hidden');
 
                 // Set canvas size to match video
                 video.addEventListener('loadedmetadata', () => {
@@ -1355,7 +1366,7 @@
                     canvas.height = video.videoHeight;
                 });
 
-                showStatus('cameraStatus', 'Camera active - Ready for object detection', 'success');
+                showStatus('cameraStatus', 'Camera active — tap 📸 Take Photo to capture', 'success');
 
             } catch (error) {
                 showStatus('cameraStatus', 'Camera permission denied. Please allow camera access.', 'error');
@@ -1368,12 +1379,6 @@
                 // Stop all tracks
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
-
-                // Stop detection if running
-                if (detectionInterval) {
-                    clearInterval(detectionInterval);
-                    detectionInterval = null;
-                }
 
                 // Hide video, show placeholder
                 const video = document.getElementById('cameraVideo');
@@ -1388,135 +1393,137 @@
                 // Update buttons
                 document.getElementById('startCameraBtn').classList.remove('hidden');
                 document.getElementById('stopCameraBtn').classList.add('hidden');
-                document.getElementById('detectBtn').classList.add('hidden');
+                document.getElementById('takePhotoBtn').classList.add('hidden');
+                document.getElementById('retakeBtn').classList.add('hidden');
 
                 clearStatus('cameraStatus');
-                clearStatus('detectionResults');
+                document.getElementById('detectionResults').innerHTML = '';
             }
         }
 
-        async function runDetection() {
+        async function takePhoto() {
             const video = document.getElementById('cameraVideo');
             const canvas = document.getElementById('detectionCanvas');
             const ctx = canvas.getContext('2d');
-            const detectBtn = document.getElementById('detectBtn');
 
             if (!video.srcObject) {
                 showStatus('cameraStatus', 'Please start the camera first', 'warning');
                 return;
             }
 
-            // Toggle real-time detection
-            if (detectionInterval) {
-                // Stop detection
-                clearInterval(detectionInterval);
-                detectionInterval = null;
-                detectBtn.textContent = 'Start Real-Time Detection';
-                detectBtn.classList.remove('active');
-                clearStatus('cameraStatus');
-                clearStatus('detectionResults');
+            // Freeze the frame onto the canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                return;
-            }
+            // Show canvas, hide live video
+            canvas.classList.remove('hidden');
+            canvas.style.position = 'relative';
+            canvas.style.pointerEvents = 'auto';
+            video.classList.add('hidden');
 
-            // Start real-time detection
-            detectBtn.textContent = 'Stop Detection';
-            detectBtn.classList.add('active');
-            showStatus('cameraStatus', 'Real-time detection active...', 'success');
+            // Pause camera stream (keep it alive for retake)
+            cameraStream.getTracks().forEach(track => track.enabled = false);
 
-            // Detection loop - run every 1 second (1 FPS for API calls)
-            const detectFrame = async () => {
+            // Update buttons
+            document.getElementById('takePhotoBtn').classList.add('hidden');
+            document.getElementById('retakeBtn').classList.remove('hidden');
+
+            showStatus('cameraStatus', 'Classifying image with YOLO26n-cls...', 'info');
+
+            // Send frame for classification
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'photo.jpg');
+                formData.append('user_id', currentUser || 'unknown');
+
                 try {
-                    // Capture current frame
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const response = await fetch('/api/detect', {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                    // Convert canvas to blob
-                    canvas.toBlob(async (blob) => {
-                        const formData = new FormData();
-                        formData.append('image', blob, 'frame.jpg');
-                        formData.append('user_id', currentUser || 'unknown');
+                    if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
 
-                        try {
-                            // Send to Flask API
-                            const response = await fetch('/api/detect', {
-                                method: 'POST',
-                                body: formData
-                            });
+                    const data = await response.json();
 
-                            if (response.ok) {
-                                const data = await response.json();
+                    if (data.error) {
+                        showStatus('cameraStatus', 'Classification error: ' + data.error, 'error');
+                        return;
+                    }
 
-                                // Clear previous drawings
-                                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // Show classification results (no bounding boxes)
+                    if (data.detections && data.detections.length > 0) {
+                        // Draw classification label on the frozen frame
+                        drawClassificationLabel(ctx, data.detections[0]);
 
-                                // Draw detections
-                                if (data.detections && data.detections.length > 0) {
-                                    drawDetections(ctx, data.detections, canvas.width, canvas.height);
-                                    showStatus('detectionResults',
-                                        `Detected ${data.count} object(s): ${data.detections.map(d => d.class).join(', ')}`,
-                                        'success');
+                        // Build results HTML with confidence bars
+                        let resultsHtml = `<div class="status-message status-success">` +
+                            `<strong>Classification results:</strong><br>`;
+                        data.detections.forEach((d, i) => {
+                            const pct = (d.confidence * 100).toFixed(1);
+                            const barWidth = Math.round(d.confidence * 100);
+                            const barColor = i === 0 ? '#FF6700' : '#0057B8';
+                            resultsHtml += `<div style="margin: 4px 0;">` +
+                                `<strong>${d.class}</strong> — ${pct}%` +
+                                `<div style="background:#e0e0e0;border-radius:4px;height:8px;margin-top:2px;">` +
+                                `<div style="background:${barColor};width:${barWidth}%;height:100%;border-radius:4px;"></div>` +
+                                `</div></div>`;
+                        });
+                        resultsHtml += `</div>`;
+                        document.getElementById('detectionResults').innerHTML = resultsHtml;
 
-                                    // [NEW] Auto-trigger safety flow on detection
-                                    if (data.detections.length > 0) {
-                                        // Stop detection to prevent loop
-                                        stopCamera();
-                                        handleObjectDetection(data.detections[0]);
-                                    }
-                                } else {
-                                    showStatus('detectionResults', 'No objects detected', 'info');
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Detection API error:', error);
-                        }
-                    }, 'image/jpeg', 0.85);
+                        showStatus('cameraStatus', 'Classification complete ✓', 'success');
+
+                        // Auto-trigger safety flow with the top prediction
+                        handleObjectDetection(data.detections[0]);
+                    } else {
+                        showStatus('cameraStatus', 'Could not classify image. Try a different angle.', 'info');
+                        document.getElementById('detectionResults').innerHTML = '';
+                    }
 
                 } catch (error) {
-                    console.error('Frame capture error:', error);
+                    showStatus('cameraStatus', 'Classification failed: ' + error.message, 'error');
+                    console.error('Classification API error:', error);
                 }
-            };
-
-            // Run first detection immediately
-            detectFrame();
-
-            // Then run every 1000ms (1 FPS)
-            detectionInterval = setInterval(detectFrame, 1000);
+            }, 'image/jpeg', 0.90);
         }
 
-        function drawDetections(ctx, detections, canvasWidth, canvasHeight) {
-            detections.forEach(det => {
-                // Parse bbox - format depends on your model output
-                // Assuming [ymin, xmin, ymax, xmax] normalized coordinates
-                let [ymin, xmin, ymax, xmax] = det.bbox;
+        function retakePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('detectionCanvas');
 
-                // Convert to pixel coordinates
-                const x = xmin * canvasWidth;
-                const y = ymin * canvasHeight;
-                const width = (xmax - xmin) * canvasWidth;
-                const height = (ymax - ymin) * canvasHeight;
+            // Re-enable camera stream
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.enabled = true);
+            }
 
-                // Draw bounding box
-                ctx.strokeStyle = det.class === 'excavator' ? '#FF6700' : '#0057B8';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(x, y, width, height);
+            // Show live video, hide canvas
+            video.classList.remove('hidden');
+            canvas.classList.add('hidden');
 
-                // Draw label background
-                const label = `${det.class} ${(det.confidence * 100).toFixed(0)}%`;
-                ctx.font = '16px Inter';
-                const textWidth = ctx.measureText(label).width;
+            // Update buttons
+            document.getElementById('takePhotoBtn').classList.remove('hidden');
+            document.getElementById('retakeBtn').classList.add('hidden');
 
-                ctx.fillStyle = det.class === 'excavator' ? '#FF6700' : '#0057B8';
-                ctx.fillRect(x, y - 25, textWidth + 10, 25);
+            // Clear results
+            document.getElementById('detectionResults').innerHTML = '';
+            showStatus('cameraStatus', 'Camera active — tap 📸 Take Photo to capture', 'success');
+        }
 
-                // Draw label text
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillText(label, x + 5, y - 7);
-            });
+        function drawClassificationLabel(ctx, topPrediction) {
+            // Draw a label overlay in the top-left corner of the captured image
+            const label = `${topPrediction.class} ${(topPrediction.confidence * 100).toFixed(0)}%`;
+            ctx.font = 'bold 20px Inter, sans-serif';
+            const textWidth = ctx.measureText(label).width;
+
+            // Background
+            ctx.fillStyle = 'rgba(255, 103, 0, 0.85)';
+            ctx.fillRect(8, 8, textWidth + 20, 36);
+
+            // Text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillText(label, 18, 32);
         }
 
         function handleObjectDetection(detection) {
