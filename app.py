@@ -11,6 +11,13 @@ Features:
 - Training audit logging (SQLite)
 - Text-to-Speech (gTTS)
 
+- image classification display probs only when not so sure
+- optimize llama3.2:1b answer generation
+- make llama3 always output exactly 3 items, 1 for each category?
+- better ui
+- video generation with api
+- test with real life images
+
 Run:
     python app.py
     or
@@ -23,6 +30,7 @@ import base64
 import tempfile
 import hashlib
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
@@ -52,7 +60,7 @@ SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models"
 TRAINING_DB_PATH = "./training_audit.db"
-OLLAMA_MODEL = "llama3"
+OLLAMA_MODEL = "llama3.2:1b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
@@ -449,6 +457,7 @@ def login():
 @app.route('/api/query/text', methods=['POST'])
 def query_text():
     """Process text query."""
+    t_total = time.time()
     data = request.json
     text = data.get('text', '').strip()
     user_id = data.get('user_id', 'unknown')
@@ -459,13 +468,17 @@ def query_text():
     
     try:
         # Translate to English if needed
+        t0 = time.time()
         if lang != "eng_Latn":
             english_query = translate_text(text, lang, "eng_Latn")
         else:
             english_query = text
+        print(f"[TEXT] Translation to English: {time.time() - t0:.2f}s")
         
         # Search with confidence check
+        t0 = time.time()
         docs, confidence, category = search_with_confidence(english_query)
+        print(f"[TEXT] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check
         if confidence < CONFIDENCE_THRESHOLD:
@@ -477,21 +490,30 @@ Please consult your physical safety manual or contact your Site Safety Superviso
             category = "HAZARD_WARNING"
         else:
             # Generate answer
+            t0 = time.time()
             english_answer = generate_answer(english_query, docs)
+            print(f"[TEXT] LLM answer generation: {time.time() - t0:.2f}s")
             
             # Translate answer
+            t0 = time.time()
             if lang != "eng_Latn":
                 answer = translate_text(english_answer, "eng_Latn", lang)
             else:
                 answer = english_answer
+            print(f"[TEXT] Translation to target lang: {time.time() - t0:.2f}s")
         
         # Log to database
+        t0 = time.time()
         log_id = log_training(user_id, lang, text, answer, category, confidence)
+        print(f"[TEXT] Database logging: {time.time() - t0:.2f}s")
         
         # Generate TTS
+        t0 = time.time()
         audio_bytes = text_to_speech(answer, lang)
         audio_base64 = base64.b64encode(audio_bytes).decode() if audio_bytes else None
+        print(f"[TEXT] TTS generation: {time.time() - t0:.2f}s")
         
+        print(f"[TEXT] === TOTAL query_text: {time.time() - t_total:.2f}s ===")
         return jsonify({
             "success": True,
             "question": text,
@@ -503,12 +525,14 @@ Please consult your physical safety manual or contact your Site Safety Superviso
         })
     
     except Exception as e:
+        print(f"[TEXT] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/query/voice', methods=['POST'])
 def query_voice():
     """Process voice query."""
+    t_total = time.time()
     if 'audio' not in request.files:
         return jsonify({"error": "Audio file required"}), 400
     
@@ -521,19 +545,25 @@ def query_voice():
         audio_bytes = audio_file.read()
         
         # Transcribe
+        t0 = time.time()
         raw_text, detected_lang = transcribe_audio(audio_bytes)
+        print(f"[VOICE] Transcription (Whisper): {time.time() - t0:.2f}s")
         
         if not raw_text.strip():
             return jsonify({"error": "Could not understand audio"}), 400
         
         # Translate to English
+        t0 = time.time()
         if detected_lang != "eng_Latn":
             english_query = translate_text(raw_text, detected_lang, "eng_Latn")
         else:
             english_query = raw_text
+        print(f"[VOICE] Translation to English: {time.time() - t0:.2f}s")
         
         # Search with confidence check
+        t0 = time.time()
         docs, confidence, category = search_with_confidence(english_query)
+        print(f"[VOICE] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check
         if confidence < CONFIDENCE_THRESHOLD:
@@ -551,21 +581,30 @@ This query cannot be answered by the AI system.
             category = "HAZARD_WARNING"
         else:
             # Generate answer
+            t0 = time.time()
             english_answer = generate_answer(english_query, docs)
+            print(f"[VOICE] LLM answer generation: {time.time() - t0:.2f}s")
         
         # Translate answer to user's language
+        t0 = time.time()
         if target_lang != "eng_Latn":
             final_answer = translate_text(english_answer, "eng_Latn", target_lang)
         else:
             final_answer = english_answer
+        print(f"[VOICE] Translation to target lang: {time.time() - t0:.2f}s")
         
         # Log to database
+        t0 = time.time()
         log_id = log_training(user_id, target_lang, raw_text, final_answer, category, confidence)
+        print(f"[VOICE] Database logging: {time.time() - t0:.2f}s")
         
         # Generate TTS
+        t0 = time.time()
         audio_bytes = text_to_speech(final_answer, target_lang)
         audio_base64 = base64.b64encode(audio_bytes).decode() if audio_bytes else None
+        print(f"[VOICE] TTS generation: {time.time() - t0:.2f}s")
         
+        print(f"[VOICE] === TOTAL query_voice: {time.time() - t_total:.2f}s ===")
         return jsonify({
             "success": True,
             "transcription": raw_text,
@@ -579,6 +618,7 @@ This query cannot be answered by the AI system.
         })
     
     except Exception as e:
+        print(f"[VOICE] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
 
 
@@ -604,6 +644,7 @@ def training_count(user_id):
 @app.route('/api/detect', methods=['POST'])
 def detect_objects():
     """Image classification endpoint using local YOLO26n-cls TFLite model."""
+    t_total = time.time()
     if 'image' not in request.files:
         return jsonify({"error": "Image file required"}), 400
     
@@ -612,13 +653,20 @@ def detect_objects():
     
     try:
         # Save image temporarily
+        t0 = time.time()
         with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
             image_file.save(f.name)
             temp_path = f.name
+        print(f"[DETECT] Save temp image: {time.time() - t0:.2f}s")
         
         # Run classification using local YOLO26n-cls TFLite
+        t0 = time.time()
         model = load_yolo()
+        print(f"[DETECT] Load YOLO model: {time.time() - t0:.2f}s")
+        
+        t0 = time.time()
         results = model.predict(temp_path, verbose=False)
+        print(f"[DETECT] YOLO prediction: {time.time() - t0:.2f}s")
         
         # Process classification results (probs, not boxes)
         detections = []
@@ -638,6 +686,7 @@ def detect_objects():
         # Clean up
         os.unlink(temp_path)
         
+        print(f"[DETECT] === TOTAL detect_objects: {time.time() - t_total:.2f}s ===")
         return jsonify({
             "success": True,
             "detections": detections,
@@ -645,11 +694,13 @@ def detect_objects():
         })
     
     except Exception as e:
+        print(f"[DETECT] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/generate_video', methods=['POST'])
 def generate_video():
     """Generate safety video from query."""
+    t_total = time.time()
     data = request.json
     query = data.get('query', '')
     category = data.get('category', 'OPERATIONAL_PROCEDURE')
@@ -660,23 +711,32 @@ def generate_video():
         
     try:
         # Lazy import - only load heavy libraries when this endpoint is called
+        t0 = time.time()
         from swag_video import VideoGenerator
         from pipeline.director import create_visual_prompt_offline
+        print(f"[VIDEO] Lazy imports: {time.time() - t0:.2f}s")
         
         # Initialize video generator on-demand
+        t0 = time.time()
         video_gen = VideoGenerator()
+        print(f"[VIDEO] Init VideoGenerator: {time.time() - t0:.2f}s")
         
         # 1. Create visual prompt
         # Using offline template for speed, but could use LLM if requested
+        t0 = time.time()
         visual_prompt_obj = create_visual_prompt_offline(query, category, machine)
         prompt = visual_prompt_obj.wan_2_2_prompt
+        print(f"[VIDEO] Create visual prompt: {time.time() - t0:.2f}s")
         
         # 2. Generate video
+        t0 = time.time()
         video_path = video_gen.generate_video(prompt)
+        print(f"[VIDEO] Generate video: {time.time() - t0:.2f}s")
         
         if not video_path:
             return jsonify({"error": "Video generation failed"}), 500
             
+        print(f"[VIDEO] === TOTAL generate_video: {time.time() - t_total:.2f}s ===")
         return jsonify({
             "success": True,
             "video_url": video_path,
@@ -684,16 +744,63 @@ def generate_video():
         })
         
     except Exception as e:
+        print(f"[VIDEO] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
 
+
+def preload_models():
+    """Preload all models during startup."""
+    t_total = time.time()
+    print("Preloading SWAG models...")
+    
+    # 1. Load Whisper
+    try:
+        t0 = time.time()
+        load_whisper()
+        print(f"✓ Whisper model loaded ({time.time() - t0:.2f}s)")
+    except Exception as e:
+        print(f"✗ Failed to load Whisper: {e}")
+
+    # 2. Load Embeddings and Vectorstore
+    try:
+        t0 = time.time()
+        load_vectorstore()
+        print(f"✓ Vectorstore loaded ({time.time() - t0:.2f}s)")
+    except Exception as e:
+        print(f"✗ Failed to load Vectorstore: {e}")
+
+    # 3. Load LLM (lightweight connection check)
+    try:
+        t0 = time.time()
+        load_llm()
+        print(f"✓ LLM connection established ({time.time() - t0:.2f}s)")
+    except Exception as e:
+        print(f"✗ Failed to connect to LLM: {e}")
+
+    # 4. Load YOLO
+    try:
+        t0 = time.time()
+        load_yolo()
+        print(f"✓ YOLO model loaded ({time.time() - t0:.2f}s)")
+    except Exception as e:
+        print(f"✗ Failed to load YOLO: {e}")
+
+    # 5. Load Translator
+    try:
+        t0 = time.time()
+        load_translator()
+        print(f"✓ Translator loaded ({time.time() - t0:.2f}s)")
+    except Exception as e:
+        print(f"✗ Failed to load Translator: {e}")
+    
+    print(f"=== TOTAL preload_models: {time.time() - t_total:.2f}s ===")
 
 if __name__ == '__main__':
     # Initialize database
     init_database()
     
-    # Preload models (optional - can lazy load)
-    print("Initializing SWAG Flask API...")
-    print("Models will be loaded on first request.")
+    # Preload models to prevent timeout on first request
+    preload_models()
     
     # Run Flask app
     # use_reloader=False prevents double-startup from watchdog (faster development)
