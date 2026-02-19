@@ -373,11 +373,13 @@ def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], floa
 
 
 def generate_answer(query: str, context_docs: List[Document]) -> str:
-    """Generate answer using LLM."""
-    llm = load_llm()
-    
+    """Generate answer using LLM with timing and token diagnostics."""
+    import ollama as _ollama
+
     context = "\n\n".join([d.page_content for d in context_docs[:3]])
-    
+
+    # ── Build prompt ─────────────────────────────────────────────────────────
+    t_prompt = time.time()
     prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.
     
     CRITICAL INSTRUCTION:
@@ -403,8 +405,35 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
     Question: {query}
 
     Safety Answer:"""
-    
-    return llm.invoke(prompt).strip()
+    t_prompt_built = time.time()
+    print(f"[LLM] Prompt built in {t_prompt_built - t_prompt:.3f}s "
+          f"(~{len(prompt.split())} words / ~{len(prompt)} chars)")
+
+    # ── Call Ollama and measure generation ───────────────────────────────────
+    t_gen = time.time()
+    response = _ollama.chat(
+        model=OLLAMA_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    t_gen_done = time.time()
+
+    answer = response["message"]["content"].strip()
+
+    # ── Token stats from Ollama response metadata ─────────────────────────────
+    prompt_tokens    = response.get("prompt_eval_count", 0)
+    gen_tokens       = response.get("eval_count", 0)
+    total_tokens     = prompt_tokens + gen_tokens
+    gen_duration_s   = response.get("eval_duration", 0) / 1e9   # nanoseconds → seconds
+    tps              = gen_tokens / gen_duration_s if gen_duration_s > 0 else 0.0
+    total_dur_ns     = response.get("total_duration", 0)
+    total_dur_s      = total_dur_ns / 1e9
+
+    print(f"[LLM] ┌── Prompt processing : {response.get('prompt_eval_duration', 0)/1e9:.2f}s  |  {prompt_tokens} prompt tokens")
+    print(f"[LLM] ├── Generation        : {gen_duration_s:.2f}s  |  {gen_tokens} tokens  |  {tps:.1f} tok/s")
+    print(f"[LLM] └── Total (Ollama)    : {total_dur_s:.2f}s  |  {total_tokens} tokens total")
+    print(f"[LLM]     Wall-clock time   : {t_gen_done - t_gen:.2f}s")
+
+    return answer
 
 
 def text_to_speech(text: str, lang_code: str) -> bytes:
