@@ -1182,7 +1182,7 @@
         // ============================================================================
         // TEXT SEARCH
         // ============================================================================
-        function searchDatabase() {
+        async function searchDatabase() {
             const query = document.getElementById('textQuery').value.trim();
 
             if (!query) {
@@ -1190,23 +1190,55 @@
                 return;
             }
 
+            // Disable button to prevent double-submit
+            const btn = document.getElementById('searchBtn');
+            btn.disabled = true;
+
             showStatus('textStatus', 'Searching safety database...', 'info');
 
-            setTimeout(() => {
-                showStatus('textStatus', 'Generating safety guidance...', 'info');
+            try {
+                const response = await fetch('/api/query/text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: query,
+                        user_id: currentUser || 'unknown',
+                        language: currentLanguage
+                    })
+                });
 
-                setTimeout(() => {
-                    clearStatus('textStatus');
-                    document.getElementById('textQuery').value = '';
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
 
-                    showAnswer(
-                        query,
-                        'Based on safety protocols, the answer to your query has been found in our safety manuals. Please review the guidance carefully and confirm your understanding.',
-                        0.92,
-                        'OPERATIONAL_PROCEDURE'
-                    );
-                }, 1000);
-            }, 1000);
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus('textStatus', 'Error: ' + data.error, 'error');
+                    return;
+                }
+
+                clearStatus('textStatus');
+                document.getElementById('textQuery').value = '';
+
+                showAnswer(
+                    data.question,
+                    data.answer,
+                    data.confidence,
+                    data.category
+                );
+
+                // Play TTS audio if available
+                if (data.audio) {
+                    playAudioResponse(data.audio);
+                }
+
+            } catch (error) {
+                showStatus('textStatus', 'Error: ' + error.message, 'error');
+                console.error('Text search error:', error);
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function handleQueryKeyPress(event) {

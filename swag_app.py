@@ -19,6 +19,11 @@ import streamlit as st
 import sqlite3
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
 import io
 import tempfile
 import hashlib

@@ -24,6 +24,11 @@ Run:
     flask run --host=0.0.0.0 --port=5000
 """
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
 import io
 import json
 import base64
@@ -716,7 +721,7 @@ def detect_objects():
 
 @app.route('/api/generate_video', methods=['POST'])
 def generate_video():
-    """Generate safety video from query."""
+    """Generate safety video from query using Gemini Veo API."""
     t_total = time.time()
     data = request.json
     query = data.get('query', '')
@@ -727,28 +732,22 @@ def generate_video():
         return jsonify({"error": "Query required"}), 400
         
     try:
-        # Lazy import - only load heavy libraries when this endpoint is called
+        # Lazy import - only load when this endpoint is called
         t0 = time.time()
-        from swag_video import VideoGenerator
+        from swag_video_gemini import generate_video_gemini
         from pipeline.director import create_visual_prompt_offline
         print(f"[VIDEO] Lazy imports: {time.time() - t0:.2f}s")
         
-        # Initialize video generator on-demand
-        t0 = time.time()
-        video_gen = VideoGenerator()
-        print(f"[VIDEO] Init VideoGenerator: {time.time() - t0:.2f}s")
-        
-        # 1. Create visual prompt
-        # Using offline template for speed, but could use LLM if requested
+        # 1. Create visual prompt (template-based, no LLM needed)
         t0 = time.time()
         visual_prompt_obj = create_visual_prompt_offline(query, category, machine)
         prompt = visual_prompt_obj.wan_2_2_prompt
         print(f"[VIDEO] Create visual prompt: {time.time() - t0:.2f}s")
         
-        # 2. Generate video
+        # 2. Generate video via Gemini Veo API
         t0 = time.time()
-        video_path = video_gen.generate_video(prompt)
-        print(f"[VIDEO] Generate video: {time.time() - t0:.2f}s")
+        video_path = generate_video_gemini(prompt)
+        print(f"[VIDEO] Generate video (Gemini): {time.time() - t0:.2f}s")
         
         if not video_path:
             return jsonify({"error": "Video generation failed"}), 500

@@ -38,6 +38,9 @@ ollama>=0.2.0
 setfit>=1.0.0
 ultralytics>=8.3.0
 
+# AI - Video Generation (Gemini Veo API)
+google-genai>=1.0.0
+
 # Web Frameworks & UI
 flask>=3.0.0
 flask-cors>=4.0.0
@@ -54,6 +57,7 @@ numpy
 rapidfuzz
 tqdm>=4.66.0
 pydantic>=2.7.0
+python-dotenv>=1.0.0
 # Minimal requirements for Railway deployment
 # Core web framework
 flask>=3.0.0
