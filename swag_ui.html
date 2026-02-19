@@ -1457,26 +1457,40 @@
                         // Draw classification label on the frozen frame
                         drawClassificationLabel(ctx, data.detections[0]);
 
-                        // Build results HTML with confidence bars
-                        let resultsHtml = `<div class="status-message status-success">` +
-                            `<strong>Classification results:</strong><br>`;
-                        data.detections.forEach((d, i) => {
-                            const pct = (d.confidence * 100).toFixed(1);
-                            const barWidth = Math.round(d.confidence * 100);
-                            const barColor = i === 0 ? '#FF6700' : '#0057B8';
-                            resultsHtml += `<div style="margin: 4px 0;">` +
-                                `<strong>${d.class}</strong> — ${pct}%` +
-                                `<div style="background:#e0e0e0;border-radius:4px;height:8px;margin-top:2px;">` +
-                                `<div style="background:${barColor};width:${barWidth}%;height:100%;border-radius:4px;"></div>` +
-                                `</div></div>`;
-                        });
-                        resultsHtml += `</div>`;
+                        let resultsHtml = '';
+                        if (data.ambiguous) {
+                            // Ambiguous: show top 3 as clickable options
+                            resultsHtml = `<div class="status-message status-success">` +
+                                `<strong>⚠ Multiple matches — pick one:</strong><br>`;
+                            data.detections.forEach((d, i) => {
+                                const pct = (d.confidence * 100).toFixed(1);
+                                const barWidth = Math.round(d.confidence * 100);
+                                const barColor = i === 0 ? '#FF6700' : '#0057B8';
+                                resultsHtml += `<div onclick="handleObjectDetection({class:'${d.class}',confidence:${d.confidence}})" ` +
+                                    `style="margin: 6px 0; padding: 8px; border-radius: 6px; cursor: pointer; ` +
+                                    `border: 1px solid #ddd; transition: background 0.2s;" ` +
+                                    `onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='transparent'">` +
+                                    `<strong>${d.class}</strong> — ${pct}%` +
+                                    `<div style="background:#e0e0e0;border-radius:4px;height:8px;margin-top:4px;">` +
+                                    `<div style="background:${barColor};width:${barWidth}%;height:100%;border-radius:4px;"></div>` +
+                                    `</div></div>`;
+                            });
+                            resultsHtml += `</div>`;
+                        } else {
+                            // Confident: show only top class cleanly
+                            const top = data.detections[0];
+                            const pct = (top.confidence * 100).toFixed(1);
+                            resultsHtml = `<div class="status-message status-success">` +
+                                `<strong>✓ Detected: ${top.class}</strong> (${pct}% confidence)</div>`;
+                        }
                         document.getElementById('detectionResults').innerHTML = resultsHtml;
 
                         showStatus('cameraStatus', 'Classification complete ✓', 'success');
 
-                        // Auto-trigger safety flow with the top prediction
-                        handleObjectDetection(data.detections[0]);
+                        // Only auto-trigger safety flow when confident (single result)
+                        if (!data.ambiguous) {
+                            handleObjectDetection(data.detections[0]);
+                        }
                     } else {
                         showStatus('cameraStatus', 'Could not classify image. Try a different angle.', 'info');
                         document.getElementById('detectionResults').innerHTML = '';

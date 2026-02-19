@@ -669,19 +669,35 @@ def detect_objects():
         print(f"[DETECT] YOLO prediction: {time.time() - t0:.2f}s")
         
         # Process classification results (probs, not boxes)
+        AMBIGUITY_THRESHOLD = 0.25  # gap between #1 and #2 confidence
         detections = []
+        ambiguous = False
         probs = results[0].probs
         if probs is not None:
-            # Get top-5 predictions
             top5_indices = probs.top5
             top5_confs = probs.top5conf.tolist()
             names = results[0].names
-            for idx, conf in zip(top5_indices, top5_confs):
-                if conf >= 0.05:  # skip negligible predictions
+            
+            if len(top5_confs) >= 2:
+                gap = top5_confs[0] - top5_confs[1]
+                ambiguous = gap < AMBIGUITY_THRESHOLD
+                print(f"[DETECT] Top-1: {names[top5_indices[0]]} ({top5_confs[0]:.3f}), "
+                      f"Top-2: {names[top5_indices[1]]} ({top5_confs[1]:.3f}), "
+                      f"Gap: {gap:.3f}, Ambiguous: {ambiguous}")
+            
+            if ambiguous:
+                # Show top 3 when model is uncertain
+                for idx, conf in zip(top5_indices[:3], top5_confs[:3]):
                     detections.append({
                         "class": names[idx],
                         "confidence": round(float(conf), 3)
                     })
+            else:
+                # Show only top 1 when model is confident
+                detections.append({
+                    "class": names[top5_indices[0]],
+                    "confidence": round(float(top5_confs[0]), 3)
+                })
         
         # Clean up
         os.unlink(temp_path)
@@ -690,6 +706,7 @@ def detect_objects():
         return jsonify({
             "success": True,
             "detections": detections,
+            "ambiguous": ambiguous,
             "count": len(detections)
         })
     
