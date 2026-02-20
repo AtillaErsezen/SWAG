@@ -381,16 +381,14 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
     # ── Build prompt ─────────────────────────────────────────────────────────
     t_prompt = time.time()
     prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.
-    
-    CRITICAL INSTRUCTION:
-    You must classify every single sentence or step of your answer into one of these three categories:
-    1. (✅) - for normal operating steps
-    2. (⚠️) - for warnings, cautions, and dangers
-    3. (⛔) - for things that must NOT be done
 
-    FORMAT YOUR ANSWER AS A LIST OF STEPS like this:
-    1. [Step description] (CATEGORY)
-    2. [Step description] (CATEGORY)
+    CRITICAL INSTRUCTION:
+    End every step with exactly one of these three emoji labels — nothing else:
+    (✅) for normal operating steps
+    (⚠️) for warnings, cautions, and dangers
+    (⛔) for things that must NOT be done
+
+    FORMAT: one numbered step per line, emoji label at the end of that line.
 
     Example:
     1. Buckle your seatbelt before starting. (✅)
@@ -756,6 +754,7 @@ def generate_video():
     query = data.get('query', '')
     category = data.get('category', 'OPERATIONAL_PROCEDURE')
     machine = data.get('machine', 'general')
+    rag_answer = data.get('rag_answer', None)  # RAG answer for LLM-based prompt grounding
     
     if not query:
         return jsonify({"error": "Query required"}), 400
@@ -764,14 +763,20 @@ def generate_video():
         # Lazy import - only load when this endpoint is called
         t0 = time.time()
         from swag_video_gemini import generate_video_gemini
-        from pipeline.director import create_visual_prompt_offline
+        from pipeline.director import create_visual_prompt_llm
         print(f"[VIDEO] Lazy imports: {time.time() - t0:.2f}s")
-        
-        # 1. Create visual prompt (template-based, no LLM needed)
+
+        # 1. Let Llama generate the video prompt from the RAG answer
         t0 = time.time()
-        visual_prompt_obj = create_visual_prompt_offline(query, category, machine)
+        print(f"[VIDEO] Generating prompt via LLM (RAG answer: {len(rag_answer) if rag_answer else 0} chars)")
+        visual_prompt_obj = create_visual_prompt_llm(
+            query, category, machine,
+            ollama_model=OLLAMA_MODEL,
+            rag_answer=rag_answer
+        )
         prompt = visual_prompt_obj.wan_2_2_prompt
         print(f"[VIDEO] Create visual prompt: {time.time() - t0:.2f}s")
+        print(f"[VIDEO] Prompt: {prompt[:150]}...")
         
         # 2. Generate video via Gemini Veo API
         t0 = time.time()

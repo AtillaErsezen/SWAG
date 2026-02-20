@@ -1280,34 +1280,42 @@
         }
 
         function formatSafetyResponse(text) {
-            // Regex to match lines ending with (CATEGORY)
-            // Example: 1. Do something (✅)
-            const lines = text.split('\n');
-            let html = '';
+            // ── Normalise: insert a newline before each numbered step ──────────────
+            // Handles LLMs that output "1. Step A (✅) 2. Step B (⚠️)" on one line
+            let normalised = text
+                .replace(/\r\n/g, '\n')
+                .replace(/([^\n])(\s+\d+\.\s)/g, '$1\n$2');  // insert \n before "2. ", "3. " etc.
 
+            const lines = normalised.split('\n');
+            let html = '';
             let hasCards = false;
+
+            // Patterns the LLM might produce for each category:
+            //   (✅)  |  ✅  |  (CATEGORY ✅)
+            const PATTERNS = [
+                { re: /\(?\s*(CATEGORY\s*)?(✅)\s*\)?/g, css: 'safety-card-operational' },
+                { re: /\(?\s*(CATEGORY\s*)?(⚠️)\s*\)?/g, css: 'safety-card-hazard' },
+                { re: /\(?\s*(CATEGORY\s*)?(⛔)\s*\)?/g, css: 'safety-card-prohibited' },
+            ];
 
             lines.forEach(line => {
                 const trimLine = line.trim();
                 if (!trimLine) return;
 
-                // Check for categories
                 let cssClass = '';
                 let cleanLine = trimLine;
 
-                if (trimLine.includes('(✅)')) {
-                    cssClass = 'safety-card-operational';
-                    cleanLine = trimLine.replace('(✅)', '').trim();
-                } else if (trimLine.includes('(⚠️)')) {
-                    cssClass = 'safety-card-hazard';
-                    cleanLine = trimLine.replace('(⚠️)', '').trim();
-                } else if (trimLine.includes('(⛔)')) {
-                    cssClass = 'safety-card-prohibited';
-                    cleanLine = trimLine.replace('(⛔)', '').trim();
+                for (const { re, css } of PATTERNS) {
+                    if (re.test(trimLine)) {
+                        cssClass = css;
+                        cleanLine = trimLine.replace(re, '').trim();
+                        break;
+                    }
+                    re.lastIndex = 0; // reset stateful regex
                 }
 
-                // If it looks like a numbered list item "1. Text", bold the number
-                const match = cleanLine.match(/^(\d+\.)\s+(.*)/);
+                // Bold the step number "1." if present
+                const match = cleanLine.match(/^(\d+\.)\s+(.*)/s);
                 if (match) {
                     cleanLine = `<span class="step-number">${match[1]}</span> ${match[2]}`;
                 }
@@ -1320,12 +1328,8 @@
                 }
             });
 
-            // Fallback if no categories found (e.g. simple text)
-            if (!hasCards) {
-                return text;
-            }
-
-            return html;
+            // Fallback: plain text if no category cards were detected
+            return hasCards ? html : `<p>${text}</p>`;
         }
 
         function hideAnswer() {
@@ -1588,8 +1592,27 @@
 
         function generateSafetyVideo() {
             const query = document.getElementById('questionText').textContent;
-            // Simple heuristic to guess category from UI state or default
-            const category = 'OPERATIONAL_PROCEDURE';
+            // Read the full RAG answer text from the rendered answer panel
+            const answerEl = document.getElementById('answerText');
+            const ragAnswer = answerEl ? answerEl.innerText.trim() : '';
+
+            // Detect machine type from the question or answer text
+            const combinedText = (query + ' ' + ragAnswer).toLowerCase();
+            const machineKeywords = [
+                'forklift', 'excavator', 'bulldozer', 'backhoe',
+                'dump truck', 'crane', 'loader', 'grader', 'compactor'
+            ];
+            let machine = 'general';
+            for (const kw of machineKeywords) {
+                if (combinedText.includes(kw)) { machine = kw; break; }
+            }
+
+            // Determine safety category from UI card class
+            const answerCard = document.getElementById('answerCard');
+            let category = 'OPERATIONAL_PROCEDURE';
+            if (answerCard && answerCard.classList.contains('card-danger')) {
+                category = 'HAZARD_WARNING';
+            }
 
             // UI Updates
             const btn = document.getElementById('generateVideoBtn');
@@ -1606,13 +1629,18 @@
             if (videoLoading) videoLoading.classList.remove('hidden');
             if (videoPlayerWrapper) videoPlayerWrapper.innerHTML = '';
 
+            console.log('[VIDEO] Query:', query);
+            console.log('[VIDEO] Machine:', machine, '| Category:', category);
+            console.log('[VIDEO] RAG answer length:', ragAnswer.length);
+
             fetch('/api/generate_video', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     query: query,
                     category: category,
-                    machine: 'excavator'
+                    machine: machine,
+                    rag_answer: ragAnswer || null
                 })
             })
                 .then(response => response.json())
