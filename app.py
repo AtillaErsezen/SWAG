@@ -7,7 +7,7 @@ Features:
 - RESTful API for safety queries
 - Audio processing (Whisper STT)
 - Multi-language translation (NLLB)
-- RAG pipeline (ChromaDB + Llama3)
+- RAG pipeline (ChromaDB + Llama3 int8/Q8_0)
 - Training audit logging (SQLite)
 - Text-to-Speech (gTTS)
 
@@ -65,7 +65,7 @@ SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models"
 TRAINING_DB_PATH = "./training_audit.db"
-OLLAMA_MODEL = "llama3.2:1b"
+OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4

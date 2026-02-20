@@ -167,7 +167,7 @@ def create_visual_prompt_llm(
     text: str,
     category: str,
     machine: str,
-    ollama_model: str = "llama3"
+    ollama_model: str = "llama3.2:1b-instruct-q4_K_M"
 ) -> VisualPrompt:
     """
     Create visual prompt using Ollama LLM for more creative translations.
