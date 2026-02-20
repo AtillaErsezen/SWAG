@@ -10,23 +10,40 @@
 
     <style>
         /* ============================================================================
-           ROOT VARIABLES - SWAG COLOR PALETTE
+           ROOT VARIABLES - SWAG DARK PALETTE
            ============================================================================ */
         :root {
-            --concrete-mist: #F0F2F5;
-            --carbon-steel: #333E48;
-            --safety-orange: #FF6700;
-            --trust-cobalt: #0057B8;
-            --brushed-aluminum: #A0AAB5;
-            --white: #ffffff;
-            --success-green: #28a745;
-            --danger-red: #dc3545;
+            --bg-deep: #0d1117;
+            --bg-surface: #161b22;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-accent: rgba(255, 255, 255, 0.12);
+
+            --orange: #E8622A;
+            --blue: #3B82F6;
+            --violet: #7C3AED;
+            --green: #22C55E;
+            --red: #EF4444;
+            --amber: #F59E0B;
+
+            --text-primary: #E2E8F0;
+            --text-secondary: #8B9EB7;
+            --text-muted: #4B5563;
+
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+
+            --transition: all 0.18s ease;
         }
 
         /* ============================================================================
-           GLOBAL STYLES
+           RESET & BASE
            ============================================================================ */
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -34,12 +51,10 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: var(--concrete-mist);
-            color: var(--carbon-steel);
+            background: var(--bg-deep);
+            color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
-            padding: 0;
-            margin: 0;
         }
 
         h1,
@@ -48,17 +63,17 @@
         h4,
         h5,
         h6 {
-            color: var(--carbon-steel);
             font-weight: 600;
+            color: var(--text-primary);
         }
 
         /* ============================================================================
-           CONTAINER LAYOUT
+           LAYOUT
            ============================================================================ */
         .container {
-            max-width: 800px;
+            max-width: 760px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px 20px 60px;
         }
 
         .hidden {
@@ -70,15 +85,19 @@
            ============================================================================ */
         .header {
             display: grid;
-            grid-template-columns: 2fr 3fr 2fr;
-            gap: 20px;
+            grid-template-columns: auto 1fr auto;
+            gap: 14px;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .header h2 {
-            margin: 0;
-            font-size: 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--orange);
+            letter-spacing: 0.02em;
         }
 
         .user-info {
@@ -87,106 +106,118 @@
 
         .user-id {
             font-weight: 600;
-            color: var(--carbon-steel);
+            font-size: 0.9rem;
+            color: var(--text-primary);
         }
 
         .training-count {
-            font-size: 0.9rem;
-            color: var(--brushed-aluminum);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ============================================================================
+           SELECT
+           ============================================================================ */
+        select {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-accent);
+            color: var(--text-primary);
+            padding: 9px 32px 9px 12px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: var(--transition);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        select option {
+            background: #1e2a3a;
+            color: var(--text-primary);
+        }
+
+        /* ============================================================================
+           DIVIDER
+           ============================================================================ */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border-subtle);
+            margin: 22px 0;
         }
 
         /* ============================================================================
            BUTTONS
            ============================================================================ */
         .btn {
-            background-color: var(--trust-cobalt);
-            color: var(--white);
-            border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 87, 184, 0.3);
-            transition: all 0.2s ease;
+            display: block;
             width: 100%;
+            padding: 12px 22px;
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #fff;
+            background: var(--blue);
         }
 
-        .btn:hover {
-            background-color: #004a9e;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 87, 184, 0.4);
+        .btn:hover:not(:disabled) {
+            opacity: 0.88;
         }
 
         .btn:active {
-            transform: translateY(0);
+            opacity: 0.75;
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
         }
 
         .btn-success {
-            background-color: var(--success-green);
-            font-size: 24px;
-            padding: 24px 48px;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-        }
-
-        /* Safety Response Cards */
-        .safety-step-card {
-            margin-bottom: 12px;
-            padding: 16px;
-            border-radius: 8px;
-            border-left: 5px solid #ccc;
-            background-color: #f9f9f9;
-        }
-
-        .safety-card-operational {
-            border-left-color: var(--trust-cobalt);
-            background-color: rgba(0, 87, 184, 0.05);
-        }
-
-        .safety-card-hazard {
-            border-left-color: var(--safety-orange);
-            background-color: rgba(255, 103, 0, 0.05);
-        }
-
-        .safety-card-prohibited {
-            border-left-color: var(--danger-red);
-            background-color: rgba(211, 47, 47, 0.05);
-        }
-
-        .step-number {
-            font-weight: 700;
-            margin-right: 8px;
-            color: #555;
+            background: var(--green);
+            font-size: 0.9rem;
+            padding: 12px 22px;
         }
 
         .btn-secondary {
-            background-color: var(--brushed-aluminum);
-            box-shadow: 0 4px 12px rgba(160, 170, 181, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            box-shadow: none;
         }
 
-        .btn-secondary:hover {
-            background-color: #8a939e;
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.10);
+            color: var(--text-primary);
+            box-shadow: none;
         }
 
         .btn-record {
-            background-color: var(--danger-red);
-            font-size: 20px;
-            padding: 20px 40px;
-        }
-
-        .btn-record:hover {
-            background-color: #c82333;
+            background: var(--red);
+            font-size: 0.9rem;
+            padding: 12px 22px;
         }
 
         .btn-record.recording {
-            animation: pulse 1s infinite;
+            animation: pulseBg 1s ease-in-out infinite;
         }
 
-        @keyframes pulse {
+        @keyframes pulseBg {
 
             0%,
             100% {
@@ -194,45 +225,118 @@
             }
 
             50% {
-                opacity: 0.6;
+                opacity: 0.75;
             }
+        }
+
+
+
+        .btn-camera {
+            background: var(--amber);
+            color: #111;
+        }
+
+        .btn-camera.active {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn-video {
+            background: var(--violet);
+            color: #fff;
+        }
+
+        /* ============================================================================
+           SAFETY STEP CARDS
+           ============================================================================ */
+        .safety-step-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 13px 15px;
+            border-radius: var(--radius-md);
+            margin-bottom: 9px;
+            font-size: 0.93rem;
+            line-height: 1.55;
+            border: 1px solid transparent;
+            animation: fadeSlideIn 0.25s ease both;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .safety-card-operational {
+            background: rgba(16, 185, 129, 0.10);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+        }
+
+        .safety-card-hazard {
+            background: rgba(245, 158, 11, 0.10);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: #fde68a;
+        }
+
+        .safety-card-prohibited {
+            background: rgba(239, 68, 68, 0.10);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .step-number {
+            font-weight: 700;
+            flex-shrink: 0;
+            min-width: 22px;
+            opacity: 0.65;
         }
 
         /* ============================================================================
            INPUT FIELDS
            ============================================================================ */
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .input-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--carbon-steel);
+            margin-bottom: 7px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
         }
 
-        input[type="text"],
-        select {
+        input[type="text"] {
             width: 100%;
-            font-size: 20px;
-            padding: 16px;
-            border-radius: 8px;
-            border: 2px solid var(--brushed-aluminum);
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.2s ease;
-        }
-
-        input[type="text"]:focus,
-        select:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-accent);
+            color: var(--text-primary);
+            padding: 13px 15px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
             outline: none;
-            border-color: var(--trust-cobalt);
         }
 
-        select {
-            font-size: 18px;
-            background-color: var(--white);
-            cursor: pointer;
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.06);
+            box-shadow: 0 0 0 3px var(--blue-glow);
         }
 
         /* ============================================================================
@@ -242,94 +346,125 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 80vh;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .login-card {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 36px 32px;
+            max-width: 380px;
             width: 100%;
+            text-align: center;
+        }
+
+        .login-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--orange);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .login-subtitle {
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 36px;
         }
 
         .login-card h2 {
-            margin-bottom: 30px;
-            text-align: center;
+            display: none;
         }
 
         .login-card h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            text-align: center;
+            font-size: 0.95rem;
             font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
         }
 
         /* ============================================================================
-           DIVIDER
-           ============================================================================ */
-        .divider {
-            border: none;
-            border-top: 2px solid var(--brushed-aluminum);
-            margin: 30px 0;
-            opacity: 0.3;
-        }
-
-        /* ============================================================================
-           CARDS
+           CARDS (answer)
            ============================================================================ */
         .card {
-            border-radius: 16px;
-            padding: 24px;
-            margin: 16px 0;
-        }
-
-        .card-danger {
-            border: 4px solid var(--safety-orange);
-            background: linear-gradient(135deg, #fff5f0, #ffffff);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin: 14px 0;
         }
 
         .card-info {
-            border: 4px solid var(--trust-cobalt);
-            background: linear-gradient(135deg, #f0f5ff, #ffffff);
+            background: rgba(59, 130, 246, 0.07);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+        }
+
+        .card-danger {
+            background: rgba(232, 98, 42, 0.07);
+            border: 1px solid rgba(232, 98, 42, 0.18);
         }
 
         .card h3 {
-            margin-bottom: 15px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .card-info h3 {
+            color: var(--blue);
+        }
+
+        .card-danger h3 {
+            color: var(--orange);
         }
 
         .card-question {
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            line-height: 1.4;
         }
 
         .card-answer {
-            line-height: 1.8;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
         .card-confidence {
-            font-style: italic;
-            color: var(--brushed-aluminum);
-            font-size: 0.95rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
         }
 
         /* ============================================================================
            SECTIONS
            ============================================================================ */
         .section {
-            margin-bottom: 40px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 10px;
+            transition: var(--transition);
+        }
+
+        .section:hover {
+            border-color: var(--border-accent);
         }
 
         .section h3 {
-            margin-bottom: 15px;
-            font-size: 1.5rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
         .section p {
-            margin-bottom: 15px;
-            color: var(--carbon-steel);
+            font-size: 0.87rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
         }
 
         /* ============================================================================
@@ -337,32 +472,31 @@
            ============================================================================ */
         .voice-interface {
             text-align: center;
-            padding: 30px 0;
+            padding: 8px 0;
         }
 
         .record-controls {
             display: flex;
-            gap: 15px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 18px;
         }
 
         .record-controls button {
-            flex: 1;
-            max-width: 300px;
+            max-width: 320px;
         }
 
         /* ============================================================================
-           CAMERA INTERFACE
+           CAMERA
            ============================================================================ */
         .camera-container {
             position: relative;
             width: 100%;
-            max-width: 640px;
-            margin: 20px auto;
-            background-color: var(--carbon-steel);
-            border-radius: 12px;
+            max-width: 600px;
+            margin: 14px auto;
+            border-radius: var(--radius-md);
             overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            background: #060a14;
         }
 
         .camera-video {
@@ -373,34 +507,30 @@
 
         .camera-placeholder {
             width: 100%;
-            height: 480px;
+            height: 300px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #2a3440, #333E48);
-            color: var(--brushed-aluminum);
-            font-size: 1.2rem;
-            text-align: center;
+            background: linear-gradient(135deg, #0d1321, #111827);
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            gap: 6px;
         }
 
         .camera-controls {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 14px;
+            flex-wrap: wrap;
         }
 
         .camera-controls button {
             flex: 1;
-            max-width: 200px;
-        }
-
-        .btn-camera {
-            background-color: var(--trust-cobalt);
-        }
-
-        .btn-camera.active {
-            background-color: var(--success-green);
+            max-width: 160px;
+            font-size: 0.82rem;
+            padding: 11px 14px;
         }
 
         .detection-overlay {
@@ -416,100 +546,145 @@
            STATUS MESSAGES
            ============================================================================ */
         .status-message {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 1rem;
+            padding: 11px 15px;
+            border-radius: var(--radius-sm);
+            margin: 11px 0;
+            font-size: 0.86rem;
+            border: 1px solid transparent;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
         }
 
         .status-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: rgba(59, 130, 246, 0.12);
+            color: #93C5FD;
+            border-color: rgba(59, 130, 246, 0.2);
         }
 
         .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: rgba(16, 185, 129, 0.12);
+            color: #6EE7B7;
+            border-color: rgba(16, 185, 129, 0.2);
         }
 
         .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(239, 68, 68, 0.12);
+            color: #FCA5A5;
+            border-color: rgba(239, 68, 68, 0.2);
         }
 
         .status-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
+            background: rgba(245, 158, 11, 0.12);
+            color: #FDE68A;
+            border-color: rgba(245, 158, 11, 0.2);
         }
 
         /* ============================================================================
-           RESPONSIVE DESIGN
-           ============================================================================ */
-        @media (max-width: 768px) {
-            .header {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .user-info {
-                text-align: center;
-            }
-
-            .record-controls {
-                flex-direction: column;
-            }
-
-            .record-controls button {
-                max-width: 100%;
-            }
-        }
-
-        /* ============================================================================
-           LOADING SPINNER
+           SPINNER
            ============================================================================ */
         .spinner {
-            border: 4px solid var(--concrete-mist);
-            border-top: 4px solid var(--trust-cobalt);
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(255, 255, 255, 0.07);
+            border-top-color: var(--blue);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            animation: spin 0.75s linear infinite;
+            margin: 18px auto;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
+            to {
                 transform: rotate(360deg);
             }
         }
 
         /* ============================================================================
-           GRID LAYOUT FOR BUTTONS
+           BUTTON GRID
            ============================================================================ */
         .button-grid {
             display: grid;
-            grid-template-columns: 1fr 3fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 14px;
             align-items: center;
         }
 
         .button-grid .btn {
             grid-column: 2;
         }
+
+        /* ============================================================================
+           VIDEO CONTAINER
+           ============================================================================ */
+        #videoContainer {
+            margin-top: 14px;
+            border: 1px solid rgba(124, 58, 237, 0.25);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #060a14;
+        }
+
+        #videoContainer h3 {
+            color: var(--violet);
+            padding: 14px 16px 0;
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        #videoPlayerWrapper video {
+            width: 100%;
+            display: block;
+        }
+
+        #videoPlayerWrapper {
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* ============================================================================
+           RESPONSIVE
+           ============================================================================ */
+        @media (max-width: 640px) {
+            .header {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .header select {
+                grid-column: 1/-1;
+            }
+
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-grid .btn {
+                grid-column: 1;
+            }
+
+            .camera-controls button {
+                max-width: 100%;
+            }
+
+            .login-card {
+                padding: 36px 22px;
+            }
+        }
     </style>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -519,19 +694,18 @@
              ============================================================================ -->
         <div id="loginScreen" class="login-container">
             <div class="login-card">
-                <h2 id="loginHeader">Operator Login</h2>
-                <hr class="divider">
+                <div class="login-logo">SWAG</div>
+                <div class="login-subtitle">Safe Walk Augmented Generation</div>
 
-                <h3 id="enterIdHeader">Enter Your Operator ID</h3>
+                <h2 id="loginHeader">Operator Login</h2>
+                <h3 id="enterIdHeader">Enter your Operator ID to clock in</h3>
 
                 <div class="input-group">
                     <input type="text" id="operatorId" placeholder="e.g., OP-1234"
                         onkeypress="handleLoginKeyPress(event)">
                 </div>
 
-                <br>
-
-                <button id="clockInBtn" class="btn" onclick="login()">CLOCK IN</button>
+                <button id="clockInBtn" class="btn" onclick="login()" style="margin-top:8px;">CLOCK IN</button>
             </div>
         </div>
 
@@ -579,22 +753,19 @@
                             id="confidenceText">0%</span></div>
                 </div>
 
-                <br>
-
-                <div class="button-grid">
-                    <button id="confirmBtn" class="btn btn-success" onclick="confirmUnderstanding()">[OK] I CONFIRM
+                <div class="button-grid" style="margin-top: 6px;">
+                    <button id="confirmBtn" class="btn btn-success" onclick="confirmUnderstanding()">✅ I CONFIRM
                         UNDERSTANDING</button>
                 </div>
 
                 <div class="button-grid" style="margin-top: 10px;">
-                    <button id="generateVideoBtn" class="btn" style="background-color: #6C5CE7; color: white;"
-                        onclick="generateSafetyVideo()">🎥 GENERATE SAFETY VIDEO</button>
+                    <button id="generateVideoBtn" class="btn btn-video" onclick="generateSafetyVideo()">🎥 GENERATE
+                        SAFETY VIDEO</button>
                 </div>
 
-                <div id="videoContainer" class="hidden" style="margin-top: 20px; text-align: center;">
-                    <h3 id="videoTitle" style="color: var(--trust-cobalt);">Safety Demonstration</h3>
-                    <div id="videoPlayerWrapper"
-                        style="margin-top: 10px; border: 2px solid var(--trust-cobalt); border-radius: 8px; overflow: hidden;">
+                <div id="videoContainer" class="hidden">
+                    <h3 id="videoTitle">Safety Demonstration</h3>
+                    <div id="videoPlayerWrapper">
                         <!-- Video player will be injected here -->
                     </div>
                     <div id="videoLoading" class="hidden">
@@ -622,8 +793,6 @@
                     <div id="voiceStatus"></div>
                 </div>
 
-                <hr class="divider">
-
                 <!-- Camera Object Detection Section -->
                 <div class="section">
                     <h3 id="camTitle">[CAM] Object Detection</h3>
@@ -639,8 +808,8 @@
 
                     <div class="camera-controls">
                         <button class="btn btn-camera" id="startCameraBtn" onclick="startCamera()">Start Camera</button>
-                        <button class="btn btn-camera hidden" id="takePhotoBtn" onclick="takePhoto()"
-                            style="background-color: var(--safety-orange);">📸 Take Photo</button>
+                        <button class="btn btn-camera hidden" id="takePhotoBtn" onclick="takePhoto()">📸 Take
+                            Photo</button>
                         <button class="btn btn-camera hidden" id="retakeBtn" onclick="retakePhoto()">↩ Retake</button>
                         <button class="btn btn-camera hidden" id="stopCameraBtn" onclick="stopCamera()">Stop
                             Camera</button>
@@ -649,8 +818,6 @@
                     <div id="cameraStatus"></div>
                     <div id="detectionResults"></div>
                 </div>
-
-                <hr class="divider">
 
                 <!-- Text Query Section -->
                 <div class="section">
