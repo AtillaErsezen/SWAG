@@ -209,3 +209,5 @@ __marimo__/
 swag_db/
 swag_models/
 ./output/
+/static
+__MACOSX/

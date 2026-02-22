@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-app-bg: #ECF0F1;
+  --color-slate-gray: #BDC3C7;
+  --color-matte-indigo: #2C3E50;
+  --color-deep-concrete: #4F5B66;
+  --color-safety-orange: #E67E22;
+  --color-sage-green: #58D68D;
+  --color-ind-yellow: #F1C40F;
+  --color-rust-red: #C0392B;
+  --color-electric-cyan: #00BFA6;
+  --color-charcoal: #34495E;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-app-bg);
+    color: var(--color-charcoal);
+  }
+}
