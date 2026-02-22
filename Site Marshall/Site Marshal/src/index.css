@@ -13,9 +13,14 @@
   --color-charcoal: #34495E;
 }
 
-@layer base {
-  body {
-    background-color: var(--color-app-bg);
-    color: var(--color-charcoal);
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
   }
 }
