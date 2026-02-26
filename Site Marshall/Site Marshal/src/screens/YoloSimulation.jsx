@@ -276,22 +276,17 @@ const YoloSimulation = () => {
     };
 
     // ─── Machine Selection ─────────────────────────────────────────────────────
-    const handleSelect = (machineIdOrClass) => {
-        const byId = machineDB.find(m => m.id === machineIdOrClass);
-        const byClass = machineDB.find(m =>
-            m.model.toLowerCase().includes(machineIdOrClass?.toLowerCase?.() ?? '')
-            || m.type.toLowerCase().includes(machineIdOrClass?.toLowerCase?.() ?? '')
-        );
-        const machine = byId ?? byClass ?? machineDB[0];
-        setActiveMachineId(machine.id);
-        navigate(`/machine/${machine.id}`);
+    // Each machine id IS the YOLO class name — navigate directly, no lookup needed.
+    const handleSelect = (classLabel) => {
+        setActiveMachineId(classLabel);
+        navigate(`/machine/${classLabel}`);
     };
 
     // ─── Background ───────────────────────────────────────────────────────────
     const bgStyle = previewUrl
         ? { backgroundImage: `url('${previewUrl}')`, filter: 'brightness(0.85) saturate(0.9)' }
         : {
-            backgroundImage: `url('https://images.unsplash.com/photo-1541888081698-fa327429177a?auto=format&fit=crop&q=80&w=1200')`,
+            backgroundImage: `url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1200')`,
             filter: 'brightness(0.5) saturate(0.6)',
         };
 
@@ -473,16 +468,13 @@ const YoloSimulation = () => {
 
                             <div className="space-y-2 max-h-52 overflow-y-auto">
                                 {detections.map((det, idx) => {
-                                    const machine = machineDB.find(m =>
-                                        m.id === det.machineId
-                                        || m.model.toLowerCase().includes(det.class?.toLowerCase?.() ?? '')
-                                        || m.type.toLowerCase().includes(det.class?.toLowerCase?.() ?? '')
-                                    ) ?? machineDB[idx % machineDB.length];
+                                    // Machine id === YOLO class name, direct lookup
+                                    const machine = machineDB.find(m => m.id === det.class) ?? null;
 
                                     return (
                                         <button
                                             key={idx}
-                                            onClick={() => handleSelect(det.machineId ?? det.class)}
+                                            onClick={() => handleSelect(det.class)}
                                             className="w-full flex items-center justify-between p-3 rounded-lg border border-white/10 hover:border-electric-cyan/50 hover:bg-white/5 transition-all active:scale-[0.98]"
                                         >
                                             <div className="flex items-center gap-3">
@@ -491,8 +483,12 @@ const YoloSimulation = () => {
                                                     style={{ backgroundImage: `url(${machine?.image})` }}
                                                 />
                                                 <div className="text-left">
-                                                    <div className="text-white font-medium text-sm">{det.class ?? machine?.model}</div>
-                                                    <div className="text-white/40 text-[10px] font-mono">{machine?.type}</div>
+                                                    <div className="text-white font-medium text-sm">
+                                                        {machine ? machine.model : det.class}
+                                                    </div>
+                                                    <div className="text-white/40 text-[10px] font-mono">
+                                                        {machine ? machine.type : 'Unknown'}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">

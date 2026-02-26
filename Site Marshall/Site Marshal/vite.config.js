@@ -9,6 +9,12 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    host: true,          // listen on 0.0.0.0, not just localhost
+    allowedHosts: [
+      'endoparasitic-manda-overdry.ngrok-free.dev',
+      '.ngrok-free.app',
+      '.ngrok-free.dev',
+    ],
     proxy: {
       // Proxy all /api/* requests to the Flask backend
       '/api': {
