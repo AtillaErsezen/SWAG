@@ -45,10 +45,7 @@ from rich.theme import Theme
 # Whisper STT
 from faster_whisper import WhisperModel
 
-# Translation
-import ctranslate2
-import sentencepiece as spm
-from huggingface_hub import snapshot_download
+# Translation natively handled by Whisper/LLM handled now
 
 # Fuzzy matching for glossary
 from rapidfuzz import fuzz, process
@@ -391,89 +388,7 @@ def save_config(config: dict):
         json.dump(config, f, indent=2)
 
 
-# ============================================================================
-# TRANSLATION (NLLB-200)
-# ============================================================================
-def download_nllb_model():
-    """Download and convert NLLB model."""
-    model_path = Path(SWAG_MODELS_PATH) / "nllb-200-ct2"
-    
-    if model_path.exists():
-        return str(model_path)
-    
-    console.print("[swag.info][SYS] Downloading NLLB-200 translation model...[/]")
-    
-    hf_model_path = snapshot_download(
-        repo_id="facebook/nllb-200-distilled-600M",
-        local_dir=str(Path(SWAG_MODELS_PATH) / "nllb-200-hf")
-    )
-    
-    console.print("[swag.info][SYS] Converting model for ctranslate2...[/]")
-    os.system(f"ct2-transformers-converter --model {hf_model_path} --output_dir {model_path} --quantization int8")
-    
-    return str(model_path)
 
-
-def load_translator():
-    """Load NLLB translator."""
-    global translator, tokenizer
-    
-    model_path = download_nllb_model()
-    
-    console.print(f"[swag.info][SYS] Loading NLLB-200 translator...[/]")
-    translator = ctranslate2.Translator(model_path, device="cpu", compute_type="int8")
-    
-    tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
-    if tokenizer_path.exists():
-        tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-    else:
-        from transformers import AutoTokenizer
-        tokenizer = AutoTokenizer.from_pretrained(NLLB_MODEL)
-    
-    console.print("[swag.success][OK] NLLB-200 translator loaded[/]")
-
-
-def translate_text(text: str, source_lang: str, target_lang: str, glossary_context: str = "") -> str:
-    """Translate text using NLLB-200 with glossary context."""
-    global translator, tokenizer
-    
-    if source_lang == target_lang:
-        return text
-    
-    if translator is None:
-        return text
-    
-    try:
-        # Prepend glossary context if available
-        text_with_context = glossary_context + text if glossary_context else text
-        
-        if hasattr(tokenizer, 'encode'):
-            tokens = tokenizer.encode(text_with_context, out_type=str)
-        else:
-            tokens = tokenizer.tokenize(text_with_context)
-        
-        source_prefix = [source_lang]
-        target_prefix = [[target_lang]]
-        
-        results = translator.translate_batch(
-            [source_prefix + tokens],
-            target_prefix=target_prefix,
-            beam_size=4,
-            max_decoding_length=256,
-        )
-        
-        output_tokens = results[0].hypotheses[0]
-        
-        if hasattr(tokenizer, 'decode'):
-            translated = tokenizer.decode(output_tokens)
-        else:
-            translated = tokenizer.convert_tokens_to_string(output_tokens)
-        
-        return translated.strip()
-        
-    except Exception as e:
-        console.print(f"[swag.warning][WARN] Translation failed: {e}[/]")
-        return text
 
 
 # ============================================================================
@@ -621,9 +536,7 @@ def boot_swag():
     whisper_model = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
     console.print("[swag.success][OK] Whisper STT loaded[/]")
     
-    # Load translator
-    load_translator()
-    
+
     # Load OpenAI API Client
     console.print(f"[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     try:
@@ -651,11 +564,8 @@ def process_query(query: str, detected_lang: str, audio_hash: str = None) -> str
     glossary_terms = []
     
     # Step 1: Translate to English if needed
-    if detected_lang != "eng_Latn":
-        console.print(f"[swag.info][TRANSLATE] {SUPPORTED_LANGUAGES.get(detected_lang, {}).get('flag', '')} -> 🇬🇧[/]")
-        english_query = translate_text(query, detected_lang, "eng_Latn")
-    else:
-        english_query = query
+    # Step 1: Query is already in English (or translated organically)
+    english_query = query
     
     # Step 2: Find glossary terms
     found_terms = find_glossary_terms(english_query)
@@ -714,25 +624,32 @@ No matching procedure found in the safety manuals.
     
     context = "\n\n".join([d.page_content for d in docs])
     
+    # Step 6: Define Target Language
+    lang_name = SUPPORTED_LANGUAGES.get(current_language, {}).get("name", "English")
+
+    answer_prompt = f"""You are a heavy machinery safety expert. Answer ONLY using the provided context.
+If the context doesn't contain the answer, say 'Information not found in manuals.'
+
+CRITICAL REQUIREMENT: You MUST translate your ENTIRE final answer into {lang_name}.
+
+Context:
+{context}
+
+Question: {refined}
+
+Safety Answer (in {lang_name}):"""
+
     answer_response = llm_client.chat.completions.create(
         model=AZERION_MODEL,
         messages=[
             {"role": "system", "content": "You are a heavy machinery safety expert. Answer ONLY using the provided context."},
-            {"role": "user", "content": f"If the context doesn't contain the answer, say 'Information not found in manuals.'\n\nContext:\n{context}\n\nQuestion: {refined}\n\nSafety Answer:"}
+            {"role": "user", "content": answer_prompt}
         ],
         max_tokens=1024,
         temperature=0.1,
         stream=False
     )
-    english_answer = answer_response.choices[0].message.content.strip()
-    
-    # Step 6: Translate response to user's language
-    if current_language != "eng_Latn":
-        console.print(f"[swag.info][TRANSLATE] 🇬🇧 -> {SUPPORTED_LANGUAGES.get(current_language, {}).get('flag', '')}[/]")
-        glossary_context = get_glossary_context(found_terms, current_language)
-        final_answer = translate_text(english_answer, "eng_Latn", current_language, glossary_context)
-    else:
-        final_answer = english_answer
+    final_answer = answer_response.choices[0].message.content.strip()
     
     # Log to audit database
     log_incident(

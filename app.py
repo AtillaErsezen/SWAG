@@ -28,7 +28,11 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv()
-
+#TODO translation optimization
+#TODO type the transcript of voice query instead of 'voice query' in model page
+#TODO in model pages, make the model answer specific to that machine(inject machine name in prompt, target specific index in rag programatically?)
+#TODO add translated answer to text page
+#TODO 
 import io
 import json
 import base64
@@ -46,10 +50,7 @@ import sqlite3
 from gtts import gTTS
 # speech to text
 from faster_whisper import WhisperModel
-# Translation
-import ctranslate2
-import sentencepiece as spm
-from huggingface_hub import snapshot_download
+# Translation inherently handled by whisper/LLM now
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -68,7 +69,6 @@ TRAINING_DB_PATH = "./training_audit.db"
 AZERION_MODEL = "gpt-oss-20b"
 AZERION_BASE_URL = "https://api.azerion.ai/v1"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
 SUPPORTED_LANGUAGES: Dict[str, Dict] = {
     "eng_Latn": {"name": "English", "flag": "EN", "tts": "en"},
@@ -266,31 +266,7 @@ def load_yolo():
     return models_cache['yolo']
 
 
-def load_translator():
-    """Load NLLB translator (cached)."""
-    if 'translator' not in models_cache:
-        print("Loading translator...")
-        model_path = Path(SWAG_MODELS_PATH) / "nllb-200-ct2"
-        
-        if not model_path.exists():
-            print("Downloading translation model (first run only)...")
-            hf_model_path = snapshot_download(
-                repo_id="facebook/nllb-200-distilled-600M",
-                local_dir=str(Path(SWAG_MODELS_PATH) / "nllb-200-hf")
-            )
-            os.system(f"ct2-transformers-converter --model {hf_model_path} --output_dir {model_path} --quantization int8")
-        
-        translator = ctranslate2.Translator(str(model_path), device="cpu", compute_type="int8")
-        
-        tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
-        if tokenizer_path.exists():
-            tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-        else:
-            tokenizer = None
-        
-        models_cache['translator'] = (translator, tokenizer)
-    
-    return models_cache['translator']
+
 
 #FIXME no more api, local model
 #TODO may not require another model for translation, whisper can do it
@@ -307,12 +283,13 @@ def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
             temp_path = f.name
         # File is now closed and can be accessed by Whisper
         
-        # Transcribe
-        segments, info = model.transcribe(temp_path, beam_size=5)
+        # Transcribe directly to English
+        segments, info = model.transcribe(temp_path, beam_size=5, task="translate")
         text = " ".join([s.text for s in segments]).strip()
-        lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
+        print(info.language)
         
-        return text, lang
+        
+        return text, info.language
         
     except Exception as e:
         print(f"Whisper transcription error: {e}")
@@ -330,28 +307,7 @@ def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
                     os.unlink(temp_path)
                 except:
                     pass  # Give up if still locked
-def translate_text(text: str, source_lang: str, target_lang: str) -> str:
-    """Translate text using NLLB."""
-    if source_lang == target_lang:
-        return text
-    
-    translator, tokenizer = load_translator()
-    
-    if translator is None or tokenizer is None:
-        return text
-    
-    try:
-        tokens = tokenizer.encode(text, out_type=str)
-        results = translator.translate_batch(
-            [[source_lang] + tokens],
-            target_prefix=[[target_lang]],
-            beam_size=4,
-            max_decoding_length=256
-        )
-        output_tokens = results[0].hypotheses[0]
-        return tokenizer.decode(output_tokens).strip()
-    except:
-        return text
+
 
 
 def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], float, str]:
@@ -377,16 +333,19 @@ def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], floa
     return docs, similarity, category
 
 
-def generate_answer(query: str, context_docs: List[Document]) -> str:
+def generate_answer(query: str, context_docs: List[Document], target_lang: str = "eng_Latn") -> str:
     """Generate answer using Azerion API with timing and token diagnostics."""
     client = load_llm()
 
     context = "\n\n".join([d.page_content for d in context_docs[:3]])
 
+    # Define language string natively
+    lang_name = SUPPORTED_LANGUAGES.get(target_lang, {}).get("name", "English")
+
     # ── Build prompt ─────────────────────────────────────────────────────────
     t_prompt = time.time()
     
-    system_prompt = """You are a heavy machinery safety expert. Answer the user's question using the provided context.
+    system_prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.
 
 CRITICAL INSTRUCTION:
 End every step with exactly one of these three emoji labels — nothing else:
@@ -402,6 +361,8 @@ Example:
 3. (⛔) Do not jump from the machine.
 
 If the context doesn't contain the answer, say "Information not found in safety manuals."
+
+CRITICAL REQUIREMENT: You MUST output your final answer translated entirely in {lang_name}.
 """
     
     user_prompt = f"""Context:
@@ -409,7 +370,7 @@ If the context doesn't contain the answer, say "Information not found in safety 
 
 Question: {query}
 
-Safety Answer:"""
+Safety Answer (in {lang_name}):"""
 
     t_prompt_built = time.time()
     print(f"[LLM] Prompt built in {t_prompt_built - t_prompt:.3f}s ")
@@ -498,7 +459,61 @@ def login():
         "training_count": training_count
     })
 
+HAZARD_WARNING_TRANSLATIONS = {
+    "eng_Latn": """[STOP] STOP WORK AUTHORITY
 
+No matching safety procedure found in the manuals.
+
+Please consult your physical safety manual or contact your Site Safety Supervisor.""",
+
+    "nld_Latn": """[STOP] STOPWERKBEVOEGDHEID
+
+Geen overeenkomende veiligheidsprocedure gevonden in de handleidingen.
+
+Raadpleeg uw fysieke veiligheidsmanual of neem contact op met uw veiligheidsverantwoordelijke op de locatie.""",
+
+    "fra_Latn": """[STOP] AUTORITÉ D’ARRÊT DE TRAVAIL
+
+Aucune procédure de sécurité correspondante trouvée dans les manuels.
+
+Veuillez consulter votre manuel de sécurité physique ou contacter votre superviseur de sécurité sur site.""",
+
+    "deu_Latn": """[STOP] ARBEITSSTOPP-BEFUGNIS
+
+Keine passende Sicherheitsvorschrift in den Handbüchern gefunden.
+
+Bitte konsultieren Sie Ihr physisches Sicherheitshandbuch oder wenden Sie sich an Ihren Sicherheitsbeauftragten vor Ort.""",
+
+    "pol_Latn": """[STOP] UPOWAŻNIENIE DO WSTRZYMANIA PRACY
+
+Nie znaleziono odpowiedniej procedury bezpieczeństwa w instrukcjach.
+
+Proszę zapoznać się z fizycznym podręcznikiem bezpieczeństwa lub skontaktować się z przełożonym ds. bezpieczeństwa na miejscu.""",
+
+    "tur_Latn": """[STOP] İŞİ DURDURMA YETKİSİ
+
+Kılavuzlarda eşleşen bir güvenlik prosedürü bulunamadı.
+
+Lütfen fiziksel güvenlik kılavuzunuza başvurun veya Saha Güvenlik Sorumlunuz ile iletişime geçin.""",
+
+    "ron_Latn": """[STOP] AUTORITATEA DE OPRIRE A LUCRĂRII
+
+Nu a fost găsită nicio procedură de siguranță corespunzătoare în manuale.
+
+Vă rugăm să consultați manualul fizic de siguranță sau să contactați Supervizorul de Siguranță la fața locului.""",
+
+    "por_Latn": """[STOP] AUTORIDADE DE PARAR O TRABALHO
+
+Nenhum procedimento de segurança correspondente foi encontrado nos manuais.
+
+Por favor, consulte o seu manual físico de segurança ou contacte o seu Supervisor de Segurança no local.""",
+
+    "spa_Latn": """[STOP] AUTORIDAD PARA DETENER EL TRABAJO
+
+No se encontró ningún procedimiento de seguridad correspondiente en los manuales.
+
+Por favor, consulte su manual físico de seguridad o contacte con su Supervisor de Seguridad en el sitio."""
+}
 @app.route('/api/query/text', methods=['POST'])
 def query_text():
     """Process text query."""
@@ -512,13 +527,10 @@ def query_text():
         return jsonify({"error": "Text query required"}), 400
     
     try:
-        # Translate to English if needed
+        # Step 1: Query already in language or implicitly translated
         t0 = time.time()
-        if lang != "eng_Latn":
-            english_query = translate_text(text, lang, "eng_Latn")
-        else:
-            english_query = text
-        print(f"[TEXT] Translation to English: {time.time() - t0:.2f}s")
+        english_query = text
+        print(f"[TEXT] Query formatting prep: {time.time() - t0:.2f}s")
         
         # Search with confidence check
         t0 = time.time()
@@ -527,25 +539,13 @@ def query_text():
         
         # Confidence check
         if confidence < CONFIDENCE_THRESHOLD:
-            answer = """[STOP] STOP WORK AUTHORITY
-
-**No matching safety procedure found in the manuals.**
-
-Please consult your physical safety manual or contact your Site Safety Supervisor."""
+            answer = HAZARD_WARNING_TRANSLATIONS.get(lang, HAZARD_WARNING_TRANSLATIONS["eng_Latn"])
             category = "HAZARD_WARNING"
         else:
             # Generate answer
             t0 = time.time()
-            english_answer = generate_answer(english_query, docs)
+            answer = generate_answer(english_query, docs, target_lang=lang)
             print(f"[TEXT] LLM answer generation: {time.time() - t0:.2f}s")
-            
-            # Translate answer
-            t0 = time.time()
-            if lang != "eng_Latn":
-                answer = translate_text(english_answer, "eng_Latn", lang)
-            else:
-                answer = english_answer
-            print(f"[TEXT] Translation to target lang: {time.time() - t0:.2f}s")
         
         # Log to database
         t0 = time.time()
@@ -597,13 +597,10 @@ def query_voice():
         if not raw_text.strip():
             return jsonify({"error": "Could not understand audio"}), 400
         
-        # Translate to English
+        # Translate to English (inbound automatically forced by Whisper already)
         t0 = time.time()
-        if detected_lang != "eng_Latn":
-            english_query = translate_text(raw_text, detected_lang, "eng_Latn")
-        else:
-            english_query = raw_text
-        print(f"[VOICE] Translation to English: {time.time() - t0:.2f}s")
+        english_query = raw_text
+        print(f"[VOICE] Prep for Search: {time.time() - t0:.2f}s")
         
         # Search with confidence check
         t0 = time.time()
@@ -612,31 +609,13 @@ def query_voice():
         
         # Confidence check
         if confidence < CONFIDENCE_THRESHOLD:
-            english_answer = """[STOP] STOP WORK AUTHORITY
-
-**No matching safety procedure found in the manuals.**
-
-This query cannot be answered by the AI system.
-
-**REQUIRED ACTIONS:**
-1. Stop current operation
-2. Consult your physical safety manual
-3. Contact your Site Safety Supervisor
-4. Do NOT proceed without proper guidance"""
+            final_answer = HAZARD_WARNING_TRANSLATIONS.get(target_lang, HAZARD_WARNING_TRANSLATIONS["eng_Latn"])
             category = "HAZARD_WARNING"
         else:
-            # Generate answer
+            # Generate answer directly in target language
             t0 = time.time()
-            english_answer = generate_answer(english_query, docs)
+            final_answer = generate_answer(english_query, docs, target_lang=target_lang)
             print(f"[VOICE] LLM answer generation: {time.time() - t0:.2f}s")
-        
-        # Translate answer to user's language
-        t0 = time.time()
-        if target_lang != "eng_Latn":
-            final_answer = translate_text(english_answer, "eng_Latn", target_lang)
-        else:
-            final_answer = english_answer
-        print(f"[VOICE] Translation to target lang: {time.time() - t0:.2f}s")
         
         # Log to database
         t0 = time.time()
@@ -849,13 +828,6 @@ def preload_models():
         print(f"✗ Failed to load YOLO: {e}")
 
     # 5. Load Translator
-    try:
-        t0 = time.time()
-        load_translator()
-        print(f"✓ Translator loaded ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to load Translator: {e}")
-    
     print(f"=== TOTAL preload_models: {time.time() - t_total:.2f}s ===")
 
 if __name__ == '__main__':

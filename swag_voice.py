@@ -302,7 +302,8 @@ def transcribe_audio(audio_path: str) -> str:
     segments, info = whisper_model.transcribe(
         audio_path,
         beam_size=5,
-        language=None  # Auto-detect
+        language=None,  # Auto-detect
+        task="translate"
     )
     
     text = " ".join([segment.text for segment in segments])

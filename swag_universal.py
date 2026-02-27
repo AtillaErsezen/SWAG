@@ -37,10 +37,7 @@ from rich.theme import Theme
 # Whisper STT
 from faster_whisper import WhisperModel
 
-# Translation
-import ctranslate2
-import sentencepiece as spm
-from huggingface_hub import snapshot_download
+# Translation inherently handled by whisper/LLM now
 
 # LangChain
 from langchain.schema import Document
@@ -200,98 +197,7 @@ def get_ui_string(key: str) -> str:
     return UI_STRINGS["eng_Latn"].get(key, key)
 
 
-def download_nllb_model():
-    """Download and convert NLLB model for ctranslate2."""
-    model_path = Path(SWAG_MODELS_PATH) / "nllb-200-ct2"
-    
-    if model_path.exists():
-        return str(model_path)
-    
-    console.print("[swag.info][SYS] Downloading NLLB-200 translation model (first run only)...[/]")
-    
-    # Download from HuggingFace
-    hf_model_path = snapshot_download(
-        repo_id="facebook/nllb-200-distilled-600M",
-        local_dir=str(Path(SWAG_MODELS_PATH) / "nllb-200-hf")
-    )
-    
-    console.print("[swag.info][SYS] Converting model for ctranslate2...[/]")
-    
-    # Convert to ctranslate2 format
-    os.system(f"ct2-transformers-converter --model {hf_model_path} --output_dir {model_path} --quantization int8")
-    
-    return str(model_path)
 
-
-def load_translator():
-    """Load NLLB translator."""
-    global translator, tokenizer
-    
-    model_path = download_nllb_model()
-    
-    console.print(f"[swag.info][SYS] Loading NLLB-200 translator...[/]")
-    
-    translator = ctranslate2.Translator(model_path, device="cpu", compute_type="int8")
-    
-    # Load tokenizer
-    tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
-    if tokenizer_path.exists():
-        tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-    else:
-        # Fallback: download tokenizer separately
-        from transformers import AutoTokenizer
-        tokenizer = AutoTokenizer.from_pretrained(NLLB_MODEL)
-    
-    console.print("[swag.success][OK] NLLB-200 translator loaded[/]")
-
-
-def translate_text(text: str, source_lang: str, target_lang: str) -> str:
-    """Translate text using NLLB-200."""
-    global translator, tokenizer
-    
-    if source_lang == target_lang:
-        return text
-    
-    if translator is None:
-        console.print("[swag.warning][WARN] Translator not loaded, returning original text[/]")
-        return text
-    
-    try:
-        # Tokenize
-        if hasattr(tokenizer, 'encode'):
-            # SentencePiece
-            tokens = tokenizer.encode(text, out_type=str)
-        else:
-            # HuggingFace tokenizer
-            tokens = tokenizer.tokenize(text)
-        
-        # Add language tokens
-        source_prefix = [source_lang]
-        target_prefix = [[target_lang]]
-        
-        # Translate
-        results = translator.translate_batch(
-            [source_prefix + tokens],
-            target_prefix=target_prefix,
-            beam_size=4,
-            max_decoding_length=256,
-        )
-        
-        # Decode
-        output_tokens = results[0].hypotheses[0]
-        
-        if hasattr(tokenizer, 'decode'):
-            # SentencePiece
-            translated = tokenizer.decode(output_tokens)
-        else:
-            # HuggingFace tokenizer
-            translated = tokenizer.convert_tokens_to_string(output_tokens)
-        
-        return translated.strip()
-        
-    except Exception as e:
-        console.print(f"[swag.warning][WARN] Translation failed: {e}[/]")
-        return text
 
 
 def load_swag_matrix() -> List[Document]:
@@ -378,9 +284,7 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional['Ope
     whisper_model = WhisperModel(WHISPER_MODEL, device="cpu", compute_type="int8")
     console.print("[swag.success][OK] Whisper STT loaded[/]")
     
-    # Load translator
-    load_translator()
-    
+
     # Load OpenAI API Client
     console.print(f"[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     try:
@@ -417,9 +321,9 @@ def process_voice_query(llm_client_instance): # Renamed llm to llm_client_instan
     audio_frames = []
     
     try:
-        # Step A: Transcribe
+        # Step A: Transcribe natively to english
         console.print(f"[swag.info][{get_ui_string('transcribing')}][/]")
-        segments, info = whisper_model.transcribe(TEMP_AUDIO_PATH, beam_size=5)
+        segments, info = whisper_model.transcribe(TEMP_AUDIO_PATH, beam_size=5, task="translate")
         raw_text = " ".join([s.text for s in segments]).strip()
         detected_lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
         
@@ -428,12 +332,8 @@ def process_voice_query(llm_client_instance): # Renamed llm to llm_client_instan
         if not raw_text:
             return
         
-        # Step B: Inbound Translation (to English)
-        if detected_lang != "eng_Latn":
-            console.print(f"[swag.info][{get_ui_string('translating_in')}][/]")
-            english_query = translate_text(raw_text, detected_lang, "eng_Latn")
-        else:
-            english_query = raw_text
+        # Step B: Inbound Translation (Already done by whisper organically)
+        english_query = raw_text
         
         # Step C: Refine
         console.print(f"[swag.info][{get_ui_string('refining')}][/]")
@@ -461,10 +361,12 @@ def process_voice_query(llm_client_instance): # Renamed llm to llm_client_instan
         # Retrieve relevant documents
         docs = vectorstore.similarity_search(refined, k=5)
         
+        lang_name = SUPPORTED_LANGUAGES.get(current_language, {}).get("name", "English")
+
         # We format context simply for API consumption
         context = "\n\n".join([d.page_content for d in docs])
-        system_prompt = "You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context."
-        user_prompt = f"Context:\n{context}\n\nQuestion: {refined}"
+        system_prompt = f"You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context. CRITICAL: You MUST translate your ENTIRE final answer into {lang_name}."
+        user_prompt = f"Context:\n{context}\n\nQuestion: {refined}\nSafety Answer (in {lang_name}):"
 
         response = llm_client_instance.chat.completions.create(
             model=AZERION_MODEL,
@@ -476,15 +378,8 @@ def process_voice_query(llm_client_instance): # Renamed llm to llm_client_instan
             temperature=0.1,
             stream=False
         )
-        english_answer = response.choices[0].message.content.strip()
+        final_answer = response.choices[0].message.content.strip()
         source_docs = docs # Use retrieved docs as source_docs
-        
-        # Step E: Outbound Translation (to user's language)
-        if current_language != "eng_Latn":
-            console.print(f"[swag.info][{get_ui_string('translating_out')}][/]")
-            final_answer = translate_text(english_answer, "eng_Latn", current_language)
-        else:
-            final_answer = english_answer
         
         # Display
         is_critical = any("PROHIBITED" in d.page_content.upper() or "DANGER" in d.page_content.upper() for d in source_docs)
@@ -514,12 +409,8 @@ def process_text_query(text: str, llm_client_instance): # Renamed llm to llm_cli
     global current_language, vectorstore, llm_client
     
     try:
-        # Translate to English if needed
-        if current_language != "eng_Latn":
-            console.print(f"[swag.info][{get_ui_string('translating_in')}][/]")
-            english_query = translate_text(text, current_language, "eng_Latn")
-        else:
-            english_query = text
+        # Step 1: Query already in English organically
+        english_query = text
         
         # RAG - Manual implementation using vectorstore and llm_client
         console.print(f"[swag.info][{get_ui_string('analyzing')}][/]")
@@ -527,9 +418,11 @@ def process_text_query(text: str, llm_client_instance): # Renamed llm to llm_cli
         # Retrieve relevant documents
         docs = vectorstore.similarity_search(english_query, k=5)
         
+        lang_name = SUPPORTED_LANGUAGES.get(current_language, {}).get("name", "English")
+
         context = "\n\n".join([d.page_content for d in docs])
-        system_prompt = "You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context."
-        user_prompt = f"Context:\n{context}\n\nQuestion: {english_query}"
+        system_prompt = f"You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context. CRITICAL: You MUST translate your ENTIRE final answer into {lang_name}."
+        user_prompt = f"Context:\n{context}\n\nQuestion: {english_query}\nSafety Answer (in {lang_name}):"
 
         response = llm_client_instance.chat.completions.create(
             model=AZERION_MODEL,
@@ -541,15 +434,8 @@ def process_text_query(text: str, llm_client_instance): # Renamed llm to llm_cli
             temperature=0.1,
             stream=False
         )
-        english_answer = response.choices[0].message.content.strip()
+        final_answer = response.choices[0].message.content.strip()
         source_docs = docs # Use retrieved docs as source_docs
-        
-        # Translate back
-        if current_language != "eng_Latn":
-            console.print(f"[swag.info][{get_ui_string('translating_out')}][/]")
-            final_answer = translate_text(english_answer, "eng_Latn", current_language)
-        else:
-            final_answer = english_answer
         
         # Display
         is_critical = any("PROHIBITED" in d.page_content.upper() or "DANGER" in d.page_content.upper() for d in source_docs)

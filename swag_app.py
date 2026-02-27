@@ -41,10 +41,7 @@ from streamlit_mic_recorder import mic_recorder
 # Whisper STT
 from faster_whisper import WhisperModel
 
-# Translation
-import ctranslate2
-import sentencepiece as spm
-from huggingface_hub import snapshot_download
+# Translation functionality natively handled by whisper/LLM now
 
 # LangChain
 from langchain.schema import Document
@@ -354,36 +351,8 @@ def load_llm():
     return Ollama(model=OLLAMA_MODEL, temperature=0.1)
 
 
-@st.cache_resource
-def load_translator():
-    """Load NLLB translator (cached)."""
-    model_path = Path(SWAG_MODELS_PATH) / "nllb-200-ct2"
-    
-    if not model_path.exists():
-        st.info("Downloading translation model (first run only)...")
-        hf_model_path = snapshot_download(
-            repo_id="facebook/nllb-200-distilled-600M",
-            local_dir=str(Path(SWAG_MODELS_PATH) / "nllb-200-hf")
-        )
-        os.system(f"ct2-transformers-converter --model {hf_model_path} --output_dir {model_path} --quantization int8")
-    
-    translator = ctranslate2.Translator(str(model_path), device="cpu", compute_type="int8")
-    
-    tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
-    if tokenizer_path.exists():
-        tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-    else:
-        tokenizer = None
-    
-    return translator, tokenizer
-
-
-# ============================================================================
-# AI PIPELINE FUNCTIONS
-# ============================================================================
-
 def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
-    """Transcribe audio and detect language."""
+    """Transcribe audio and detect language (tasks forced to English)."""
     whisper = load_whisper()
     
     # Save to temp file
@@ -392,36 +361,12 @@ def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
         temp_path = f.name
     
     try:
-        segments, info = whisper.transcribe(temp_path, beam_size=5)
+        segments, info = whisper.transcribe(temp_path, beam_size=5, task="translate")
         text = " ".join([s.text for s in segments]).strip()
         lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
         return text, lang
     finally:
         os.unlink(temp_path)
-
-
-def translate_text(text: str, source_lang: str, target_lang: str) -> str:
-    """Translate text using NLLB."""
-    if source_lang == target_lang:
-        return text
-    
-    translator, tokenizer = load_translator()
-    
-    if translator is None or tokenizer is None:
-        return text
-    
-    try:
-        tokens = tokenizer.encode(text, out_type=str)
-        results = translator.translate_batch(
-            [[source_lang] + tokens],
-            target_prefix=[[target_lang]],
-            beam_size=4,
-            max_decoding_length=256
-        )
-        output_tokens = results[0].hypotheses[0]
-        return tokenizer.decode(output_tokens).strip()
-    except:
-        return text
 
 
 def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], float, str]:
@@ -448,21 +393,25 @@ def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], floa
     return docs, similarity, category
 
 
-def generate_answer(query: str, context_docs: List[Document]) -> str:
+def generate_answer(query: str, context_docs: List[Document], target_language: str = "eng_Latn") -> str:
     """Generate answer using LLM."""
     llm = load_llm()
     
     context = "\n\n".join([d.page_content for d in context_docs[:3]])
     
+    lang_name = SUPPORTED_LANGUAGES.get(target_language, {}).get("name", "English")
+
     prompt = f"""You are a heavy machinery safety expert. Answer ONLY using the provided context.
 If the context doesn't contain the answer, say "Information not found in safety manuals."
+
+CRITICAL: You MUST translate your ENTIRE final answer into {lang_name}.
 
 Context:
 {context}
 
 Question: {query}
 
-Safety Answer:"""
+Safety Answer (in {lang_name}):"""
     
     return llm.invoke(prompt).strip()
 
@@ -671,20 +620,14 @@ def process_voice_query(audio_bytes: bytes):
     with st.spinner("🧠 Accessing Safety Neural Net..."):
         # Step 1: Transcribe
         st.info("📝 Transcribing audio...")
-        raw_text, detected_lang = transcribe_audio(audio_bytes)
+        # Now translated to English natively inside transcribe_audio
+        english_query, detected_lang = transcribe_audio(audio_bytes)
         
-        if not raw_text.strip():
+        if not english_query.strip():
             st.error("Could not understand audio. Please try again.")
             return
         
-        st.success(f"Heard: \"{raw_text}\"")
-        
-        # Step 2: Translate to English
-        if detected_lang != "eng_Latn":
-            st.info(f"🌍 Translating {SUPPORTED_LANGUAGES.get(detected_lang, {}).get('flag', '')} → 🇬🇧...")
-            english_query = translate_text(raw_text, detected_lang, "eng_Latn")
-        else:
-            english_query = raw_text
+        st.success(f"Heard (translated internally to): \"{english_query}\"")
         
         # Step 3: Search with confidence check
         st.info("🔍 Searching safety database...")
@@ -704,27 +647,20 @@ This query cannot be answered by the AI system.
 3. Contact your Site Safety Supervisor
 4. Do NOT proceed without proper guidance"""
             st.session_state.current_category = "HAZARD_WARNING"
-            st.session_state.current_question = raw_text
+            st.session_state.current_question = english_query
             st.session_state.current_confidence = confidence
             st.session_state.show_answer = True
             st.rerun()
             return
         
         # Step 5: Generate answer
-        st.info("💡 Generating safety guidance...")
-        english_answer = generate_answer(english_query, docs)
-        
-        # Step 6: Translate answer to user's language
-        if current_lang != "eng_Latn":
-            st.info(f"🌍 Translating 🇬🇧 → {SUPPORTED_LANGUAGES.get(current_lang, {}).get('flag', '')}...")
-            final_answer = translate_text(english_answer, "eng_Latn", current_lang)
-        else:
-            final_answer = english_answer
+        st.info(f"💡 Generating safety guidance in {SUPPORTED_LANGUAGES.get(current_lang, {}).get('flag', '')}...")
+        final_answer = generate_answer(english_query, docs, target_language=current_lang)
         
         # Store in session state
         st.session_state.current_answer = final_answer
         st.session_state.current_category = category
-        st.session_state.current_question = raw_text
+        st.session_state.current_question = english_query
         st.session_state.current_confidence = confidence
         st.session_state.show_answer = True
         st.rerun()
@@ -735,12 +671,8 @@ def process_text_query(text: str):
     current_lang = st.session_state.get("lang", "eng_Latn")
     
     with st.spinner("🧠 Accessing Safety Neural Net..."):
-        # Translate to English if needed
-        if current_lang != "eng_Latn":
-            st.info(f"🌍 Translating to English...")
-            english_query = translate_text(text, current_lang, "eng_Latn")
-        else:
-            english_query = text
+        # We rely on text queries being roughly in English or the LLM figuring it out.
+        english_query = text
         
         # Search with confidence check
         st.info("🔍 Searching safety database...")
@@ -761,14 +693,8 @@ Please consult your physical safety manual or contact your Site Safety Superviso
             return
         
         # Generate answer
-        st.info("💡 Generating safety guidance...")
-        english_answer = generate_answer(english_query, docs)
-        
-        # Translate answer
-        if current_lang != "eng_Latn":
-            final_answer = translate_text(english_answer, "eng_Latn", current_lang)
-        else:
-            final_answer = english_answer
+        st.info(f"💡 Generating safety guidance in {SUPPORTED_LANGUAGES.get(current_lang, {}).get('flag', '')}...")
+        final_answer = generate_answer(english_query, docs, target_language=current_lang)
         
         # Store in session state
         st.session_state.current_answer = final_answer
