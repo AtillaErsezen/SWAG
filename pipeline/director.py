@@ -62,7 +62,7 @@ def generate_video_prompt(
         rag_answer: Full RAG-retrieved safety answer with ✅/⚠️/⛔ steps
         category: Safety category (PROHIBITED_ACTION / HAZARD_WARNING / OPERATIONAL_PROCEDURE)
         machine: Machine type mentioned in the query/answer
-        ollama_model: Ollama model to use
+        azerion_model: Azerion model to use
 
     Returns:
         Video generation prompt string
@@ -130,21 +130,26 @@ def create_visual_prompt_llm(
     text: str,
     category: str,
     machine: str,
-    ollama_model: str = "llama3.2:1b-instruct-q4_K_M",
+    azerion_model: str = "gpt-oss-20b",
     rag_answer: Optional[str] = None
 ) -> VisualPrompt:
     """
-    Create video prompt using Ollama LLM, grounded in the RAG answer.
-    Falls back to template if Ollama is unavailable.
+    Create video prompt using Azerion LLM, grounded in the RAG answer.
+    Falls back to template if API is unavailable.
     """
     try:
         if rag_answer:
-            prompt = generate_video_prompt(text, rag_answer, category, machine, ollama_model)
+            prompt = generate_video_prompt(text, rag_answer, category, machine, azerion_model)
         else:
             # No RAG answer — use a simplified direct call
-            import ollama
-            response = ollama.chat(
-                model=ollama_model,
+            from openai import OpenAI
+            import os
+            client = OpenAI(
+                api_key=os.environ.get("AZERION_VEO3"),
+                base_url="https://api.azerion.ai/v1"
+            )
+            response = client.chat.completions.create(
+                model=azerion_model,
                 messages=[
                     {"role": "system", "content": DIRECTOR_SYSTEM_PROMPT},
                     {"role": "user", "content": (
@@ -152,9 +157,9 @@ def create_visual_prompt_llm(
                         "Write the video generation prompt now:"
                     )}
                 ],
-                options={"temperature": 0.3}
+                temperature=0.3
             )
-            prompt = response["message"]["content"].strip().strip('"\'')
+            prompt = response.choices[0].message.content.strip().strip('"\'')
 
         return VisualPrompt(
             machine=machine,
@@ -176,7 +181,7 @@ def process_classified_file(
     input_file: str = "output/classified/all_classified.json",
     output_file: str = "output/prompts/wan_2_2_prompts.json",
     use_llm: bool = True,
-    ollama_model: str = "llama3.2:1b-instruct-q4_K_M",
+    azerion_model: str = "gpt-oss-20b",
     limit: Optional[int] = None
 ) -> list[dict]:
     """Process classified sentences and generate visual prompts."""
@@ -199,7 +204,7 @@ def process_classified_file(
             text=item["original_text"],
             category=item["category"],
             machine=item.get("machine", "general"),
-            ollama_model=ollama_model,
+            azerion_model=azerion_model,
             rag_answer=None  # No RAG answer in batch mode
         )
         results.append(asdict(vp))
@@ -223,7 +228,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate visual prompts")
     parser.add_argument("--input", "-i", default="output/classified/all_classified.json")
     parser.add_argument("--output", "-o", default="output/prompts/wan_2_2_prompts.json")
-    parser.add_argument("--model", default="llama3.2:1b-instruct-q4_K_M", help="Ollama model name")
+    parser.add_argument("--model", default="gpt-oss-20b", help="Azerion model name")
     parser.add_argument("--limit", type=int, default=None, help="Limit for testing")
 
     args = parser.parse_args()
@@ -232,6 +237,6 @@ if __name__ == "__main__":
         input_file=args.input,
         output_file=args.output,
         use_llm=True,
-        ollama_model=args.model,
+        azerion_model=args.model,
         limit=args.limit
     )

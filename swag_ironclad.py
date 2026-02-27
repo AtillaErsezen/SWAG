@@ -75,7 +75,7 @@ SWAG_CONFIG_PATH = "./swag_config.json"
 SWAG_AUDIT_DB_PATH = "./swag_audit.db"
 SWAG_GLOSSARY_PATH = "./swag_glossary.json"
 TEMP_AUDIO_PATH = "swag_temp.wav"
-OLLAMA_MODEL = "llama3"
+AZERION_MODEL = "gpt-oss-20b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"
 NLLB_MODEL = "facebook/nllb-200-distilled-600M"
@@ -580,7 +580,7 @@ def save_audio(frames: List[bytes], filename: str) -> str:
 # ============================================================================
 def boot_swag():
     """Initialize all SWAG Ironclad systems."""
-    global whisper_model, vectorstore, llm, current_language
+    global whisper_model, vectorstore, llm_client, current_language
     
     print_banner()
     
@@ -624,14 +624,18 @@ def boot_swag():
     # Load translator
     load_translator()
     
-    # Load Ollama
-    console.print(f"[swag.info][SYS] Connecting to Ollama ({OLLAMA_MODEL})...[/]")
+    # Load OpenAI API Client
+    console.print(f"[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     try:
-        llm = Ollama(model=OLLAMA_MODEL, temperature=0.1)
-        llm.invoke("test")
-        console.print("[swag.success][OK] Ollama connected[/]")
+        from openai import OpenAI
+        import os
+        llm_client = OpenAI(
+            api_key=os.environ.get("AZERION_VEO3"),
+            base_url="https://api.azerion.ai/v1"
+        )
+        console.print("[swag.success][OK] Azerion API loaded[/]")
     except Exception as e:
-        console.print(f"[swag.danger][ERR] Ollama failed: {e}[/]")
+        console.print(f"[swag.danger][ERR] Azerion API failed: {e}[/]")
         return False
     
     return True
@@ -642,7 +646,7 @@ def boot_swag():
 # ============================================================================
 def process_query(query: str, detected_lang: str, audio_hash: str = None) -> str:
     """Process query through the safety pipeline."""
-    global current_language, llm
+    global current_language, llm_client
     
     glossary_terms = []
     
@@ -660,7 +664,19 @@ def process_query(query: str, detected_lang: str, audio_hash: str = None) -> str
     # Step 3: Refine query
     console.print("[swag.info][REFINE] Cleaning technical terms...[/]")
     refine_prompt = f"Fix technical terms for heavy machinery. Output ONLY cleaned text.\nInput: {english_query}\nCleaned:"
-    refined = llm.invoke(refine_prompt).strip()
+    
+    refine_response = llm_client.chat.completions.create(
+        model=AZERION_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that refines technical queries."},
+            {"role": "user", "content": refine_prompt}
+        ],
+        max_tokens=100,
+        temperature=0.1,
+        stream=False
+    )
+    refined = refine_response.choices[0].message.content.strip()
+    
     if len(refined) > len(english_query) * 2:
         refined = english_query
     
@@ -698,17 +714,17 @@ No matching procedure found in the safety manuals.
     
     context = "\n\n".join([d.page_content for d in docs])
     
-    answer_prompt = f"""You are a heavy machinery safety expert. Answer ONLY using the provided context.
-If the context doesn't contain the answer, say "Information not found in manuals."
-
-Context:
-{context}
-
-Question: {refined}
-
-Safety Answer:"""
-    
-    english_answer = llm.invoke(answer_prompt).strip()
+    answer_response = llm_client.chat.completions.create(
+        model=AZERION_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a heavy machinery safety expert. Answer ONLY using the provided context."},
+            {"role": "user", "content": f"If the context doesn't contain the answer, say 'Information not found in manuals.'\n\nContext:\n{context}\n\nQuestion: {refined}\n\nSafety Answer:"}
+        ],
+        max_tokens=1024,
+        temperature=0.1,
+        stream=False
+    )
+    english_answer = answer_response.choices[0].message.content.strip()
     
     # Step 6: Translate response to user's language
     if current_language != "eng_Latn":

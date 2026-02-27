@@ -24,7 +24,7 @@ import wave
 import threading
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any
 
 # Audio
 import pyaudio
@@ -59,7 +59,7 @@ SWAG_MATRIX_PATH = "/Users/pc/polderr/output/classified/all_classified.json"
 SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
 TEMP_AUDIO_PATH = "swag_temp.wav"
-OLLAMA_MODEL = "llama3"
+AZERION_MODEL = "gpt-oss-20b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"
 
@@ -194,12 +194,12 @@ def load_swag_archives() -> List[Document]:
     return documents
 
 
-def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Ollama]]:
+def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Any]]:
     """
     Initialize all SWAG systems:
     1. Vector database (RAG)
     2. Whisper model (STT)
-    3. Ollama LLM
+    3. Azerion API LLM Client
     """
     global whisper_model, vectorstore
     
@@ -261,23 +261,23 @@ def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional[Olla
         console.print(f"[swag.warning][ERR] Failed to load Whisper: {e}[/]")
         return vectorstore, None, None
     
-    # ========== PHASE 3: Ollama LLM ==========
+    # ========== PHASE 3: Azerion LLM ==========
     t0 = time.time()
-    console.print(f"\n[swag.info][SYS] Connecting to Ollama ({OLLAMA_MODEL})...[/]")
+    console.print(f"\n[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     try:
-        llm = Ollama(
-            model=OLLAMA_MODEL,
-            temperature=0.1
+        from openai import OpenAI
+        import os
+        llm_client = OpenAI(
+            api_key=os.environ.get("AZERION_VEO3"),
+            base_url="https://api.azerion.ai/v1"
         )
-        llm.invoke("test")
-        console.print(f"[swag.success][OK] Ollama connection established ({time.time() - t0:.2f}s)[/]")
+        console.print(f"[swag.success][OK] Azerion connection established ({time.time() - t0:.2f}s)[/]")
     except Exception as e:
-        console.print(f"[swag.warning][ERR] Ollama connection failed: {e}[/]")
-        console.print("[swag.info][TIP] Make sure Ollama is running: ollama serve[/]")
+        console.print(f"[swag.warning][ERR] Azerion connection failed: {e}[/]")
         return vectorstore, whisper_model, None
     
     console.print(f"\n[swag.info][TIME] Total boot time: {time.time() - boot_start:.2f}s[/]")
-    return vectorstore, whisper_model, llm
+    return vectorstore, whisper_model, llm_client
 
 
 def save_audio(frames: List[bytes], filename: str):
@@ -311,8 +311,8 @@ def transcribe_audio(audio_path: str) -> str:
     return text.strip()
 
 
-def refine_query(raw_text: str, llm: Ollama) -> str:
-    """Refine transcribed text using Ollama (The Refiner)."""
+def refine_query(raw_text: str, llm_client) -> str:
+    """Refine transcribed text using OpenAI (The Refiner)."""
     console.print("[swag.info][REFINING] Cleaning up query...[/]")
     
     prompt = f"""Fix any grammar or speech recognition errors in this heavy machinery safety question.
@@ -322,7 +322,17 @@ Output ONLY the cleaned text, nothing else.
 Input: {raw_text}
 Cleaned:"""
     
-    cleaned = llm.invoke(prompt).strip()
+    response = llm_client.chat.completions.create(
+        model=AZERION_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that refines technical queries."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=100,
+        temperature=0.1,
+        stream=False
+    )
+    cleaned = response.choices[0].message.content.strip()
     
     # If the LLM returned too much, just use original
     if len(cleaned) > len(raw_text) * 2:
@@ -332,14 +342,31 @@ Cleaned:"""
     return cleaned
 
 
-def query_swag_brain(question: str, chain) -> Tuple[str, List[Document]]:
+def query_swag_brain(question: str, llm_client, retriever) -> Tuple[str, List[Document]]:
     """Query the RAG system (The Brain)."""
     console.print("[swag.info][ANALYZING] Querying SWAG protocols...[/]")
     
-    result = chain.invoke({"question": question})
+    source_docs = retriever.get_relevant_documents(question)
+    context_str = "\n\n".join([doc.page_content for doc in source_docs])
     
-    answer = result.get("answer", "NEGATIVE. System error.")
-    source_docs = result.get("source_documents", [])
+    system_msg = "You are a heavy machinery safety expert. Answer the user's question safely using the provided context."
+    user_msg = f"Context:\n{context_str}\n\nQuestion: {question}\n\nSafety Answer:"
+    
+    try:
+        response = llm_client.chat.completions.create(
+            model=AZERION_MODEL,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg}
+            ],
+            max_tokens=1024,
+            temperature=0.1,
+            stream=False
+        )
+        answer = response.choices[0].message.content.strip()
+    except Exception as e:
+        answer = f"NEGATIVE. System error: {e}"
+        source_docs = []
     
     return answer, source_docs
 
@@ -360,7 +387,7 @@ def format_sources(source_docs: List[Document]) -> str:
     return " | ".join(sources)
 
 
-def process_voice_query(llm: Ollama, chain):
+def process_voice_query(llm_client, retriever):
     """Process the recorded audio through the Holy Trinity pipeline."""
     global audio_frames
     
@@ -385,12 +412,12 @@ def process_voice_query(llm: Ollama, chain):
         
         # Step B: Refine (The Refiner)
         t0 = time.time()
-        cleaned_text = refine_query(raw_text, llm)
+        cleaned_text = refine_query(raw_text, llm_client)
         console.print(f"[swag.info][TIME] Refinement: {time.time() - t0:.2f}s[/]")
         
         # Step C: Answer (The Brain)
         t0 = time.time()
-        answer, source_docs = query_swag_brain(cleaned_text, chain)
+        answer, source_docs = query_swag_brain(cleaned_text, llm_client, retriever)
         console.print(f"[swag.info][TIME] RAG query: {time.time() - t0:.2f}s[/]")
         
         # Check for critical content
@@ -436,30 +463,15 @@ def run_swag_voice():
     print_banner()
     
     # Boot systems
-    vectorstore, whisper, llm = boot_swag()
+    vectorstore, whisper, llm_client = boot_swag()
     
-    if vectorstore is None or whisper is None or llm is None:
+    if vectorstore is None or whisper is None or llm_client is None:
         console.print("\n[swag.warning][ERR] SWAG Voice failed to initialize. Exiting.[/]")
         sys.exit(1)
-    
-    # Create RAG chain
-    memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True,
-        output_key="answer"
-    )
     
     retriever = vectorstore.as_retriever(
         search_type="similarity",
         search_kwargs={"k": 5}
-    )
-    
-    rag_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        return_source_documents=True,
-        verbose=False
     )
     
     # Initialize PyAudio
@@ -517,7 +529,7 @@ def run_swag_voice():
                     pass
             
             console.print("[swag.info][PROCESSING] Analyzing voice input...[/]")
-            process_voice_query(llm, rag_chain)
+            process_voice_query(llm_client, retriever)
             console.print("[swag.info]Hold [SPACEBAR] to speak...[/]\n")
         
         if key == keyboard.Key.esc:

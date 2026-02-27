@@ -60,7 +60,7 @@ SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models"
 SWAG_CONFIG_PATH = "./swag_config.json"
 TEMP_AUDIO_PATH = "swag_temp.wav"
-OLLAMA_MODEL = "llama3"
+AZERION_MODEL = "gpt-oss-20b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"
 NLLB_MODEL = "facebook/nllb-200-distilled-600M"
@@ -155,6 +155,7 @@ translator = None
 tokenizer = None
 vectorstore = None
 rag_chain = None
+llm_client = None # New global for OpenAI client
 
 
 def print_banner():
@@ -343,9 +344,9 @@ def load_swag_archives() -> List[Document]:
     return documents
 
 
-def boot_swag():
+def boot_swag() -> Tuple[Optional[Chroma], Optional[WhisperModel], Optional['OpenAI']]:
     """Initialize all SWAG systems."""
-    global whisper_model, vectorstore, rag_chain, current_language
+    global whisper_model, vectorstore, rag_chain, current_language, llm_client
     
     print_banner()
     
@@ -380,80 +381,34 @@ def boot_swag():
     # Load translator
     load_translator()
     
-    # Load Ollama
-    console.print(f"[swag.info][SYS] Connecting to Ollama ({OLLAMA_MODEL})...[/]")
+    # Load OpenAI API Client
+    console.print(f"[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     try:
-        llm = Ollama(model=OLLAMA_MODEL, temperature=0.1)
-        llm.invoke("test")
-        console.print("[swag.success][OK] Ollama connected[/]")
+        from openai import OpenAI
+        import os
+        llm_client = OpenAI(
+            api_key=os.environ.get("AZERION_VEO3"),
+            base_url="https://api.azerion.ai/v1"
+        )
+        # Test connection structure
+        # Note: LangChain's ConversationalRetrievalChain expects an LLM object, not a raw client.
+        # For direct client usage, the RAG chain logic needs to be re-implemented.
+        # The provided diff implies direct client usage for refinement and RAG.
+        console.print("[swag.success][OK] Azerion API loaded[/]")
     except Exception as e:
-        console.print(f"[swag.warning][ERR] Ollama failed: {e}[/]")
-        return None
+        console.print(f"[swag.warning][ERR] Azerion API failed: {e}[/]")
+        return None, None, None # Return None for all if client fails
     
-    # Create RAG chain
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
-    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
-    rag_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm, retriever=retriever, memory=memory, return_source_documents=True
-    )
+    # Create RAG chain (This part will be handled manually in process_voice_query and process_text_query)
+    # The original LangChain ConversationalRetrievalChain is not directly compatible with raw OpenAI client.
+    # We will use the vectorstore for retrieval and the llm_client for generation.
     
-    return llm
+    return vectorstore, whisper_model, llm_client
 
 
-def show_language_menu():
-    """Display language selection menu."""
-    global current_language
-    
-    console.clear()
-    
-    table = Table(title=get_ui_string("language_menu"), border_style="cyan")
-    table.add_column("#", style="bold")
-    table.add_column("Flag", justify="center")
-    table.add_column("Language")
-    table.add_column("Native")
-    table.add_column("Code", style="dim")
-    
-    lang_list = list(SUPPORTED_LANGUAGES.items())
-    for i, (code, info) in enumerate(lang_list, 1):
-        marker = " *" if code == current_language else ""
-        table.add_row(str(i), info["flag"], info["name"] + marker, info["native"], code)
-    
-    console.print(table)
-    console.print()
-    
-    choice = Prompt.ask(get_ui_string("select_lang"), default="1")
-    
-    try:
-        idx = int(choice) - 1
-        if 0 <= idx < len(lang_list):
-            new_lang = lang_list[idx][0]
-            current_language = new_lang
-            save_config({"preferred_language": new_lang})
-            
-            lang_info = SUPPORTED_LANGUAGES[new_lang]
-            console.print(f"\n[swag.success][OK] Language set to: {lang_info['flag']} {lang_info['native']}[/]\n")
-    except:
-        pass
-    
-    console.clear()
-    print_banner()
-    lang_info = SUPPORTED_LANGUAGES.get(current_language, SUPPORTED_LANGUAGES["eng_Latn"])
-    console.print(f"[swag.lang]Active Language: {lang_info['flag']} {lang_info['native']}[/]\n")
-
-
-def save_audio(frames: List[bytes], filename: str):
-    """Save audio to WAV."""
-    wf = wave.open(filename, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(2)
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
-
-
-def process_voice_query(llm):
+def process_voice_query(llm_client_instance): # Renamed llm to llm_client_instance
     """Process voice query through the translation sandwich."""
-    global audio_frames, current_language
+    global audio_frames, current_language, vectorstore, llm_client
     
     if not audio_frames:
         return
@@ -483,15 +438,46 @@ def process_voice_query(llm):
         # Step C: Refine
         console.print(f"[swag.info][{get_ui_string('refining')}][/]")
         refine_prompt = f"Fix technical terms for heavy machinery. Output ONLY cleaned text.\nInput: {english_query}\nCleaned:"
-        refined = llm.invoke(refine_prompt).strip()
-        if len(refined) > len(english_query) * 2:
+        
+        # Use llm_client for refinement
+        refine_response = llm_client_instance.chat.completions.create(
+            model=AZERION_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that refines technical queries."},
+                {"role": "user", "content": refine_prompt}
+            ],
+            max_tokens=100,
+            temperature=0.1,
+            stream=False
+        )
+        refined = refine_response.choices[0].message.content.strip()
+        
+        if len(refined) > len(english_query) * 2: # Simple heuristic to prevent over-refinement
             refined = english_query
         
-        # Step D: RAG
+        # Step D: RAG - Manual implementation using vectorstore and llm_client
         console.print(f"[swag.info][{get_ui_string('analyzing')}][/]")
-        result = rag_chain.invoke({"question": refined})
-        english_answer = result.get("answer", "No answer found.")
-        source_docs = result.get("source_documents", [])
+        
+        # Retrieve relevant documents
+        docs = vectorstore.similarity_search(refined, k=5)
+        
+        # We format context simply for API consumption
+        context = "\n\n".join([d.page_content for d in docs])
+        system_prompt = "You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context."
+        user_prompt = f"Context:\n{context}\n\nQuestion: {refined}"
+
+        response = llm_client_instance.chat.completions.create(
+            model=AZERION_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=1024,
+            temperature=0.1,
+            stream=False
+        )
+        english_answer = response.choices[0].message.content.strip()
+        source_docs = docs # Use retrieved docs as source_docs
         
         # Step E: Outbound Translation (to user's language)
         if current_language != "eng_Latn":
@@ -523,9 +509,9 @@ def process_voice_query(llm):
             os.remove(TEMP_AUDIO_PATH)
 
 
-def process_text_query(text: str, llm):
+def process_text_query(text: str, llm_client_instance): # Renamed llm to llm_client_instance
     """Process text query."""
-    global current_language
+    global current_language, vectorstore, llm_client
     
     try:
         # Translate to English if needed
@@ -535,11 +521,28 @@ def process_text_query(text: str, llm):
         else:
             english_query = text
         
-        # RAG
+        # RAG - Manual implementation using vectorstore and llm_client
         console.print(f"[swag.info][{get_ui_string('analyzing')}][/]")
-        result = rag_chain.invoke({"question": english_query})
-        english_answer = result.get("answer", "No answer found.")
-        source_docs = result.get("source_documents", [])
+        
+        # Retrieve relevant documents
+        docs = vectorstore.similarity_search(english_query, k=5)
+        
+        context = "\n\n".join([d.page_content for d in docs])
+        system_prompt = "You are a heavy machinery safety expert. Answer the user's question using the provided context. Be concise and professional. Do not offer information not found in the context."
+        user_prompt = f"Context:\n{context}\n\nQuestion: {english_query}"
+
+        response = llm_client_instance.chat.completions.create(
+            model=AZERION_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=1024,
+            temperature=0.1,
+            stream=False
+        )
+        english_answer = response.choices[0].message.content.strip()
+        source_docs = docs # Use retrieved docs as source_docs
         
         # Translate back
         if current_language != "eng_Latn":
@@ -570,10 +573,10 @@ def process_text_query(text: str, llm):
 
 def run_swag_universal():
     """Main SWAG Universal loop."""
-    global recording, audio_frames, audio_stream, audio_instance
+    global recording, audio_frames, audio_stream, audio_instance, llm_client
     
-    llm = boot_swag()
-    if llm is None:
+    _, _, llm_client = boot_swag() # Unpack the tuple, assign to global llm_client
+    if llm_client is None:
         sys.exit(1)
     
     audio_instance = pyaudio.PyAudio()

@@ -32,6 +32,7 @@ chromadb>=0.4.22
 sentence-transformers>=2.6.0
 
 # AI - LLM Backend
+openai>=1.0.0
 ollama>=0.2.0
 
 # AI - Specialized (Safety Intelligence / Classification)
@@ -85,3 +86,4 @@ gtts
 diffusers
 tensorflow
 tf-keras
+openai

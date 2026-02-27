@@ -65,7 +65,8 @@ SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models"
 TRAINING_DB_PATH = "./training_audit.db"
-OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
+AZERION_MODEL = "gpt-oss-20b"
+AZERION_BASE_URL = "https://api.azerion.ai/v1"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
@@ -243,10 +244,14 @@ def load_vectorstore():
 
 
 def load_llm():
-    """Load Ollama LLM (cached)."""
+    """Load OpenAI client for Azerion API (cached)."""
+    from openai import OpenAI
     if 'llm' not in models_cache:
-        print(f"Loading LLM: {OLLAMA_MODEL}...")
-        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1)
+        print(f"Loading API Client: {AZERION_MODEL}...")
+        models_cache['llm'] = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"), # Using the only azerion key in the env
+            base_url=AZERION_BASE_URL
+        )
     return models_cache['llm']
 
 
@@ -373,63 +378,71 @@ def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], floa
 
 
 def generate_answer(query: str, context_docs: List[Document]) -> str:
-    """Generate answer using LLM with timing and token diagnostics."""
-    import ollama as _ollama
+    """Generate answer using Azerion API with timing and token diagnostics."""
+    client = load_llm()
 
     context = "\n\n".join([d.page_content for d in context_docs[:3]])
 
     # ── Build prompt ─────────────────────────────────────────────────────────
     t_prompt = time.time()
-    prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.
+    
+    system_prompt = """You are a heavy machinery safety expert. Answer the user's question using the provided context.
 
-    CRITICAL INSTRUCTION:
-    End every step with exactly one of these three emoji labels — nothing else:
-    (✅) for normal operating steps
-    (⚠️) for warnings, cautions, and dangers
-    (⛔) for things that must NOT be done
+CRITICAL INSTRUCTION:
+End every step with exactly one of these three emoji labels — nothing else:
+(✅) for normal operating steps
+(⚠️) for warnings, cautions, and dangers
+(⛔) for things that must NOT be done
 
-    FORMAT: one numbered step per line, emoji label at the beginning of that line.
+FORMAT: one numbered step per line, emoji label at the beginning of that line.
 
-    Example:
-    1. (✅) Buckle your seatbelt before starting.
-    2. (⚠️) Keep hands away from moving parts.
-    3. (⛔) Do not jump from the machine.
+Example:
+1. (✅) Buckle your seatbelt before starting.
+2. (⚠️) Keep hands away from moving parts.
+3. (⛔) Do not jump from the machine.
 
-    If the context doesn't contain the answer, say "Information not found in safety manuals."
+If the context doesn't contain the answer, say "Information not found in safety manuals."
+"""
+    
+    user_prompt = f"""Context:
+{context}
 
-    Context:
-    {context}
+Question: {query}
 
-    Question: {query}
+Safety Answer:"""
 
-    Safety Answer:"""
     t_prompt_built = time.time()
-    print(f"[LLM] Prompt built in {t_prompt_built - t_prompt:.3f}s "
-          f"(~{len(prompt.split())} words / ~{len(prompt)} chars)")
+    print(f"[LLM] Prompt built in {t_prompt_built - t_prompt:.3f}s ")
 
-    # ── Call Ollama and measure generation ───────────────────────────────────
+    # ── Call API and measure generation ───────────────────────────────────
     t_gen = time.time()
-    response = _ollama.chat(
-        model=OLLAMA_MODEL,
-        messages=[{"role": "user", "content": prompt}],
+    
+    # We pass stream=False to get the full answer at once matching current logic
+    response = client.chat.completions.create(
+        model=AZERION_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        max_tokens=1024,
+        temperature=0.1,
+        stream=False
     )
     t_gen_done = time.time()
 
-    answer = response["message"]["content"].strip()
+    answer = response.choices[0].message.content.strip()
 
-    # ── Token stats from Ollama response metadata ─────────────────────────────
-    prompt_tokens    = response.get("prompt_eval_count", 0)
-    gen_tokens       = response.get("eval_count", 0)
-    total_tokens     = prompt_tokens + gen_tokens
-    gen_duration_s   = response.get("eval_duration", 0) / 1e9   # nanoseconds → seconds
+    # ── Token stats from API response metadata ─────────────────────────────
+    prompt_tokens    = response.usage.prompt_tokens if response.usage else 0
+    gen_tokens       = response.usage.completion_tokens if response.usage else 0
+    total_tokens     = response.usage.total_tokens if response.usage else 0
+    gen_duration_s   = t_gen_done - t_gen
     tps              = gen_tokens / gen_duration_s if gen_duration_s > 0 else 0.0
-    total_dur_ns     = response.get("total_duration", 0)
-    total_dur_s      = total_dur_ns / 1e9
 
-    print(f"[LLM] ┌── Prompt processing : {response.get('prompt_eval_duration', 0)/1e9:.2f}s  |  {prompt_tokens} prompt tokens")
-    print(f"[LLM] ├── Generation        : {gen_duration_s:.2f}s  |  {gen_tokens} tokens  |  {tps:.1f} tok/s")
-    print(f"[LLM] └── Total (Ollama)    : {total_dur_s:.2f}s  |  {total_tokens} tokens total")
-    print(f"[LLM]     Wall-clock time   : {t_gen_done - t_gen:.2f}s")
+    print(f"[LLM] ┌── API Request         : {gen_duration_s:.2f}s  |  {prompt_tokens} prompt tokens")
+    print(f"[LLM] ├── Generation        : {gen_tokens} tokens  |  {tps:.1f} tok/s")
+    print(f"[LLM] └── Total (API)       : {total_tokens} tokens total")
+    print(f"[LLM]     Wall-clock time   : {t_gen_done - t_prompt:.2f}s")
 
     return answer
 
@@ -771,7 +784,7 @@ def generate_video():
         print(f"[VIDEO] Generating prompt via LLM (RAG answer: {len(rag_answer) if rag_answer else 0} chars)")
         visual_prompt_obj = create_visual_prompt_llm(
             query, category, machine,
-            ollama_model=OLLAMA_MODEL,
+            azerion_model=AZERION_MODEL,
             rag_answer=rag_answer
         )
         prompt = visual_prompt_obj.wan_2_2_prompt

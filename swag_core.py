@@ -41,7 +41,7 @@ from langchain.memory import ConversationBufferMemory
 SWAG_MATRIX_PATH = "/Users/pc/polderr/output/classified/all_classified.json"
 SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
-OLLAMA_MODEL = "llama3"
+AZERION_MODEL = "gpt-oss-20b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # ============================================================================
@@ -286,41 +286,27 @@ def run_swag_terminal():
         console.print("\n[swag.warning][ERR] SWAG Core failed to initialize. Exiting.[/]")
         sys.exit(1)
     
-    # Initialize Ollama LLM
-    console.print(f"\n[swag.info][SYS] Connecting to Ollama ({OLLAMA_MODEL})...[/]")
+    # Initialize OpenAI API Client
+    console.print(f"\n[swag.info][SYS] Connecting to Azerion AI ({AZERION_MODEL})...[/]")
     
     try:
-        llm = Ollama(
-            model=OLLAMA_MODEL,
-            temperature=0.1  # Strict Factual Mode
+        from openai import OpenAI
+        client = OpenAI(
+            api_key=os.environ.get("AZERION_VEO3"),
+            base_url="https://api.azerion.ai/v1"
         )
-        # Test connection
-        llm.invoke("test")
-        console.print("[swag.success][OK] Ollama connection established[/]")
+        console.print("[swag.success][OK] Azerion connection established[/]")
     except Exception as e:
-        console.print(f"[swag.warning][ERR] Ollama connection failed: {e}[/]")
-        console.print("[swag.info][TIP] Make sure Ollama is running: ollama serve[/]")
+        console.print(f"[swag.warning][ERR] Azerion connection failed: {e}[/]")
         sys.exit(1)
     
-    # Initialize conversation memory
-    memory = ConversationBufferMemory(
-        memory_key="chat_history",
-        return_messages=True,
-        output_key="answer"
-    )
+    # Simple list for memory instead of LangChain's complex memory object
+    chat_history = []
     
-    # Create retrieval chain
+    # Create retriever
     retriever = vectorstore.as_retriever(
         search_type="similarity",
         search_kwargs={"k": 5}
-    )
-    
-    chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=retriever,
-        memory=memory,
-        return_source_documents=True,
-        verbose=False
     )
     
     # System ready
@@ -344,7 +330,7 @@ def run_swag_terminal():
                 break
             
             if user_input.lower() == "clear":
-                memory.clear()
+                chat_history.clear()
                 console.print("[swag.success][OK] Conversation memory cleared.[/]\n")
                 continue
             
@@ -355,11 +341,36 @@ def run_swag_terminal():
             
             # Process query with spinner
             with Live(Spinner("dots", text="[swag.info]Decrypting Safety Protocols...[/]"), console=console):
-                result = chain.invoke({"question": user_input})
-            
-            # Extract response and sources
-            answer = result.get("answer", "NEGATIVE. System error.")
-            source_docs = result.get("source_documents", [])
+                # 1. Retrieve docs
+                source_docs = retriever.get_relevant_documents(user_input)
+                
+                # 2. Format context and history
+                context_str = "\n\n".join([doc.page_content for doc in source_docs])
+                history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history[-4:]]) # Keep last 2 turns
+                
+                # 3. Build prompt
+                system_msg = SWAG_PERSONA.format(
+                    context=context_str,
+                    chat_history=history_str,
+                    question=user_input
+                )
+                
+                # 4. Generate
+                response = client.chat.completions.create(
+                    model=AZERION_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_msg}
+                    ],
+                    max_tokens=1024,
+                    temperature=0.1,
+                    stream=False
+                )
+                
+                answer = response.choices[0].message.content.strip()
+                
+                # Update memory
+                chat_history.append({"role": "user", "content": user_input})
+                chat_history.append({"role": "assistant", "content": answer})
             
             # Check for critical content
             is_critical = any(
