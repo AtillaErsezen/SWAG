@@ -191,7 +191,6 @@ const YoloSimulation = () => {
     const [phase, setPhase] = useState('idle'); // idle -> scanning -> detected -> results
     const [showCamera, setShowCamera] = useState(false);
     const [proximityAlert, setProximityAlert] = useState(false);
-    const [detectedBoxes, setDetectedBoxes] = useState([]);
     const [frameCount, setFrameCount] = useState(0);
     const [detections, setDetections] = useState([]);
     const [isAmbiguous, setIsAmbiguous] = useState(false);
@@ -213,7 +212,6 @@ const YoloSimulation = () => {
     const startScan = async (fileOrBlob) => {
         setError(null);
         setDetections([]);
-        setDetectedBoxes([]);
         setIsAmbiguous(false);
         setShowCamera(false);
 
@@ -269,7 +267,6 @@ const YoloSimulation = () => {
     const handleReset = () => {
         setPhase('idle');
         setDetections([]);
-        setDetectedBoxes([]);
         setPreviewUrl(null);
         setError(null);
         setFrameCount(0);
@@ -322,33 +319,6 @@ const YoloSimulation = () => {
 
             {/* Bounding Boxes Layer */}
             <div className="absolute inset-0 z-10 pointer-events-none">
-                {/* Dynamic detections from API */}
-                {detections.map((det, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: phase === 'detected' || phase === 'results' ? 1 : 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute"
-                        style={{
-                            // Anchor main detection in center, spread others? 
-                            // Since API doesn't provide coords, we use this styled placeholder spot for the top match
-                            left: i === 0 ? '20%' : '10%',
-                            top: i === 0 ? '18%' : `${30 + i * 15}%`,
-                            width: i === 0 ? '55%' : '20%',
-                            height: i === 0 ? '55%' : '15%'
-                        }}
-                    >
-                        <div className="absolute inset-0 border-2" style={{ borderColor: i === 0 ? '#00e5ff' : '#E67E22' }} />
-                        <div
-                            className="absolute -top-6 left-0 text-[11px] font-mono font-bold px-2 py-0.5"
-                            style={{ backgroundColor: i === 0 ? '#00e5ff' : '#E67E22', color: '#000' }}
-                        >
-                            {det.class} {(det.confidence * 100).toFixed(0)}%
-                        </div>
-                    </motion.div>
-                ))}
-
                 {/* Scanning sweep line */}
                 {phase === 'scanning' && (
                     <motion.div
