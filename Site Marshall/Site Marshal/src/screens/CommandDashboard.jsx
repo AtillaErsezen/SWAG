@@ -59,6 +59,7 @@ const CommandDashboard = () => {
                 category: res.category,
                 logId: res.log_id,
                 audio: res.audio,
+                transcription: res.transcription ?? null,
             });
             playAudio(res.audio);
         } catch (err) {
@@ -192,6 +193,12 @@ const CommandDashboard = () => {
                                     <X size={24} />
                                 </button>
                             </div>
+                            {result.transcription && (
+                                <div className="bg-slate-gray/10 rounded-xl px-4 py-2 mb-4">
+                                    <p className="text-xs font-semibold text-slate-gray uppercase tracking-wider mb-1">You said</p>
+                                    <p className="text-charcoal/80 text-sm italic leading-snug">"{result.transcription}"</p>
+                                </div>
+                            )}
                             <p className="text-charcoal font-medium leading-relaxed whitespace-pre-line mb-6">
                                 {result.answer}
                             </p>

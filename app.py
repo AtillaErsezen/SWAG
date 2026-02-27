@@ -388,12 +388,12 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
     (⚠️) for warnings, cautions, and dangers
     (⛔) for things that must NOT be done
 
-    FORMAT: one numbered step per line, emoji label at the end of that line.
+    FORMAT: one numbered step per line, emoji label at the beginning of that line.
 
     Example:
-    1. Buckle your seatbelt before starting. (✅)
-    2. Keep hands away from moving parts. (⚠️)
-    3. Do not jump from the machine. (⛔)
+    1. (✅) Buckle your seatbelt before starting.
+    2. (⚠️) Keep hands away from moving parts.
+    3. (⛔) Do not jump from the machine.
 
     If the context doesn't contain the answer, say "Information not found in safety manuals."
 
