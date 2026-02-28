@@ -284,7 +284,7 @@ const YoloSimulation = () => {
     const bgStyle = previewUrl
         ? { backgroundImage: `url('${previewUrl}')`, filter: 'brightness(0.85) saturate(0.9)' }
         : {
-            backgroundImage: `url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1200')`,
+            backgroundImage: `url('bg_2.png')`,
             filter: 'brightness(0.5) saturate(0.6)',
         };
 

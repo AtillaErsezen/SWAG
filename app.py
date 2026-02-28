@@ -25,11 +25,10 @@ Run:
 """
 import os
 from dotenv import load_dotenv
+from deep_translator import GoogleTranslator
 
 # Load environment variables from .env
 load_dotenv()
-#TODO add text translation to ensure rag accuracy
-#TODO in model pages, make the model answer specific to that machine(inject machine name in prompt, target specific index in rag programatically?)
 import io
 import json
 import base64
@@ -526,7 +525,18 @@ def query_text():
     try:
         # Step 1: Query already in language or implicitly translated
         t0 = time.time()
-        english_query = text
+        
+        # Translate query to English if the user language is not English
+        if 'eng' not in lang:
+            try:
+                english_query = GoogleTranslator(source='auto', target='en').translate(text)
+                print(f"[TEXT] Translated query '{text}' -> '{english_query}'")
+            except Exception as e:
+                print(f"[TEXT] Translation failed, falling back to raw query: {e}")
+                english_query = text
+        else:
+            english_query = text
+            
         print(f"[TEXT] Query formatting prep: {time.time() - t0:.2f}s")
         
         # Search with confidence check

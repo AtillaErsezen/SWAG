@@ -404,11 +404,11 @@ const Academy = () => {
                                 {studyMode === 'summary' && (
                                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-6">
                                         <div className={`p-6 bg-white rounded-[2rem] shadow-sm border-2 ${getCriticalityStyle(activeSection.criticality).border}`}>
-                                            <h4 className="font-black text-2xl mb-4 text-matte-indigo">Quick Summary</h4>
+                                            <h4 className="font-black text-2xl mb-4 text-matte-indigo">{t('quick_summary')}</h4>
                                             <p className="text-charcoal font-medium text-lg leading-relaxed">{activeSection.summary}</p>
                                         </div>
                                         <div className="p-6 bg-deep-concrete/5 rounded-[2rem]">
-                                            <h4 className="font-bold text-slate-gray mb-2 uppercase tracking-widest text-xs">Full Manual Excerpt</h4>
+                                            <h4 className="font-bold text-slate-gray mb-2 uppercase tracking-widest text-xs">{t('full_manual_excerpt')}</h4>
                                             <p className="text-charcoal leading-relaxed">{activeSection.content}</p>
                                         </div>
                                     </motion.div>

@@ -225,19 +225,10 @@ const MachineHub = () => {
             {/* 2. Scrollable Body (Hero + Chat) */}
             <div className="flex-1 overflow-y-auto pb-44">
 
-                {/* Hero Image */}
-                <div className="h-[35vh] min-h-[250px] w-full relative overflow-hidden">
-                    <motion.div
-                        initial={{ scale: 1.05 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 1.5, ease: 'easeOut' }}
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${machine.image})` }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-app-bg via-app-bg/10 to-transparent z-10" />
-
-                    <div className="absolute bottom-6 left-6 z-20">
-                        <div className="text-4xl sm:text-5xl font-black text-charcoal drop-shadow-md tracking-tighter">
+                {/* Machine Title (No Image) */}
+                <div className="w-full relative px-6 pt-6 pb-2">
+                    <div className="z-20">
+                        <div className="text-4xl sm:text-5xl font-black text-charcoal tracking-tighter">
                             <SplitText text={machine.model} />
                         </div>
                         <motion.p
