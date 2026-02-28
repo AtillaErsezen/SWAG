@@ -82,6 +82,14 @@ export const queryVoice = (audioBlob, userId, langCode) =>
     });
 
 /**
+ * Transcribe a voice recording to text only (no RAG/LLM).
+ * @param {Blob} audioBlob
+ * @returns {{ success: boolean, transcription: string, detected_language: string }}
+ */
+export const transcribeAudio = (audioBlob) =>
+    MULTIPART('/api/transcribe', audioBlob, 'audio', {});
+
+/**
  * Mark a training log entry as verified by the worker.
  * @param {number} logId
  * @returns {{ success: boolean, log_id: number }}

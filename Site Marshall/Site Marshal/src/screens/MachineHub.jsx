@@ -5,7 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, GraduationCap, ChevronLeft, Keyboard, Send, ClipboardCheck, CheckCircle, AlertTriangle } from 'lucide-react';
 import EnvironmentalWidget from '../components/EnvironmentalWidget';
-import { queryText, queryVoice, verifyLog, playAudio, startRecording } from '../services/api';
+import { queryText, queryVoice, transcribeAudio, verifyLog, playAudio, startRecording } from '../services/api';
 
 // Custom Minimalist Text Reveal
 const SplitText = ({ text }) => {
@@ -80,11 +80,26 @@ const MachineHub = () => {
         setIsListening(false);
 
         try {
+            setIsLoading(true);
             const audioBlob = await recorderRef.current.stop();
             recorderRef.current = null;
-            await processQuery(audioBlob, 'voice');
+
+            // Just transcribe the audio, don't auto-send the full RAG query
+            const res = await transcribeAudio(audioBlob);
+
+            // Pop open the text input populated with the transcription
+            setIsTyping(true);
+            setTextInput(res.transcription);
+
         } catch (err) {
-            console.error('Recording error:', err);
+            console.error('Transcription error:', err);
+            setChatHistory(prev => [...prev, {
+                type: 'ai',
+                text: `⛔ Error transcribing audio. Please try again.`,
+                logId: null,
+            }]);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 

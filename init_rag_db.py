@@ -5,6 +5,8 @@ This script creates the RAG vector database from your safety documents.
 """
 
 import json
+import argparse
+import shutil
 from pathlib import Path
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -18,9 +20,13 @@ SWAG_ARCHIVES_PATH = BASE_DIR / "output" / "markdown"
 SWAG_BRAIN_PATH = BASE_DIR / "swag_db"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
-def init_vector_db():   
-    """Initialize vector database from safety documents."""
+def init_vector_db(single_file: str = None, reset: bool = False):   
+    """Initialize or update vector database from safety documents."""
     print("🚀 Initializing SWAG Vector Database...")
+    
+    if reset and SWAG_BRAIN_PATH.exists():
+        print("🗑️ Resetting existing vector database...")
+        shutil.rmtree(SWAG_BRAIN_PATH)
     
     # Load embeddings model
     print(f"📥 Loading embeddings model: {EMBEDDING_MODEL}...")
@@ -54,11 +60,26 @@ def init_vector_db():
             documents.append(doc)
         
         print(f"   ✅ Loaded {len(documents)} safety rules from matrix")
-    else:
+    elif not single_file:
         print(f"   ⚠️  Matrix not found at: {SWAG_MATRIX_PATH}")
     
     # 2. Load markdown safety archives
-    if SWAG_ARCHIVES_PATH.exists():
+    if single_file:
+        single_path = Path(single_file)
+        if single_path.exists():
+            print(f"📚 Loading single markdown file: {single_path}")
+            splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            try:
+                content = single_path.read_text(encoding="utf-8")
+                chunks = splitter.split_text(content)
+                for chunk in chunks:
+                    documents.append(Document(page_content=chunk, metadata={"source": single_path.name}))
+                print(f"   ✅ Loaded {len(chunks)} chunks from {single_path.name}")
+            except Exception as e:
+                print(f"   ⚠️  Error loading {single_path.name}: {e}")
+        else:
+            print(f"   ⚠️  File not found: {single_path}")
+    elif SWAG_ARCHIVES_PATH.exists():
         print(f"📚 Loading markdown archives from: {SWAG_ARCHIVES_PATH}")
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         md_count = 0
@@ -117,5 +138,10 @@ def init_vector_db():
 
 
 if __name__ == "__main__":
-    success = init_vector_db()
+    parser = argparse.ArgumentParser(description="Initialize or update the SWAG Vector Database")
+    parser.add_argument("--file", "-f", type=str, help="Add a single markdown file instead of reloading everything")
+    parser.add_argument("--reset", "-r", action="store_true", help="Delete the existing database before rebuilding (prevents duplicates when reloading all)")
+    args = parser.parse_args()
+    
+    success = init_vector_db(single_file=args.file, reset=args.reset)
     exit(0 if success else 1)

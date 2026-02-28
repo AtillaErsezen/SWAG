@@ -28,10 +28,8 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv()
-#TODO type the transcript of voice query instead of 'voice query' in model page
+#TODO add text translation to ensure rag accuracy
 #TODO in model pages, make the model answer specific to that machine(inject machine name in prompt, target specific index in rag programatically?)
-#TODO add translated answer to text page
-#TODO 
 import io
 import json
 import base64
@@ -642,6 +640,39 @@ def query_voice():
     
     except Exception as e:
         print(f"[VOICE] === FAILED after {time.time() - t_total:.2f}s ===")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/transcribe', methods=['POST'])
+def transcribe_endpoint():
+    """Process voice query for transcription only."""
+    t_total = time.time()
+    if 'audio' not in request.files:
+        return jsonify({"error": "Audio file required"}), 400
+    
+    audio_file = request.files['audio']
+    
+    try:
+        # Read audio bytes
+        audio_bytes = audio_file.read()
+        
+        # Transcribe
+        t0 = time.time()
+        raw_text, detected_lang = transcribe_audio(audio_bytes)
+        print(f"[TRANSCRIBE] Whisper: {time.time() - t0:.2f}s")
+        
+        if not raw_text.strip():
+            return jsonify({"error": "Could not understand audio"}), 400
+            
+        print(f"[TRANSCRIBE] === TOTAL: {time.time() - t_total:.2f}s ===")
+        return jsonify({
+            "success": True,
+            "transcription": raw_text,
+            "detected_language": detected_lang
+        })
+        
+    except Exception as e:
+        print(f"[TRANSCRIBE] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
 
 
