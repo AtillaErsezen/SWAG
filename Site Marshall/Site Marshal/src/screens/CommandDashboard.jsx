@@ -134,7 +134,7 @@ const CommandDashboard = () => {
                         )}
                     </div>
                     <h2 className={`text-2xl font-bold ${isListening ? 'text-electric-cyan' : 'text-slate-gray'}`}>
-                        {isListening ? "Marshall AI Listening..." : isLoading ? "Processing..." : t('push_to_speak')}
+                        {isListening ? t('marshall_ai_listening') : isLoading ? t('processing') : t('push_to_speak')}
                     </h2>
                 </button>
 
@@ -148,27 +148,13 @@ const CommandDashboard = () => {
                             className="absolute top-4 right-4 bg-app-bg text-charcoal px-3 py-1 rounded-full flex items-center gap-2 text-sm font-bold shadow-md"
                         >
                             <Volume2 size={16} className="text-electric-cyan" />
-                            Marshall AI Active
+                            {t('marshall_ai_active')}
                         </motion.div>
                     )}
                 </AnimatePresence>
             </motion.div>
 
-            {/* Bottom: Supervisor Link */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="flex-none p-3 bg-app-bg"
-            >
-                <button
-                    onClick={() => navigate('/supervisor')}
-                    className="w-full py-3 bg-white border border-slate-gray/20 rounded-2xl flex items-center justify-center gap-2 text-matte-indigo font-bold shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
-                >
-                    <BarChart3 size={20} />
-                    Supervisor Analytics
-                </button>
-            </motion.div>
+
 
             {/* Result Overlay */}
             <AnimatePresence>

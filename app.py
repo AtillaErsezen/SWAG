@@ -28,7 +28,6 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv()
-#TODO translation optimization
 #TODO type the transcript of voice query instead of 'voice query' in model page
 #TODO in model pages, make the model answer specific to that machine(inject machine name in prompt, target specific index in rag programatically?)
 #TODO add translated answer to text page

@@ -13,6 +13,7 @@ import { detectImage } from '../services/api';
 // Uses getUserMedia for cross-platform camera access (desktop + mobile).
 // ─────────────────────────────────────────────────────────────────────────────
 const CameraViewfinder = ({ onCapture, onClose }) => {
+    const { t } = useAppContext();
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [ready, setReady] = useState(false);
@@ -110,7 +111,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             {/* Bottom-right */}
                             <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-electric-cyan" />
                             <p className="absolute -bottom-8 left-0 right-0 text-center text-white/50 text-xs font-mono tracking-widest">
-                                FRAME MACHINE
+                                {t('cv_frame')}
                             </p>
                         </div>
                     </div>
@@ -124,7 +125,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                             className="w-10 h-10 rounded-full border-2 border-white/20 border-t-electric-cyan"
                         />
-                        <p className="text-white/50 text-sm font-mono">Starting camera…</p>
+                        <p className="text-white/50 text-sm font-mono">{t('cv_starting_cam')}</p>
                     </div>
                 )}
 
@@ -137,7 +138,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             onClick={onClose}
                             className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold"
                         >
-                            Go Back
+                            {t('cv_go_back')}
                         </button>
                     </div>
                 )}
@@ -200,7 +201,7 @@ const YoloSimulation = () => {
     const frameIntervalRef = useRef(null);
 
     const navigate = useNavigate();
-    const { setActiveMachineId, workerId } = useAppContext();
+    const { setActiveMachineId, workerId, tMachine, t } = useAppContext();
 
     // Cleanup on unmount
     useEffect(() => () => {
@@ -299,7 +300,7 @@ const YoloSimulation = () => {
                 <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full ${phase === 'scanning' ? 'bg-electric-cyan animate-pulse' : phase === 'idle' ? 'bg-white/40' : 'bg-sage-green'}`} />
                     <span className="text-white text-xs font-mono tracking-wider">
-                        {phase === 'idle' ? 'WAITING FOR IMAGE' : phase === 'scanning' ? 'DETECTING...' : 'DETECTION COMPLETE'}
+                        {phase === 'idle' ? t('cv_waiting') : phase === 'scanning' ? t('cv_detecting') : t('cv_complete')}
                     </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-mono text-white/60 tracking-wider">
@@ -345,8 +346,8 @@ const YoloSimulation = () => {
                         >
                             <AlertTriangle size={28} className="text-rust-red" />
                             <div>
-                                <div className="text-rust-red font-bold text-sm font-mono tracking-wider">PROXIMITY ALERT</div>
-                                <div className="text-white/50 text-[10px] font-mono">person detected in swing radius -- 2.3m</div>
+                                <div className="text-rust-red font-bold text-sm font-mono tracking-wider">{t('cv_proximity')}</div>
+                                <div className="text-white/50 text-[10px] font-mono">{t('cv_person_detected')} -- 2.3m</div>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -362,8 +363,8 @@ const YoloSimulation = () => {
                     >
                         <div className="text-center">
                             <p className="text-white/60 font-mono text-xs tracking-widest uppercase mb-2">MARSHALL CV</p>
-                            <h2 className="text-white font-black text-2xl">Identify a Machine</h2>
-                            <p className="text-white/50 text-sm mt-1">Take a photo or select one from your library</p>
+                            <h2 className="text-white font-black text-2xl">{t('cv_title')}</h2>
+                            <p className="text-white/50 text-sm mt-1">{t('cv_subtitle')}</p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
@@ -374,7 +375,7 @@ const YoloSimulation = () => {
                                 className="flex-1 flex flex-col items-center gap-3 bg-electric-cyan text-black font-black text-base px-6 py-5 rounded-2xl shadow-lg hover:brightness-110 transition-all"
                             >
                                 <Camera size={32} />
-                                TAKE PHOTO
+                                {t('cv_take_photo')}
                             </motion.button>
 
                             {/* Upload from library */}
@@ -384,7 +385,7 @@ const YoloSimulation = () => {
                                 className="flex-1 flex flex-col items-center gap-3 bg-white/10 border border-white/20 text-white font-black text-base px-6 py-5 rounded-2xl hover:bg-white/20 transition-all"
                             >
                                 <Upload size={32} />
-                                UPLOAD
+                                {t('cv_upload')}
                             </motion.button>
                         </div>
                     </motion.div>
@@ -425,7 +426,7 @@ const YoloSimulation = () => {
                                 <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-sage-green" />
                                     <span className="text-white/60 text-[10px] font-mono tracking-widest uppercase">
-                                        {isAmbiguous ? 'MULTIPLE MATCHES — select one' : `${detections.length} match${detections.length !== 1 ? 'es' : ''} — tap to open`}
+                                        {isAmbiguous ? t('cv_multiple') : `${detections.length} ${detections.length !== 1 ? t('cv_matches') : t('cv_match')} \u2014 ${t('cv_tap_open')}`}
                                     </span>
                                 </div>
                                 <button
@@ -457,7 +458,7 @@ const YoloSimulation = () => {
                                                         {machine ? machine.model : det.class}
                                                     </div>
                                                     <div className="text-white/40 text-[10px] font-mono">
-                                                        {machine ? machine.type : 'Unknown'}
+                                                        {machine ? tMachine(machine.type) : 'Unknown'}
                                                     </div>
                                                 </div>
                                             </div>

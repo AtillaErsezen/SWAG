@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronDown, Users, BarChart3, Globe, AlertTriangle, Clock, Shield, UserCircle, CheckCircle, XCircle, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { machineDB, workerRegistry } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 
 const SupervisorDashboard = () => {
     const navigate = useNavigate();
     const [expandedWorker, setExpandedWorker] = useState(null);
+    const { tMachine } = useAppContext();
 
     const totalMachines = machineDB.length;
     const avgProgress = Math.round(machineDB.reduce((a, m) => a + m.trainingProgress, 0) / totalMachines);
@@ -182,8 +184,8 @@ const SupervisorDashboard = () => {
                                                                 <div
                                                                     key={machineId}
                                                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold ${done
-                                                                            ? 'bg-sage-green/10 text-sage-green'
-                                                                            : 'bg-rust-red/10 text-rust-red'
+                                                                        ? 'bg-sage-green/10 text-sage-green'
+                                                                        : 'bg-rust-red/10 text-rust-red'
                                                                         }`}
                                                                 >
                                                                     {done ? <CheckCircle size={14} /> : <XCircle size={14} />}
@@ -242,7 +244,7 @@ const SupervisorDashboard = () => {
                                 <div className="flex justify-between items-center mb-2">
                                     <div>
                                         <span className="font-bold text-base">{machine.model}</span>
-                                        <span className="text-[10px] text-slate-gray ml-2 uppercase">{machine.type}</span>
+                                        <span className="text-[10px] text-slate-gray ml-2 uppercase">{tMachine(machine.type)}</span>
                                     </div>
                                     <span className={`text-sm font-black ${machine.trainingProgress >= 70 ? 'text-sage-green' : machine.trainingProgress >= 40 ? 'text-safety-orange' : 'text-rust-red'}`}>
                                         {machine.trainingProgress}%

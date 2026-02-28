@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronDown, BookOpen, BrainCircuit, FileText, CheckCircle, XCircle, Send, Play, Layers, Trophy, RotateCcw } from 'lucide-react';
-import { machineDB } from '../data/mockData';
+import { machineDB, getLocalizedUnits } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 
 const getCriticalityStyle = (crit) => {
@@ -19,6 +19,7 @@ const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
 // ─── Multiple-Choice Quiz Component ──────────────────────────────────────────
 const MultipleChoiceQuiz = ({ cards }) => {
+    const { t } = useAppContext();
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);   // index of chosen option
     const [revealed, setRevealed] = useState(false);  // answer revealed?
@@ -74,10 +75,10 @@ const MultipleChoiceQuiz = ({ cards }) => {
 
                 <div className="text-center">
                     <h3 className="text-2xl font-black text-matte-indigo mb-1">
-                        {passed ? 'Well done!' : 'Keep studying'}
+                        {passed ? t('quiz_well_done') : t('quiz_keep_studying')}
                     </h3>
                     <p className="text-slate-gray font-medium">
-                        {score} of {total} correct
+                        {score} {t('quiz_of')} {total} {t('quiz_correct')}
                     </p>
                 </div>
 
@@ -105,7 +106,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
                     className="w-full py-5 bg-matte-indigo text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform flex items-center justify-center gap-3"
                 >
                     <RotateCcw size={22} />
-                    RETAKE QUIZ
+                    {t('quiz_retake')}
                 </button>
             </motion.div>
         );
@@ -140,7 +141,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
             {/* Question card */}
             <div className="bg-white rounded-[2rem] p-7 shadow-sm border border-slate-gray/20">
                 <span className="text-safety-orange font-black text-xs uppercase tracking-widest mb-3 block">
-                    Question {qIndex + 1}
+                    {t('quiz_question')} {qIndex + 1}
                 </span>
                 <h3 className="text-xl font-black text-matte-indigo leading-snug">
                     {card.q}
@@ -203,7 +204,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
                         disabled={selected === null}
                         className="w-full py-5 bg-matte-indigo text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        CONFIRM ANSWER
+                        {t('quiz_confirm')}
                     </motion.button>
                 ) : (
                     <motion.button
@@ -214,14 +215,14 @@ const MultipleChoiceQuiz = ({ cards }) => {
                         onClick={handleNext}
                         className="w-full py-5 bg-safety-orange text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform"
                     >
-                        {qIndex < total - 1 ? 'NEXT QUESTION →' : 'SEE RESULTS'}
+                        {qIndex < total - 1 ? t('quiz_next') : t('quiz_see_results')}
                     </motion.button>
                 )}
             </AnimatePresence>
 
             {/* Live score chip */}
             <div className="flex items-center justify-center gap-2">
-                <span className="text-xs text-slate-gray font-medium">Score so far:</span>
+                <span className="text-xs text-slate-gray font-medium">{t('quiz_score_so_far')}</span>
                 <span className="text-sm font-black text-matte-indigo">
                     {score} / {qIndex + (revealed ? 1 : 0)}
                 </span>
@@ -234,7 +235,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
 const Academy = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useAppContext();
+    const { currentLang, t } = useAppContext();
 
     const [view, setView] = useState('overview');
     const [activeSection, setActiveSection] = useState(null);
@@ -245,14 +246,14 @@ const Academy = () => {
     const [curCard, setCurCard] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
-    // Marshall AI Chat State
-    const [chatInput, setChatInput] = useState('');
-    const [chatLog, setChatLog] = useState([]);
-
     const machine = machineDB.find(m => m.id === id);
     if (!machine) return <div className="p-8">Machine Not Found</div>;
 
-    const units = machine.units || [];
+    // Fetch localized units based on the machine's category and the current language natively
+    const units = React.useMemo(() => {
+        if (!machine.unitCategory) return [];
+        return getLocalizedUnits(machine.unitCategory, currentLang);
+    }, [machine.unitCategory, currentLang]);
 
     const toggleUnit = (unitId) => {
         setExpandedUnits(prev => ({ ...prev, [unitId]: !prev[unitId] }));
@@ -264,18 +265,6 @@ const Academy = () => {
         setView('study');
         setCurCard(0);
         setIsFlipped(false);
-        setChatLog([{ type: 'ai', text: `Marshall AI: Welcome to your training session on "${section.title}". What aspect of this topic would you like to explore first?` }]);
-    };
-
-    const handleChatSubmit = (e) => {
-        e.preventDefault();
-        if (!chatInput.trim()) return;
-        const newLog = [...chatLog, { type: 'user', text: chatInput }];
-        setChatLog(newLog);
-        setChatInput('');
-        setTimeout(() => {
-            setChatLog([...newLog, { type: 'ai', text: `Marshall AI: That's an insightful question about ${activeSection.title}. ${activeSection.qChatContext} How does this affect your approach to safe machine operation?` }]);
-        }, 1000);
     };
 
     return (
@@ -288,7 +277,7 @@ const Academy = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">The Academy</h2>
+                    <h2 className="text-xl font-bold tracking-tight">{t('academy_title')}</h2>
                     <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{machine.model}</p>
                 </div>
             </div>
@@ -392,7 +381,6 @@ const Academy = () => {
                             <div className="flex bg-white shadow-sm border-b border-slate-gray/20 px-2 py-3 gap-2 overflow-x-auto hide-scrollbar sticky top-0 z-10">
                                 {[
                                     { id: 'summary', icon: FileText, label: 'Summary' },
-                                    { id: 'qchat', icon: BrainCircuit, label: 'Marshall AI' },
                                     { id: 'learn', icon: BookOpen, label: 'Learn' },
                                     { id: 'test', icon: Play, label: 'Test' }
                                 ].map(tab => (
@@ -424,39 +412,6 @@ const Academy = () => {
                                             <p className="text-charcoal leading-relaxed">{activeSection.content}</p>
                                         </div>
                                     </motion.div>
-                                )}
-
-                                {studyMode === 'qchat' && (
-                                    <div className="w-full max-w-md h-full flex flex-col relative pb-20">
-                                        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                                            {chatLog.map((chat, idx) => (
-                                                <motion.div
-                                                    key={idx}
-                                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                                    className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                                                >
-                                                    <div className={`max-w-[85%] p-4 rounded-3xl ${chat.type === 'user' ? 'bg-matte-indigo text-white rounded-br-sm' : 'bg-white shadow-sm border border-slate-gray/20 rounded-tl-sm text-charcoal'
-                                                        }`}>
-                                                        {chat.text}
-                                                    </div>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                        <form onSubmit={handleChatSubmit} className="absolute bottom-0 inset-x-0 bg-app-bg pt-2">
-                                            <div className="relative flex items-center">
-                                                <input
-                                                    type="text"
-                                                    value={chatInput}
-                                                    onChange={e => setChatInput(e.target.value)}
-                                                    placeholder="Reply to Marshall AI..."
-                                                    className="w-full bg-white border border-slate-gray/30 rounded-full px-6 py-4 pr-16 shadow-sm focus:outline-none focus:border-matte-indigo font-medium"
-                                                />
-                                                <button type="submit" className="absolute right-2 p-3 bg-safety-orange text-white rounded-full hover:bg-orange-600 transition-colors">
-                                                    <Send size={18} />
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
                                 )}
 
                                 {studyMode === 'learn' && activeSection.learnCards && activeSection.learnCards.length > 0 && (
@@ -518,7 +473,7 @@ const Academy = () => {
                                                         }}
                                                         className="w-full py-5 bg-safety-orange text-white font-black text-xl rounded-2xl shadow-md active:scale-95 transition-transform"
                                                     >
-                                                        {curCard < activeSection.learnCards.length - 1 ? 'NEXT CARD' : 'RESTART DECK'}
+                                                        {curCard < activeSection.learnCards.length - 1 ? t('next_card') : t('restart_deck')}
                                                     </motion.button>
                                                 )}
                                             </AnimatePresence>
@@ -541,7 +496,7 @@ const Academy = () => {
                                                         <Trophy size={24} className="text-matte-indigo" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-black text-matte-indigo text-base leading-tight">Knowledge Check</h4>
+                                                        <h4 className="font-black text-matte-indigo text-base leading-tight">{t('knowledge_check')}</h4>
                                                         <p className="text-slate-gray text-xs mt-0.5">
                                                             {activeSection.learnCards.length} multiple-choice questions · pass at 70%
                                                         </p>

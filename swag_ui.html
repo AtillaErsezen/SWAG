@@ -849,19 +849,32 @@
         const translations = {
             "eng_Latn": {
                 "loginHeader": "Operator Login",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Enter Your Operator ID",
                 "clockInBtn": "CLOCK IN",
                 "operatorIdPlaceholder": "e.g., OP-1234",
+                "operatorIdAlert": "Please enter your Operator ID",
                 "okLabel": "[OK]",
                 "verifiedLabel": "verified trainings",
-                "answerTitle": "[i] SAFETY INFORMATION",
+                "clockOutBtn": "Clock Out",
+                "answerTitleInfo": "[i] SAFETY INFORMATION",
+                "answerTitleAlert": "[!] SAFETY ALERT",
                 "questionLabel": "Question:",
                 "confidenceLabel": "Confidence:",
                 "confirmBtn": "[OK] I CONFIRM UNDERSTANDING",
+                "trainingLogged": "[OK] Training logged and verified!",
                 "voiceTitle": "[MIC] Voice Safety Query",
                 "voiceDesc": "Hold the button and speak your safety question",
                 "recordBtn": "[REC] HOLD TO SPEAK",
                 "recordBtnRecording": "[STOP] RELEASE TO PROCESS",
+                "micRequesting": "Requesting microphone permission...",
+                "micDenied": "Microphone permission denied. Please allow microphone access.",
+                "micRecording": "Recording audio...",
+                "micErrorStart": "Error starting recording: ",
+                "micProcessing": "Processing audio...",
+                "micTranscribing": "Transcribing your voice...",
+                "micYouSaid": "📝 You said: ",
+                "micErrorProcess": "Error processing voice query: ",
                 "camTitle": "[CAM] Object Detection",
                 "camDesc": "Take a photo to detect heavy machinery and safety hazards",
                 "cameraPlaceholder": "Camera not active\nClick \"Start Camera\" to begin",
@@ -869,26 +882,81 @@
                 "stopCameraBtn": "Stop Camera",
                 "takePhotoBtn": "📸 Take Photo",
                 "retakeBtn": "↩ Retake",
+                "camRequesting": "Requesting camera permission...",
+                "camActive": "Camera active — tap 📸 Take Photo to capture",
+                "camDenied": "Camera permission denied. Please allow camera access.",
+                "camStartFirst": "Please start the camera first",
+                "camClassifying": "Classifying image with YOLO26n-cls...",
+                "camError": "Classification error: ",
+                "camMultiple": "⚠ Multiple matches — pick one:",
+                "camDetected": "✓ Detected: ",
+                "camComplete": "Classification complete ✓",
+                "camNotFound": "Could not classify image. Try a different angle.",
+                "camFailed": "Classification failed: ",
                 "textTitle": "Or Type Your Question",
                 "textQueryPlaceholder": "e.g., What is the safe distance from excavator swing radius?",
                 "searchBtn": "SEARCH SAFETY DATABASE",
-                "clockOutBtn": "Clock Out"
+                "textEmptyAlert": "Please enter a question",
+                "textSearching": "Searching safety database...",
+                "textError": "Error: ",
+                "generateVideoBtn": "🎥 GENERATE SAFETY VIDEO",
+                "generateVideoBtnActive": "Generating...",
+                "videoTitle": "Safety Demonstration",
+                "videoLoading": "Generating AI Video (approx. 2-3 mins)...",
+                "videoFailed": "Video generation failed: ",
+                "videoError": "Error generating video",
+                "videoPrompt": "Prompt: ",
+                "videoUnsupported": "Your browser does not support the video tag.",
+                "certifs": "Earned Certifications",
+                "certif_desc": "Complete all sections in a unit to earn a certification badge.",
+                "type_track_tamping_machine": "Track Tamping Machine",
+                "type_railway_crane": "Railway Crane",
+                "type_rail_grinding_machine": "Rail Grinding Machine",
+                "type_rail_milling_machine": "Rail Milling Machine",
+                "type_ballast_distribution_system": "Ballast Distribution System",
+                "type_dynamic_track_stabilizer": "Dynamic Track Stabilizer",
+                "type_material_feeder_storage": "Material Feeder / Storage",
+                "type_track_renewal_machine": "Track Renewal Machine",
+                "type_switch_crossing_renewal": "Switch & Crossing Renewal",
+                "type_hybrid_locomotive": "Hybrid Locomotive",
+                "type_electric_locomotive": "Electric Locomotive",
+                "type_track_inspection_vehicle": "Track Inspection Vehicle",
+                "type_catenary_maintenance_vehicle": "Catenary Maintenance Vehicle",
+                "type_diesel_locomotive": "Diesel Locomotive",
+                "type_shunting_locomotive": "Shunting Locomotive",
+                "type_diesel_electric_locomotive": "Diesel-Electric Locomotive",
+                "type_multi_purpose_vehicle": "Multi-Purpose Vehicle",
+                "type_diesel_hydraulic_shunter": "Diesel-Hydraulic Shunter",
+                "type_track_circuit_equipment": "Track Circuit Equipment"
             },
             "nld_Latn": {
                 "loginHeader": "Operator Login",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Voer uw Operator ID in",
                 "clockInBtn": "INKLOKKEN",
                 "operatorIdPlaceholder": "bijv. OP-1234",
+                "operatorIdAlert": "Voer uw Operator ID in",
                 "okLabel": "[OK]",
-                "verifiedLabel": "verifieerde trainingen",
-                "answerTitle": "[i] VEILIGHEIDSINFORMATIE",
+                "verifiedLabel": "geverifieerde trainingen",
+                "clockOutBtn": "Uitklokken",
+                "answerTitleInfo": "[i] VEILIGHEIDSINFORMATIE",
+                "answerTitleAlert": "[!] VEILIGHEIDSWAARSCHUWING",
                 "questionLabel": "Vraag:",
                 "confidenceLabel": "Zekerheid:",
                 "confirmBtn": "[OK] IK BEGRIJP HET",
+                "trainingLogged": "[OK] Training geregistreerd en geverifieerd!",
                 "voiceTitle": "[MIC] Spraakgestuurde Veiligheidsvraag",
                 "voiceDesc": "Houd de knop ingedrukt en stel uw veiligheidsvraag",
                 "recordBtn": "[OPN] HOUD INGEDRUKT OM TE SPREKEN",
                 "recordBtnRecording": "[STOP] LAAT LOS OM TE VERWERKEN",
+                "micRequesting": "Microfoontoegang aanvragen...",
+                "micDenied": "Microfoontoegang geweigerd. Sta alstublieft microfoontoegang toe.",
+                "micRecording": "Audio opnemen...",
+                "micErrorStart": "Fout bij starten opname: ",
+                "micProcessing": "Audio verwerken...",
+                "micTranscribing": "Uw stem transcriberen...",
+                "micYouSaid": "📝 U zei: ",
+                "micErrorProcess": "Fout bij verwerken spraakvraag: ",
                 "camTitle": "[CAM] Objectdetectie",
                 "camDesc": "Maak een foto om zware machines en gevaren te detecteren",
                 "cameraPlaceholder": "Camera niet actief\nKlik op \"Start Camera\" om te beginnen",
@@ -896,26 +964,79 @@
                 "stopCameraBtn": "Stop Camera",
                 "takePhotoBtn": "📸 Foto Maken",
                 "retakeBtn": "↩ Opnieuw",
+                "camRequesting": "Cameratoegang aanvragen...",
+                "camActive": "Camera actief — tik op 📸 Foto Maken om vast te leggen",
+                "camDenied": "Cameratoegang geweigerd. Sta alstublieft cameratoegang toe.",
+                "camStartFirst": "Start eerst de camera",
+                "camClassifying": "Afbeelding classificeren met YOLO... ",
+                "camError": "Classificatiefout: ",
+                "camMultiple": "⚠ Meerdere overeenkomsten — kies één:",
+                "camDetected": "✓ Gedetecteerd: ",
+                "camComplete": "Classificatie voltooid ✓",
+                "camNotFound": "Kon afbeelding niet classificeren. Probeer een andere hoek.",
+                "camFailed": "Classificatie mislukt: ",
                 "textTitle": "Of Typ Uw Vraag",
                 "textQueryPlaceholder": "bijv. Wat is de veilige afstand tot de draaicirkel van de graafmachine?",
                 "searchBtn": "VEILIGHEIDSDATABASE DOORZOEKEN",
-                "clockOutBtn": "Uitklokken"
+                "textEmptyAlert": "Voer een vraag in",
+                "textSearching": "Veiligheidsdatabase doorzoeken...",
+                "textError": "Fout: ",
+                "generateVideoBtn": "🎥 VEILIGHEIDSVIDEO GENEREREN",
+                "generateVideoBtnActive": "Genereren...",
+                "videoTitle": "Veiligheidsdemonstratie",
+                "videoLoading": "AI Video genereren (ong. 2-3 min)...",
+                "videoFailed": "Video genereren mislukt: ",
+                "videoError": "Fout bij genereren video",
+                "videoPrompt": "Korte inhoud: ",
+                "videoUnsupported": "Uw browser ondersteunt de videotag niet.",
+                "type_track_tamping_machine": "Stopmachine",
+                "type_railway_crane": "Spoorwegkraan",
+                "type_rail_grinding_machine": "Slijptrein",
+                "type_rail_milling_machine": "Railfreesmachine",
+                "type_ballast_distribution_system": "Ballastverdeelsysteem",
+                "type_dynamic_track_stabilizer": "Dynamische spoorstabilisator",
+                "type_material_feeder_storage": "Materiaaltoevoer / Opslag",
+                "type_track_renewal_machine": "Spoorvernieuwingsmachine",
+                "type_switch_crossing_renewal": "Wisselvernieuwing",
+                "type_hybrid_locomotive": "Hybride Locomotief",
+                "type_electric_locomotive": "Elektrische Locomotief",
+                "type_track_inspection_vehicle": "Meettrein",
+                "type_catenary_maintenance_vehicle": "Bovenleidingsvoertuig",
+                "type_diesel_locomotive": "Diesellocomotief",
+                "type_shunting_locomotive": "Rangeerlocomotief",
+                "type_diesel_electric_locomotive": "Dieselelektrische Locomotief",
+                "type_multi_purpose_vehicle": "Multifunctioneel Voertuig",
+                "type_diesel_hydraulic_shunter": "Dieselhydraulische Rangeerlocomotief",
+                "type_track_circuit_equipment": "Spoorstroomloopuitrusting"
             },
             "fra_Latn": {
                 "loginHeader": "Connexion Opérateur",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Entrez votre ID Opérateur",
                 "clockInBtn": "POINTER",
                 "operatorIdPlaceholder": "ex: OP-1234",
+                "operatorIdAlert": "Veuillez entrer votre ID Opérateur",
                 "okLabel": "[OK]",
                 "verifiedLabel": "formations vérifiées",
-                "answerTitle": "[i] INFORMATION DE SÉCURITÉ",
-                "questionLabel": "Question:",
-                "confidenceLabel": "Confiance:",
+                "clockOutBtn": "Dépointer",
+                "answerTitleInfo": "[i] INFORMATION DE SÉCURITÉ",
+                "answerTitleAlert": "[!] ALERTE DE SÉCURITÉ",
+                "questionLabel": "Question :",
+                "confidenceLabel": "Confiance :",
                 "confirmBtn": "[OK] JE CONFIRME AVOIR COMPRIS",
+                "trainingLogged": "[OK] Formation enregistrée et vérifiée !",
                 "voiceTitle": "[MIC] Question de Sécurité Vocale",
                 "voiceDesc": "Maintenez le bouton et posez votre question de sécurité",
                 "recordBtn": "[ENR] MAINTENIR POUR PARLER",
                 "recordBtnRecording": "[STOP] RELÂCHER POUR TRAITER",
+                "micRequesting": "Demande d'autorisation du microphone...",
+                "micDenied": "Accès au microphone refusé. Veuillez autoriser le microphone.",
+                "micRecording": "Enregistrement de l'audio...",
+                "micErrorStart": "Erreur lors du démarrage de l'enregistrement : ",
+                "micProcessing": "Traitement de l'audio...",
+                "micTranscribing": "Transcription de votre voix...",
+                "micYouSaid": "📝 Vous avez dit : ",
+                "micErrorProcess": "Erreur de traitement de la requête vocale : ",
                 "camTitle": "[CAM] Détection d'Objets",
                 "camDesc": "Prenez une photo pour détecter les machines lourdes et les dangers",
                 "cameraPlaceholder": "Caméra inactive\nCliquez sur \"Démarrer Caméra\" pour commencer",
@@ -923,26 +1044,79 @@
                 "stopCameraBtn": "Arrêter Caméra",
                 "takePhotoBtn": "📸 Prendre Photo",
                 "retakeBtn": "↩ Reprendre",
+                "camRequesting": "Demande d'autorisation de l'appareil photo...",
+                "camActive": "Caméra active — appuyez sur 📸 Prendre Photo pour capturer",
+                "camDenied": "Accès à l'appareil photo refusé. Veuillez l'autoriser.",
+                "camStartFirst": "Veuillez d'abord démarrer l'appareil photo",
+                "camClassifying": "Classification de l'image avec YOLO... ",
+                "camError": "Erreur de classification : ",
+                "camMultiple": "⚠ Plusieurs correspondances — choisissez-en une :",
+                "camDetected": "✓ Détecté : ",
+                "camComplete": "Classification terminée ✓",
+                "camNotFound": "Impossible de classifier l'image. Essayez un autre angle.",
+                "camFailed": "La classification a échoué : ",
                 "textTitle": "Ou Tapez Votre Question",
                 "textQueryPlaceholder": "ex: Quelle est la distance de sécurité du rayon de braquage de la pelle ?",
                 "searchBtn": "RECHERCHER DANS LA BASE DE SÉCURITÉ",
-                "clockOutBtn": "Dépointer"
+                "textEmptyAlert": "Veuillez saisir une question",
+                "textSearching": "Recherche dans la base de données de sécurité...",
+                "textError": "Erreur : ",
+                "generateVideoBtn": "🎥 GÉNÉRER UNE VIDÉO DE SÉCURITÉ",
+                "generateVideoBtnActive": "Génération...",
+                "videoTitle": "Démonstration de Sécurité",
+                "videoLoading": "Génération d'une vidéo (env. 2-3 mins)...",
+                "videoFailed": "Échec de la génération vidéo : ",
+                "videoError": "Erreur lors de la génération de la vidéo",
+                "videoPrompt": "Invite : ",
+                "videoUnsupported": "Votre navigateur ne prend pas en charge la balise vidéo.",
+                "type_track_tamping_machine": "Boureuse",
+                "type_railway_crane": "Grue ferroviaire",
+                "type_rail_grinding_machine": "Meuleuse de rails",
+                "type_rail_milling_machine": "Fraiseuse de rails",
+                "type_ballast_distribution_system": "Système de distribution de ballast",
+                "type_dynamic_track_stabilizer": "Stabilisateur de voie dynamique",
+                "type_material_feeder_storage": "Ravitailleur / Stockage de matériaux",
+                "type_track_renewal_machine": "Train de renouvellement de voie",
+                "type_switch_crossing_renewal": "Renouvellement d'appareils de voie",
+                "type_hybrid_locomotive": "Locomotive hybride",
+                "type_electric_locomotive": "Locomotive électrique",
+                "type_track_inspection_vehicle": "Véhicule d'inspection de la voie",
+                "type_catenary_maintenance_vehicle": "Draisine caténaire",
+                "type_diesel_locomotive": "Locomotive diesel",
+                "type_shunting_locomotive": "Locomotive de manœuvre",
+                "type_diesel_electric_locomotive": "Locomotive diesel-électrique",
+                "type_multi_purpose_vehicle": "Véhicule multifonction",
+                "type_diesel_hydraulic_shunter": "Locotracteur diesel-hydraulique",
+                "type_track_circuit_equipment": "Équipement de circuit de voie"
             },
             "deu_Latn": {
                 "loginHeader": "Bediener-Login",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Geben Sie Ihre Bediener-ID ein",
                 "clockInBtn": "EINSTEMPELN",
                 "operatorIdPlaceholder": "z.B. OP-1234",
+                "operatorIdAlert": "Bitte geben Sie Ihre Bediener-ID ein",
                 "okLabel": "[OK]",
                 "verifiedLabel": "verifizierte Schulungen",
-                "answerTitle": "[i] SICHERHEITSINFORMATION",
+                "clockOutBtn": "Ausstempeln",
+                "answerTitleInfo": "[i] SICHERHEITSINFORMATION",
+                "answerTitleAlert": "[!] SICHERHEITSWARNUNG",
                 "questionLabel": "Frage:",
                 "confidenceLabel": "Konfidenz:",
                 "confirmBtn": "[OK] ICH BESTÄTIGE DAS VERSTÄNDNIS",
+                "trainingLogged": "[OK] Schulung protokolliert und verifiziert!",
                 "voiceTitle": "[MIC] Sprach-Sicherheitsabfrage",
                 "voiceDesc": "Halten Sie die Taste gedrückt und stellen Sie Ihre Sicherheitsfrage",
                 "recordBtn": "[AUFN] ZUM SPRECHEN HALTEN",
                 "recordBtnRecording": "[STOP] ZUM BEARBEITEN LOSLASSEN",
+                "micRequesting": "Mikrofon-Berechtigung wird angefordert...",
+                "micDenied": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Mikrofonzugriff.",
+                "micRecording": "Audio wird aufgenommen...",
+                "micErrorStart": "Fehler beim Aufnahmestart: ",
+                "micProcessing": "Audio wird verarbeitet...",
+                "micTranscribing": "Stimme wird transkribiert...",
+                "micYouSaid": "📝 Sie sagten: ",
+                "micErrorProcess": "Fehler bei der Verarbeitung der Sprachabfrage: ",
                 "camTitle": "[CAM] Objekterkennung",
                 "camDesc": "Machen Sie ein Foto, um schwere Maschinen und Gefahren zu erkennen",
                 "cameraPlaceholder": "Kamera nicht aktiv\nKlicken Sie auf \"Kamera Starten\" um zu beginnen",
@@ -950,26 +1124,79 @@
                 "stopCameraBtn": "Kamera Stoppen",
                 "takePhotoBtn": "📸 Foto Aufnehmen",
                 "retakeBtn": "↩ Wiederholen",
+                "camRequesting": "Kamera-Berechtigung wird angefordert...",
+                "camActive": "Kamera aktiv — auf 📸 Foto Aufnehmen tippen",
+                "camDenied": "Kamerazugriff verweigert. Bitte erlauben Sie den Kamerazugriff.",
+                "camStartFirst": "Bitte starten Sie zuerst die Kamera",
+                "camClassifying": "Bild wird klassifiziert mit YOLO... ",
+                "camError": "Klassifizierungsfehler: ",
+                "camMultiple": "⚠ Mehrere Treffer — bitte wählen Sie einen aus:",
+                "camDetected": "✓ Erkannt: ",
+                "camComplete": "Klassifizierung abgeschlossen ✓",
+                "camNotFound": "Bild konnte nicht klassifiziert werden. Versuchen Sie einen anderen Winkel.",
+                "camFailed": "Klassifizierung fehlgeschlagen: ",
                 "textTitle": "Oder Tippen Sie Ihre Frage",
                 "textQueryPlaceholder": "z.B. Wie groß ist der Sicherheitsabstand zum Schwenkbereich des Baggers?",
                 "searchBtn": "SICHERHEITSDATENBANK DURCHSUCHEN",
-                "clockOutBtn": "Ausstempeln"
+                "textEmptyAlert": "Bitte eine Frage eingeben",
+                "textSearching": "Sicherheitsdatenbank wird durchsucht...",
+                "textError": "Fehler: ",
+                "generateVideoBtn": "🎥 SICHERHEITSVIDEO GENERIEREN",
+                "generateVideoBtnActive": "Wird generiert...",
+                "videoTitle": "Sicherheitsdemonstration",
+                "videoLoading": "KI-Video wird generiert (ca. 2-3 Min)...",
+                "videoFailed": "Videogenerierung fehlgeschlagen: ",
+                "videoError": "Fehler bei der Videogenerierung",
+                "videoPrompt": "Eingabe(Prompt): ",
+                "videoUnsupported": "Ihr Browser unterstützt das Video-Tag nicht.",
+                "type_track_tamping_machine": "Gleisstopfmaschine",
+                "type_railway_crane": "Eisenbahndrehkran",
+                "type_rail_grinding_machine": "Schienenschleifmaschine",
+                "type_rail_milling_machine": "Schienenfräsmaschine",
+                "type_ballast_distribution_system": "Schotterverteil- und Planiermaschine",
+                "type_dynamic_track_stabilizer": "Dynamischer Gleisstabilisator",
+                "type_material_feeder_storage": "Materialförder- und Siloeinheit",
+                "type_track_renewal_machine": "Gleisumbauzug",
+                "type_switch_crossing_renewal": "Weichenumbau",
+                "type_hybrid_locomotive": "Hybridlokomotive",
+                "type_electric_locomotive": "Elektrolokomotive",
+                "type_track_inspection_vehicle": "Gleismessfahrzeug",
+                "type_catenary_maintenance_vehicle": "Oberleitungsrevisionsfahrzeug",
+                "type_diesel_locomotive": "Diesellokomotive",
+                "type_shunting_locomotive": "Rangierlokomotive",
+                "type_diesel_electric_locomotive": "Dieselelektrische Lokomotive",
+                "type_multi_purpose_vehicle": "Mehrzweckfahrzeug",
+                "type_diesel_hydraulic_shunter": "Dieselhydraulische Rangierlok",
+                "type_track_circuit_equipment": "Gleisstromkreis-Ausrüstung"
             },
             "pol_Latn": {
                 "loginHeader": "Logowanie Operatora",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Wprowadź ID Operatora",
                 "clockInBtn": "ROZPOCZNIJ PRACĘ",
                 "operatorIdPlaceholder": "np. OP-1234",
+                "operatorIdAlert": "Proszę wprowadzić swoje ID Operatora",
                 "okLabel": "[OK]",
                 "verifiedLabel": "zweryfikowane szkolenia",
-                "answerTitle": "[i] INFORMACJE O BEZPIECZEŃSTWIE",
+                "clockOutBtn": "Zakończ Pracę",
+                "answerTitleInfo": "[i] INFORMACJE O BEZPIECZEŃSTWIE",
+                "answerTitleAlert": "[!] ALARM BEZPIECZEŃSTWA",
                 "questionLabel": "Pytanie:",
                 "confidenceLabel": "Pewność:",
                 "confirmBtn": "[OK] POTWIERDZAM ZROZUMIENIE",
+                "trainingLogged": "[OK] Szkolenie zapisane i zweryfikowane!",
                 "voiceTitle": "[MIC] Głosowe Zapytanie o Bezpieczeństwo",
                 "voiceDesc": "Przytrzymaj przycisk i zadaj pytanie dotyczące bezpieczeństwa",
                 "recordBtn": "[NAGR] PRZYTRZYMAJ ABY MÓWIĆ",
                 "recordBtnRecording": "[STOP] PUŚĆ ABY PRZETWORZYĆ",
+                "micRequesting": "Prośba o dostęp do mikrofonu...",
+                "micDenied": "Odmowa dostępu do mikrofonu. Proszę zezwolić na dostęp.",
+                "micRecording": "Nagrywanie dźwięku...",
+                "micErrorStart": "Błąd podczas rozpoczynania nagrywania: ",
+                "micProcessing": "Przetwarzanie dźwięku...",
+                "micTranscribing": "Transkrypcja Twojego głosu...",
+                "micYouSaid": "📝 Powiedziałaś/eś: ",
+                "micErrorProcess": "Błąd podczas przetwarzania zapytania głosowego: ",
                 "camTitle": "[CAM] Wykrywanie Obiektów",
                 "camDesc": "Zrób zdjęcie, aby wykryć ciężki sprzęt i zagrożenia",
                 "cameraPlaceholder": "Kamera nieaktywna\nKliknij \"Uruchom Kamerę\" aby rozpocząć",
@@ -977,26 +1204,79 @@
                 "stopCameraBtn": "Zatrzymaj Kamerę",
                 "takePhotoBtn": "📸 Zrób Zdjęcie",
                 "retakeBtn": "↩ Ponownie",
+                "camRequesting": "Prośba o dostęp do kamery...",
+                "camActive": "Kamera aktywna — dotknij 📸 Zrób Zdjęcie",
+                "camDenied": "Odmowa dostępu do kamery. Proszę zezwolić na dostęp.",
+                "camStartFirst": "Proszę najpierw uruchomić kamerę",
+                "camClassifying": "Klasyfikacja obrazu za pomocą YOLO...",
+                "camError": "Błąd klasyfikacji: ",
+                "camMultiple": "⚠ Wiele dopasowań — wybierz jedno:",
+                "camDetected": "✓ Wykryto: ",
+                "camComplete": "Klasyfikacja zakończona ✓",
+                "camNotFound": "Nie można sklasyfikować obrazu. Spróbuj pod innym kątem.",
+                "camFailed": "Klasyfikacja nie powiodła się: ",
                 "textTitle": "Lub Wpisz Swoje Pytanie",
                 "textQueryPlaceholder": "np. Jaka jest bezpieczna odległość od zasięgu obrotu koparki?",
                 "searchBtn": "PRZESZUKAJ BAZĘ BEZPIECZEŃSTWA",
-                "clockOutBtn": "Zakończ Pracę"
+                "textEmptyAlert": "Proszę wpisać pytanie",
+                "textSearching": "Przeszukiwanie bazy bezpieczeństwa...",
+                "textError": "Błąd: ",
+                "generateVideoBtn": "🎥 WYGENERUJ WIDEO O BEZPIECZEŃSTWIE",
+                "generateVideoBtnActive": "Generowanie...",
+                "videoTitle": "Demonstracja Bezpieczeństwa",
+                "videoLoading": "Generowanie wideo AI (ok. 2-3 min)...",
+                "videoFailed": "Generowanie wideo nie powiodło się: ",
+                "videoError": "Błąd podczas generowania wideo",
+                "videoPrompt": "Prompt: ",
+                "videoUnsupported": "Twoja przeglądarka nie obsługuje tagu wideo.",
+                "type_track_tamping_machine": "Podbijarka torowa",
+                "type_railway_crane": "Żuraw kolejowy",
+                "type_rail_grinding_machine": "Szlifowarka do szyn",
+                "type_rail_milling_machine": "Frezarka do szyn",
+                "type_ballast_distribution_system": "Zgarniarka tłucznia",
+                "type_dynamic_track_stabilizer": "Dynamiczny stabilizator toru",
+                "type_material_feeder_storage": "Wagon do transportu materiałów sypkich",
+                "type_track_renewal_machine": "Pociąg do potokowej wymiany nawierzchni",
+                "type_switch_crossing_renewal": "Wymiana rozjazdów",
+                "type_hybrid_locomotive": "Lokomotywa hybrydowa",
+                "type_electric_locomotive": "Lokomotywa elektryczna",
+                "type_track_inspection_vehicle": "Pojazd diagnostyczny toru",
+                "type_catenary_maintenance_vehicle": "Pociąg sieciowy",
+                "type_diesel_locomotive": "Lokomotywa spalinowa",
+                "type_shunting_locomotive": "Lokomotywa manewrowa",
+                "type_diesel_electric_locomotive": "Spalinowóz z przekładnią elektryczną",
+                "type_multi_purpose_vehicle": "Pojazd wielozadaniowy",
+                "type_diesel_hydraulic_shunter": "Lokomotywa manewrowa przekładnia hydrauliczna",
+                "type_track_circuit_equipment": "Urządzenia obwodów torowych"
             },
             "tur_Latn": {
                 "loginHeader": "Operatör Girişi",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Operatör Kimliğinizi Girin",
                 "clockInBtn": "GİRİŞ YAP",
                 "operatorIdPlaceholder": "ör., OP-1234",
-                "okLabel": "[OK]",
+                "operatorIdAlert": "Lütfen Operatör Kimliğinizi girin",
+                "okLabel": "[TAMAM]",
                 "verifiedLabel": "doğrulanmış eğitim",
-                "answerTitle": "[i] GÜVENLİK BİLGİSİ",
+                "clockOutBtn": "Çıkış Yap",
+                "answerTitleInfo": "[i] GÜVENLİK BİLGİSİ",
+                "answerTitleAlert": "[!] GÜVENLİK UYARISI",
                 "questionLabel": "Soru:",
                 "confidenceLabel": "Güvenilirlik:",
-                "confirmBtn": "[OK] ANLADIĞIMI ONAYLIYORUM",
+                "confirmBtn": "[TAMAM] ANLADIĞIMI ONAYLIYORUM",
+                "trainingLogged": "[TAMAM] Eğitim kaydedildi ve doğrulandı!",
                 "voiceTitle": "[MIC] Sesli Güvenlik Sorgusu",
                 "voiceDesc": "Düğmeye basılı tutun ve güvenlik sorunuzu sorun",
                 "recordBtn": "[KAYIT] KONUŞMAK İÇİN BASILI TUTUN",
                 "recordBtnRecording": "[DUR] İŞLEMEK İÇİN BIRAKIN",
+                "micRequesting": "Mikrofon izni isteniyor...",
+                "micDenied": "Mikrofon izni reddedildi. Lütfen erişime izin verin.",
+                "micRecording": "Ses kaydediliyor...",
+                "micErrorStart": "Kayıt başlatılırken hata oluştu: ",
+                "micProcessing": "Ses işleniyor...",
+                "micTranscribing": "Sesiniz yazıya dökülüyor...",
+                "micYouSaid": "📝 Şunu söylediniz: ",
+                "micErrorProcess": "Sesli sorguyu işlerken hata oluştu: ",
                 "camTitle": "[CAM] Nesne Algılama",
                 "camDesc": "Ağır makineleri ve güvenlik tehlikelerini algılamak için fotoğraf çekin",
                 "cameraPlaceholder": "Kamera etkin değil\nBaşlamak için \"Kamera Başlat\"a tıklayın",
@@ -1004,26 +1284,79 @@
                 "stopCameraBtn": "Kamera Durdur",
                 "takePhotoBtn": "📸 Fotoğraf Çek",
                 "retakeBtn": "↩ Tekrar Çek",
+                "camRequesting": "Kamera izni isteniyor...",
+                "camActive": "Kamera aktif — yakalamak için 📸 Fotoğraf Çek",
+                "camDenied": "Kamera izni reddedildi. Lütfen erişime izin verin.",
+                "camStartFirst": "Lütfen önce kamerayı başlatın",
+                "camClassifying": "Görüntü YOLO ile sınıflandırılıyor...",
+                "camError": "Sınıflandırma hatası: ",
+                "camMultiple": "⚠ Birden fazla eşleşme — birini seçin:",
+                "camDetected": "✓ Algılandı: ",
+                "camComplete": "Sınıflandırma tamamlandı ✓",
+                "camNotFound": "Görüntü sınıflandırılamadı. Farklı bir açıyla deneyin.",
+                "camFailed": "Sınıflandırma başarısız oldu: ",
                 "textTitle": "Veya Sorunuzu Yazın",
                 "textQueryPlaceholder": "ör., Ekskavatör dönüş yarıçapından güvenli mesafe nedir?",
                 "searchBtn": "GÜVENLİK VERİTABANINI ARA",
-                "clockOutBtn": "Çıkış Yap"
+                "textEmptyAlert": "Lütfen bir soru girin",
+                "textSearching": "Güvenlik veritabanı aranıyor...",
+                "textError": "Hata: ",
+                "generateVideoBtn": "🎥 GÜVENLİK VİDEOSU OLUŞTUR",
+                "generateVideoBtnActive": "Oluşturuluyor...",
+                "videoTitle": "Güvenlik Gösterimi",
+                "videoLoading": "AI Video oluşturuluyor (yaklaşık 2-3 dk)...",
+                "videoFailed": "Video oluşturma başarısız oldu: ",
+                "videoError": "Video oluşturulurken hata",
+                "videoPrompt": "İstemi: ",
+                "videoUnsupported": "Tarayıcınız video etiketini desteklemiyor.",
+                "type_track_tamping_machine": "Buraj Makinesi",
+                "type_railway_crane": "Demiryolu Vinci",
+                "type_rail_grinding_machine": "Ray Taşlama Makinesi",
+                "type_rail_milling_machine": "Ray Freze Makinesi",
+                "type_ballast_distribution_system": "Balast Dağıtım Sistemi",
+                "type_dynamic_track_stabilizer": "Dinamik Hat Stabilizatörü",
+                "type_material_feeder_storage": "Malzeme Besleyici / Depolama",
+                "type_track_renewal_machine": "Hat Yenileme Makinesi",
+                "type_switch_crossing_renewal": "Makas Yenileme Makinesi",
+                "type_hybrid_locomotive": "Hibrit Lokomotif",
+                "type_electric_locomotive": "Elektrikli Lokomotif",
+                "type_track_inspection_vehicle": "Hat Muayene Aracı",
+                "type_catenary_maintenance_vehicle": "Katener Bakım Aracı",
+                "type_diesel_locomotive": "Dizel Lokomotif",
+                "type_shunting_locomotive": "Manevra Lokomotifi",
+                "type_diesel_electric_locomotive": "Dizel-Elektrikli Lokomotif",
+                "type_multi_purpose_vehicle": "Çok Amaçlı Araç",
+                "type_diesel_hydraulic_shunter": "Dizel-Hidrolik Manevra Lokomotifi",
+                "type_track_circuit_equipment": "Hat Devresi Ekipmanı"
             },
             "ron_Latn": {
                 "loginHeader": "Autentificare Operator",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Introduceți ID-ul Operatorului",
                 "clockInBtn": "PONTARE",
                 "operatorIdPlaceholder": "ex: OP-1234",
+                "operatorIdAlert": "Vă rugăm să introduceți ID-ul Operatorului",
                 "okLabel": "[OK]",
                 "verifiedLabel": "instruiri verificate",
-                "answerTitle": "[i] INFORMAȚII DE SIGURANȚĂ",
+                "clockOutBtn": "Depontare",
+                "answerTitleInfo": "[i] INFORMAȚII DE SIGURANȚĂ",
+                "answerTitleAlert": "[!] ALERTĂ DE SIGURANȚĂ",
                 "questionLabel": "Întrebare:",
                 "confidenceLabel": "Încredere:",
                 "confirmBtn": "[OK] CONFIRM CĂ AM ÎNȚELES",
+                "trainingLogged": "[OK] Instruirea a fost înregistrată și verificată!",
                 "voiceTitle": "[MIC] Întrebare Vocală de Siguranță",
                 "voiceDesc": "Țineți apăsat butonul și puneți întrebarea de siguranță",
                 "recordBtn": "[ÎNREG] ȚINEȚI APĂSAT PENTRU A VORBI",
                 "recordBtnRecording": "[STOP] ELIBERAȚI PENTRU A PROCESA",
+                "micRequesting": "Se solicită permisiunea pentru microfon...",
+                "micDenied": "Permisiune refuzată. Vă rugăm să permiteți accesul la microfon.",
+                "micRecording": "Se înregistrează audio...",
+                "micErrorStart": "Eroare la pornirea înregistrării: ",
+                "micProcessing": "Se procesează audio...",
+                "micTranscribing": "Vă transcriem vocea...",
+                "micYouSaid": "📝 Ați spus: ",
+                "micErrorProcess": "Eroare la procesarea interogării vocale: ",
                 "camTitle": "[CAM] Detectare Obiecte",
                 "camDesc": "Faceți o fotografie pentru a detecta utilaje grele și pericole",
                 "cameraPlaceholder": "Camera nu este activă\nFaceți clic pe \"Porniți Camera\" pentru a începe",
@@ -1031,26 +1364,79 @@
                 "stopCameraBtn": "Opriți Camera",
                 "takePhotoBtn": "📸 Faceți Fotografie",
                 "retakeBtn": "↩ Refaceți",
+                "camRequesting": "Se solicită permisiunea pentru cameră...",
+                "camActive": "Cameră activă — apăsați 📸 Faceți Fotografie",
+                "camDenied": "Permisiune refuzată. Vă rugăm să permiteți accesul la cameră.",
+                "camStartFirst": "Vă rugăm să porniți mai întâi camera",
+                "camClassifying": "Se clasifică imaginea cu YOLO...",
+                "camError": "Eroare de clasificare: ",
+                "camMultiple": "⚠ Mai multe potriviri — alegeți una:",
+                "camDetected": "✓ Detectat: ",
+                "camComplete": "Clasificare finalizată ✓",
+                "camNotFound": "Nu s-a putut clasifica. Încercați un alt unghi.",
+                "camFailed": "Clasificarea a eșuat: ",
                 "textTitle": "Sau Tastați Întrebarea",
                 "textQueryPlaceholder": "ex: Care este distanța sigură față de raza de rotire a excavatorului?",
                 "searchBtn": "CĂUTAȚI ÎN BAZA DE DATE DE SIGURANȚĂ",
-                "clockOutBtn": "Depontare"
+                "textEmptyAlert": "Vă rugăm să introduceți o întrebare",
+                "textSearching": "Se caută în baza de date de siguranță...",
+                "textError": "Eroare: ",
+                "generateVideoBtn": "🎥 GENEREAZĂ VIDEO DE SIGURANȚĂ",
+                "generateVideoBtnActive": "Se generează...",
+                "videoTitle": "Demonstrație de Siguranță",
+                "videoLoading": "Se generează videoclipul AI (aprox. 2-3 min)...",
+                "videoFailed": "Generarea videoclipului a eșuat: ",
+                "videoError": "Eroare la generarea videoclipului",
+                "videoPrompt": "Prompt: ",
+                "videoUnsupported": "Browserul dvs. nu acceptă eticheta video.",
+                "type_track_tamping_machine": "Mașină de burat",
+                "type_railway_crane": "Macara feroviară",
+                "type_rail_grinding_machine": "Mașină de polizat șine",
+                "type_rail_milling_machine": "Mașină de frezat șine",
+                "type_ballast_distribution_system": "Sistem de distribuire a balastului",
+                "type_dynamic_track_stabilizer": "Stabilizator dinamic de cale",
+                "type_material_feeder_storage": "Alimentator de materiale / Depozitare",
+                "type_track_renewal_machine": "Mașină de reînnoit calea",
+                "type_switch_crossing_renewal": "Mașină de reînnoit macazuri",
+                "type_hybrid_locomotive": "Locomotivă hibridă",
+                "type_electric_locomotive": "Locomotivă electrică",
+                "type_track_inspection_vehicle": "Vehicul de inspecție a căii",
+                "type_catenary_maintenance_vehicle": "Vehicul de întreținere a catenarei",
+                "type_diesel_locomotive": "Locomotivă diesel",
+                "type_shunting_locomotive": "Locomotivă de manevră",
+                "type_diesel_electric_locomotive": "Locomotivă diesel-electrică",
+                "type_multi_purpose_vehicle": "Vehicul multifuncțional",
+                "type_diesel_hydraulic_shunter": "Locomotivă de manevră diesel-hidraulică",
+                "type_track_circuit_equipment": "Echipament pentru circuite de cale"
             },
             "por_Latn": {
                 "loginHeader": "Login do Operador",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Insira seu ID de Operador",
                 "clockInBtn": "REGISTRAR ENTRADA",
                 "operatorIdPlaceholder": "ex: OP-1234",
+                "operatorIdAlert": "Por favor, insira o seu ID de Operador",
                 "okLabel": "[OK]",
                 "verifiedLabel": "treinamentos verificados",
-                "answerTitle": "[i] INFORMAÇÕES DE SEGURANÇA",
+                "clockOutBtn": "Registrar Saída",
+                "answerTitleInfo": "[i] INFORMAÇÕES DE SEGURANÇA",
+                "answerTitleAlert": "[!] ALERTA DE SEGURANÇA",
                 "questionLabel": "Pergunta:",
                 "confidenceLabel": "Confiança:",
                 "confirmBtn": "[OK] CONFIRMO O ENTENDIMENTO",
+                "trainingLogged": "[OK] Treinamento registrado e verificado!",
                 "voiceTitle": "[MIC] Consulta de Segurança por Voz",
                 "voiceDesc": "Segure o botão e faça sua pergunta de segurança",
                 "recordBtn": "[GRAV] SEGURE PARA FALAR",
                 "recordBtnRecording": "[PARAR] SOLTE PARA PROCESSAR",
+                "micRequesting": "Solicitando permissão de microfone...",
+                "micDenied": "Permissão de microfone negada. Por favor, permita o acesso.",
+                "micRecording": "Gravando áudio...",
+                "micErrorStart": "Erro ao iniciar a gravação: ",
+                "micProcessing": "Processando áudio...",
+                "micTranscribing": "Transcrevendo a sua voz...",
+                "micYouSaid": "📝 Você disse: ",
+                "micErrorProcess": "Erro ao processar consulta de voz: ",
                 "camTitle": "[CAM] Detecção de Objetos",
                 "camDesc": "Tire uma foto para detectar máquinas pesadas e riscos de segurança",
                 "cameraPlaceholder": "Câmera inativa\nClique em \"Iniciar Câmera\" para começar",
@@ -1058,26 +1444,79 @@
                 "stopCameraBtn": "Parar Câmera",
                 "takePhotoBtn": "📸 Tirar Foto",
                 "retakeBtn": "↩ Refazer",
+                "camRequesting": "Solicitando permissão de câmera...",
+                "camActive": "Câmera ativa — toque em 📸 Tirar Foto para capturar",
+                "camDenied": "Permissão de câmera negada. Por favor, permita o acesso.",
+                "camStartFirst": "Por favor, inicie a câmera primeiro",
+                "camClassifying": "Classificando a imagem com YOLO...",
+                "camError": "Erro de classificação: ",
+                "camMultiple": "⚠ Várias correspondências — escolha uma:",
+                "camDetected": "✓ Detectado: ",
+                "camComplete": "Classificação concluída ✓",
+                "camNotFound": "Não foi possível classificar a imagem. Tente de outro ângulo.",
+                "camFailed": "A classificação falhou: ",
                 "textTitle": "Ou Digite Sua Pergunta",
                 "textQueryPlaceholder": "ex: Qual é a distância segura do raio de giro da escavadeira?",
                 "searchBtn": "PESQUISAR BANCO DE DADOS DE SEGURANÇA",
-                "clockOutBtn": "Registrar Saída"
+                "textEmptyAlert": "Por favor, insira uma pergunta",
+                "textSearching": "Pesquisando banco de dados de segurança...",
+                "textError": "Erro: ",
+                "generateVideoBtn": "🎥 GERAR VÍDEO DE SEGURANÇA",
+                "generateVideoBtnActive": "Gerando...",
+                "videoTitle": "Demonstração de Segurança",
+                "videoLoading": "Gerando vídeo com IA (aprox. 2-3 mins)...",
+                "videoFailed": "A geração de vídeo falhou: ",
+                "videoError": "Erro ao gerar vídeo",
+                "videoPrompt": "Aviso (Prompt): ",
+                "videoUnsupported": "Seu navegador não suporta a tag de vídeo.",
+                "type_track_tamping_machine": "Máquina de Socar Via",
+                "type_railway_crane": "Guindaste Ferroviário",
+                "type_rail_grinding_machine": "Máquina Esmerilhadora de Trilhos",
+                "type_rail_milling_machine": "Máquina Fresadora de Trilhos",
+                "type_ballast_distribution_system": "Sistema de Distribuição de Balastro",
+                "type_dynamic_track_stabilizer": "Estabilizador Dinâmico de Via",
+                "type_material_feeder_storage": "Alimentador / Armazenamento de Material",
+                "type_track_renewal_machine": "Máquina de Renovação de Via",
+                "type_switch_crossing_renewal": "Renovação de Aparelhos de Mudança de Via",
+                "type_hybrid_locomotive": "Locomotiva Híbrida",
+                "type_electric_locomotive": "Locomotiva Elétrica",
+                "type_track_inspection_vehicle": "Veículo de Inspeção de Via",
+                "type_catenary_maintenance_vehicle": "Veículo de Manutenção de Catenária",
+                "type_diesel_locomotive": "Locomotiva a Diesel",
+                "type_shunting_locomotive": "Locomotiva de Manobra",
+                "type_diesel_electric_locomotive": "Locomotiva Diesel-Elétrica",
+                "type_multi_purpose_vehicle": "Veículo Multifuncional",
+                "type_diesel_hydraulic_shunter": "Locomotora de Manobra Diesel-Hidráulica",
+                "type_track_circuit_equipment": "Equipamento de Circuito de Via"
             },
             "spa_Latn": {
                 "loginHeader": "Inicio de Sesión del Operador",
+                "loginSubtitle": "Safe Walk Augmented Generation",
                 "enterIdHeader": "Ingrese su ID de Operador",
                 "clockInBtn": "FICHAR ENTRADA",
                 "operatorIdPlaceholder": "ej: OP-1234",
+                "operatorIdAlert": "Por favor, ingrese su ID de Operador",
                 "okLabel": "[OK]",
                 "verifiedLabel": "capacitaciones verificadas",
-                "answerTitle": "[i] INFORMACIÓN DE SEGURIDAD",
+                "clockOutBtn": "Fichar Salida",
+                "answerTitleInfo": "[i] INFORMACIÓN DE SEGURIDAD",
+                "answerTitleAlert": "[!] ALERTA DE SEGURIDAD",
                 "questionLabel": "Pregunta:",
                 "confidenceLabel": "Confianza:",
                 "confirmBtn": "[OK] CONFIRMO ENTENDIMIENTO",
+                "trainingLogged": "[OK] Capacitación registrada y verificada!",
                 "voiceTitle": "[MIC] Consulta de Seguridad por Voz",
                 "voiceDesc": "Mantenga presionado el botón y haga su pregunta de seguridad",
                 "recordBtn": "[GRAB] MANTENGA PARA HABLAR",
                 "recordBtnRecording": "[PARAR] SUELTE PARA PROCESAR",
+                "micRequesting": "Solicitando permiso para el micrófono...",
+                "micDenied": "Permiso de micrófono denegado. Permita el acceso.",
+                "micRecording": "Grabando audio...",
+                "micErrorStart": "Error al iniciar la grabación: ",
+                "micProcessing": "Procesando audio...",
+                "micTranscribing": "Transcribiendo su voz...",
+                "micYouSaid": "📝 Dijiste: ",
+                "micErrorProcess": "Error procesando consulta de voz: ",
                 "camTitle": "[CAM] Detección de Objetos",
                 "camDesc": "Tome una foto para detectar maquinaria pesada y peligros de seguridad",
                 "cameraPlaceholder": "Cámara inactiva\nHaga clic en \"Iniciar Cámara\" para comenzar",
@@ -1085,10 +1524,50 @@
                 "stopCameraBtn": "Detener Cámara",
                 "takePhotoBtn": "📸 Tomar Foto",
                 "retakeBtn": "↩ Retomar",
+                "camRequesting": "Solicitando permiso para la cámara...",
+                "camActive": "Cámara activa — presione 📸 Tomar Foto para capturar",
+                "camDenied": "Permiso de cámara denegado. Permita el acceso.",
+                "camStartFirst": "Por favor, inicie la cámara primero",
+                "camClassifying": "Clasificando imagen con YOLO...",
+                "camError": "Error de clasificación: ",
+                "camMultiple": "⚠ Varias coincidencias — elija una:",
+                "camDetected": "✓ Detectado: ",
+                "camComplete": "Clasificación completa ✓",
+                "camNotFound": "No se pudo clasificar la imagen. Intente con otro ángulo.",
+                "camFailed": "Fallo en la clasificación: ",
                 "textTitle": "O Escriba Su Pregunta",
                 "textQueryPlaceholder": "ej: ¿Cuál es la distancia segura del radio de giro de la excavadora?",
                 "searchBtn": "BUSCAR EN BASE DE DATOS DE SEGURIDAD",
-                "clockOutBtn": "Fichar Salida"
+                "textEmptyAlert": "Por favor, ingrese una pregunta",
+                "textSearching": "Buscando en base de datos de seguridad...",
+                "textError": "Error: ",
+                "generateVideoBtn": "🎥 GENERAR VIDEO DE SEGURIDAD",
+                "generateVideoBtnActive": "Generando...",
+                "videoTitle": "Demostración de Seguridad",
+                "videoLoading": "Generando video con IA (aprox. 2-3 min)...",
+                "videoFailed": "Fallo en la generación de video: ",
+                "videoError": "Error al generar video",
+                "videoPrompt": "Mensaje (Prompt): ",
+                "videoUnsupported": "Su navegador no admite la etiqueta de video.",
+                "type_track_tamping_machine": "Bateadora de vía",
+                "type_railway_crane": "Grúa ferroviaria",
+                "type_rail_grinding_machine": "Amoladora de carriles",
+                "type_rail_milling_machine": "Fresadora de carriles",
+                "type_ballast_distribution_system": "Sistema de distribución de balasto",
+                "type_dynamic_track_stabilizer": "Estabilizador dinámico de vía",
+                "type_material_feeder_storage": "Alimentador / Almacenamiento de material",
+                "type_track_renewal_machine": "Máquina de renovación de vía",
+                "type_switch_crossing_renewal": "Renovación de desvíos",
+                "type_hybrid_locomotive": "Locomotora híbrida",
+                "type_electric_locomotive": "Locomotora eléctrica",
+                "type_track_inspection_vehicle": "Vehículo de inspección de vía",
+                "type_catenary_maintenance_vehicle": "Vehículo de mantenimiento de catenaria",
+                "type_diesel_locomotive": "Locomotora diésel",
+                "type_shunting_locomotive": "Locomotora de maniobras",
+                "type_diesel_electric_locomotive": "Locomotora diésel-eléctrica",
+                "type_multi_purpose_vehicle": "Vehículo multipropósito",
+                "type_diesel_hydraulic_shunter": "Locomotora de maniobras diésel-hidráulica",
+                "type_track_circuit_equipment": "Equipo de circuito de vía"
             }
         };
 
@@ -1113,9 +1592,10 @@
         // ============================================================================
         function login() {
             const operatorId = document.getElementById('operatorId').value.trim();
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             if (!operatorId) {
-                alert('Please enter your Operator ID');
+                alert(t.operatorIdAlert);
                 return;
             }
 
@@ -1162,6 +1642,7 @@
             };
 
             setTxt('loginHeader', t.loginHeader);
+            document.querySelector('.login-subtitle').textContent = t.loginSubtitle;
             setTxt('enterIdHeader', t.enterIdHeader);
             setTxt('clockInBtn', t.clockInBtn);
             setPh('operatorId', t.operatorIdPlaceholder);
@@ -1169,7 +1650,16 @@
             setTxt('okLabel', t.okLabel);
             setTxt('verifiedLabel', t.verifiedLabel);
 
-            setTxt('answerTitle', t.answerTitle);
+            // Note: answerTitle gets updated dynamically in showAnswer, but we can set it if it's currently showing
+            const answerTitle = document.getElementById('answerTitle');
+            if (answerTitle) {
+                if (answerTitle.textContent.includes('ALERT') || answerTitle.textContent.includes('WAARSCHUWING')) {
+                    answerTitle.textContent = t.answerTitleAlert;
+                } else if (answerTitle.textContent.includes('INFORMATION') || answerTitle.textContent.includes('INFORMATIE')) {
+                    answerTitle.textContent = t.answerTitleInfo;
+                }
+            }
+
             setTxt('questionLabel', t.questionLabel);
             setTxt('confidenceLabel', t.confidenceLabel);
             setTxt('confirmBtn', t.confirmBtn);
@@ -1180,11 +1670,19 @@
             // Only update record btn if not currently recording to avoid overwriting state
             if (!isRecording) {
                 setTxt('recordBtn', t.recordBtn);
+            } else {
+                setTxt('recordBtn', t.recordBtnRecording);
             }
 
             setTxt('camTitle', t.camTitle);
             setTxt('camDesc', t.camDesc);
-            setTxt('cameraPlaceholder', t.cameraPlaceholder);
+
+            // cameraPlaceholder might have newlines
+            const camPlaceholder = document.getElementById('cameraPlaceholder');
+            if (camPlaceholder) {
+                camPlaceholder.innerHTML = t.cameraPlaceholder.replace('\n', '<br>');
+            }
+
             setTxt('startCameraBtn', t.startCameraBtn);
             setTxt('stopCameraBtn', t.stopCameraBtn);
             setTxt('takePhotoBtn', t.takePhotoBtn);
@@ -1194,6 +1692,18 @@
             setPh('textQuery', t.textQueryPlaceholder);
             setTxt('searchBtn', t.searchBtn);
             setTxt('clockOutBtn', t.clockOutBtn);
+
+            const generateVideoBtn = document.getElementById('generateVideoBtn');
+            if (generateVideoBtn && !generateVideoBtn.disabled) {
+                generateVideoBtn.textContent = t.generateVideoBtn;
+            } else if (generateVideoBtn && generateVideoBtn.disabled) {
+                generateVideoBtn.textContent = t.generateVideoBtnActive;
+            }
+
+            setTxt('videoTitle', t.videoTitle);
+
+            const videoLoadingText = document.querySelector('#videoLoading p');
+            if (videoLoadingText) videoLoadingText.textContent = t.videoLoading;
         }
 
         // ============================================================================
@@ -1201,15 +1711,16 @@
         // ============================================================================
         async function requestMicrophonePermission() {
             if (micPermissionGranted) return true;
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             try {
-                showStatus('voiceStatus', 'Requesting microphone permission...', 'info');
+                showStatus('voiceStatus', t.micRequesting, 'info');
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 micPermissionGranted = true;
                 clearStatus('voiceStatus');
                 return true;
             } catch (error) {
-                showStatus('voiceStatus', 'Microphone permission denied. Please allow microphone access.', 'error');
+                showStatus('voiceStatus', t.micDenied, 'error');
                 console.error('Microphone permission error:', error);
                 return false;
             }
@@ -1231,7 +1742,7 @@
             const t = translations[currentLanguage] || translations['eng_Latn'];
             btn.textContent = t.recordBtnRecording;
 
-            showStatus('voiceStatus', 'Recording audio...', 'info');
+            showStatus('voiceStatus', t.micRecording, 'info');
 
             try {
                 // Create MediaRecorder
@@ -1249,11 +1760,10 @@
                 console.log('Started recording...');
 
             } catch (error) {
-                showStatus('voiceStatus', 'Error starting recording: ' + error.message, 'error');
+                showStatus('voiceStatus', t.micErrorStart + error.message, 'error');
                 console.error('Recording error:', error);
                 isRecording = false;
                 btn.classList.remove('recording');
-                const t = translations[currentLanguage] || translations['eng_Latn'];
                 btn.textContent = t.recordBtn;
             }
         }
@@ -1278,7 +1788,8 @@
         }
 
         async function processVoiceQuery(audioBlob) {
-            showStatus('voiceStatus', 'Processing audio...', 'info');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
+            showStatus('voiceStatus', t.micProcessing, 'info');
 
             try {
                 // Create FormData
@@ -1287,7 +1798,7 @@
                 formData.append('user_id', currentUser || 'unknown');
                 formData.append('language', currentLanguage);
 
-                showStatus('voiceStatus', 'Transcribing your voice...', 'info');
+                showStatus('voiceStatus', t.micTranscribing, 'info');
 
                 // Send to Flask API
                 const response = await fetch('/api/query/voice', {
@@ -1302,14 +1813,14 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    showStatus('voiceStatus', 'Error: ' + data.error, 'error');
+                    showStatus('voiceStatus', t.textError + data.error, 'error');
                     return;
                 }
 
                 // Show transcription first
                 if (data.transcription) {
                     showStatus('voiceStatus',
-                        `📝 You said: "${data.transcription}" (${data.detected_language})`,
+                        `${t.micYouSaid}"${data.transcription}" (${data.detected_language})`,
                         'success'
                     );
 
@@ -1332,7 +1843,7 @@
                 }
 
             } catch (error) {
-                showStatus('voiceStatus', 'Error processing voice query: ' + error.message, 'error');
+                showStatus('voiceStatus', t.micErrorProcess + error.message, 'error');
                 console.error('Voice query error:', error);
             }
         }
@@ -1351,9 +1862,10 @@
         // ============================================================================
         async function searchDatabase() {
             const query = document.getElementById('textQuery').value.trim();
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             if (!query) {
-                showStatus('textStatus', 'Please enter a question', 'warning');
+                showStatus('textStatus', t.textEmptyAlert, 'warning');
                 return;
             }
 
@@ -1361,7 +1873,7 @@
             const btn = document.getElementById('searchBtn');
             btn.disabled = true;
 
-            showStatus('textStatus', 'Searching safety database...', 'info');
+            showStatus('textStatus', t.textSearching, 'info');
 
             try {
                 const response = await fetch('/api/query/text', {
@@ -1381,7 +1893,7 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    showStatus('textStatus', 'Error: ' + data.error, 'error');
+                    showStatus('textStatus', t.textError + data.error, 'error');
                     return;
                 }
 
@@ -1401,7 +1913,7 @@
                 }
 
             } catch (error) {
-                showStatus('textStatus', 'Error: ' + error.message, 'error');
+                showStatus('textStatus', t.textError + error.message, 'error');
                 console.error('Text search error:', error);
             } finally {
                 btn.disabled = false;
@@ -1509,7 +2021,8 @@
             trainingCount++;
             document.getElementById('trainingCount').textContent = trainingCount;
 
-            showStatus('textStatus', '[OK] Training logged and verified!', 'success');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
+            showStatus('textStatus', t.trainingLogged, 'success');
 
             setTimeout(() => {
                 clearStatus('textStatus');
@@ -1534,7 +2047,8 @@
         // ============================================================================
         async function startCamera() {
             try {
-                showStatus('cameraStatus', 'Requesting camera permission...', 'info');
+                const t = translations[currentLanguage] || translations['eng_Latn'];
+                showStatus('cameraStatus', t.camRequesting, 'info');
 
                 // Request camera access
                 cameraStream = await navigator.mediaDevices.getUserMedia({
@@ -1569,10 +2083,11 @@
                     canvas.height = video.videoHeight;
                 });
 
-                showStatus('cameraStatus', 'Camera active — tap 📸 Take Photo to capture', 'success');
+                showStatus('cameraStatus', t.camActive, 'success');
 
             } catch (error) {
-                showStatus('cameraStatus', 'Camera permission denied. Please allow camera access.', 'error');
+                const t = translations[currentLanguage] || translations['eng_Latn'];
+                showStatus('cameraStatus', t.camDenied, 'error');
                 console.error('Camera permission error:', error);
             }
         }
@@ -1608,9 +2123,10 @@
             const video = document.getElementById('cameraVideo');
             const canvas = document.getElementById('detectionCanvas');
             const ctx = canvas.getContext('2d');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             if (!video.srcObject) {
-                showStatus('cameraStatus', 'Please start the camera first', 'warning');
+                showStatus('cameraStatus', t.camStartFirst, 'warning');
                 return;
             }
 
@@ -1632,7 +2148,7 @@
             document.getElementById('takePhotoBtn').classList.add('hidden');
             document.getElementById('retakeBtn').classList.remove('hidden');
 
-            showStatus('cameraStatus', 'Classifying image with YOLO26n-cls...', 'info');
+            showStatus('cameraStatus', t.camClassifying, 'info');
 
             // Send frame for classification
             canvas.toBlob(async (blob) => {
@@ -1651,21 +2167,28 @@
                     const data = await response.json();
 
                     if (data.error) {
-                        showStatus('cameraStatus', 'Classification error: ' + data.error, 'error');
+                        showStatus('cameraStatus', t.camError + data.error, 'error');
                         return;
                     }
 
                     // Show classification results (no bounding boxes)
                     if (data.detections && data.detections.length > 0) {
+                        function getTranslatedMachine(machineName) {
+                            const tr = translations[currentLanguage] || translations['eng_Latn'];
+                            const key = 'type_' + machineName.toLowerCase().replace(/[ &/-]+/g, '_');
+                            return tr[key] || machineName;
+                        }
+
                         // Draw classification label on the frozen frame
-                        drawClassificationLabel(ctx, data.detections[0]);
+                        drawClassificationLabel(ctx, data.detections[0], getTranslatedMachine(data.detections[0].class));
 
                         let resultsHtml = '';
                         if (data.ambiguous) {
                             // Ambiguous: show top 3 as clickable options
                             resultsHtml = `<div class="status-message status-success">` +
-                                `<strong>⚠ Multiple matches — pick one:</strong><br>`;
+                                `<strong>${t.camMultiple}</strong><br>`;
                             data.detections.forEach((d, i) => {
+                                const translatedName = getTranslatedMachine(d.class);
                                 const pct = (d.confidence * 100).toFixed(1);
                                 const barWidth = Math.round(d.confidence * 100);
                                 const barColor = i === 0 ? '#FF6700' : '#0057B8';
@@ -1673,7 +2196,7 @@
                                     `style="margin: 6px 0; padding: 8px; border-radius: 6px; cursor: pointer; ` +
                                     `border: 1px solid #ddd; transition: background 0.2s;" ` +
                                     `onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='transparent'">` +
-                                    `<strong>${d.class}</strong> — ${pct}%` +
+                                    `<strong>${translatedName}</strong> — ${pct}%` +
                                     `<div style="background:#e0e0e0;border-radius:4px;height:8px;margin-top:4px;">` +
                                     `<div style="background:${barColor};width:${barWidth}%;height:100%;border-radius:4px;"></div>` +
                                     `</div></div>`;
@@ -1682,25 +2205,26 @@
                         } else {
                             // Confident: show only top class cleanly
                             const top = data.detections[0];
+                            const translatedName = getTranslatedMachine(top.class);
                             const pct = (top.confidence * 100).toFixed(1);
                             resultsHtml = `<div class="status-message status-success">` +
-                                `<strong>✓ Detected: ${top.class}</strong> (${pct}% confidence)</div>`;
+                                `<strong>${t.camDetected}${translatedName}</strong> (${pct}%)</div>`;
                         }
                         document.getElementById('detectionResults').innerHTML = resultsHtml;
 
-                        showStatus('cameraStatus', 'Classification complete ✓', 'success');
+                        showStatus('cameraStatus', t.camComplete, 'success');
 
                         // Only auto-trigger safety flow when confident (single result)
                         if (!data.ambiguous) {
                             handleObjectDetection(data.detections[0]);
                         }
                     } else {
-                        showStatus('cameraStatus', 'Could not classify image. Try a different angle.', 'info');
+                        showStatus('cameraStatus', t.camNotFound, 'info');
                         document.getElementById('detectionResults').innerHTML = '';
                     }
 
                 } catch (error) {
-                    showStatus('cameraStatus', 'Classification failed: ' + error.message, 'error');
+                    showStatus('cameraStatus', t.camFailed + error.message, 'error');
                     console.error('Classification API error:', error);
                 }
             }, 'image/jpeg', 0.90);
@@ -1709,6 +2233,7 @@
         function retakePhoto() {
             const video = document.getElementById('cameraVideo');
             const canvas = document.getElementById('detectionCanvas');
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             // Re-enable camera stream
             if (cameraStream) {
@@ -1725,12 +2250,12 @@
 
             // Clear results
             document.getElementById('detectionResults').innerHTML = '';
-            showStatus('cameraStatus', 'Camera active — tap 📸 Take Photo to capture', 'success');
+            showStatus('cameraStatus', t.camActive, 'success');
         }
 
-        function drawClassificationLabel(ctx, topPrediction) {
+        function drawClassificationLabel(ctx, topPrediction, translatedName) {
             // Draw a label overlay in the top-left corner of the captured image
-            const label = `${topPrediction.class} ${(topPrediction.confidence * 100).toFixed(0)}%`;
+            const label = `${translatedName || topPrediction.class} ${(topPrediction.confidence * 100).toFixed(0)}%`;
             ctx.font = 'bold 20px Inter, sans-serif';
             const textWidth = ctx.measureText(label).width;
 
@@ -1744,7 +2269,13 @@
         }
 
         function handleObjectDetection(detection) {
-            const objectName = detection.class.toUpperCase();
+            function getTranslatedMachine(machineName) {
+                const tr = translations[currentLanguage] || translations['eng_Latn'];
+                const key = 'type_' + machineName.toLowerCase().replace(/[ &/-]+/g, '_');
+                return tr[key] || machineName;
+            }
+
+            const objectName = getTranslatedMachine(detection.class).toUpperCase();
             const confidence = detection.confidence || 0.85; // Fallback
 
             // Synthesize a safety response
@@ -1762,6 +2293,7 @@
             // Read the full RAG answer text from the rendered answer panel
             const answerEl = document.getElementById('answerText');
             const ragAnswer = answerEl ? answerEl.innerText.trim() : '';
+            const t = translations[currentLanguage] || translations['eng_Latn'];
 
             // Detect machine type from the question or answer text
             const combinedText = (query + ' ' + ragAnswer).toLowerCase();
@@ -1785,7 +2317,7 @@
             const btn = document.getElementById('generateVideoBtn');
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = 'Generating...';
+                btn.textContent = t.generateVideoBtnActive;
             }
 
             const videoContainer = document.getElementById('videoContainer');
@@ -1815,7 +2347,7 @@
                     if (videoLoading) videoLoading.classList.add('hidden');
                     if (btn) {
                         btn.disabled = false;
-                        btn.textContent = '🎥 GENERATE SAFETY VIDEO';
+                        btn.textContent = t.generateVideoBtn;
                     }
 
                     if (data.success) {
@@ -1824,13 +2356,13 @@
                             videoPlayerWrapper.innerHTML = `
                             <video width="100%" controls autoplay>
                                 <source src="${videoUrl}" type="video/mp4">
-                                Your browser does not support the video tag.
+                                ${t.videoUnsupported}
                             </video>
-                            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">Prompt: ${data.prompt}</p>
+                            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">${t.videoPrompt}${data.prompt}</p>
                         `;
                         }
                     } else {
-                        alert('Video generation failed: ' + data.error);
+                        alert(t.videoFailed + data.error);
                         if (videoContainer) videoContainer.classList.add('hidden');
                     }
                 })
@@ -1839,9 +2371,9 @@
                     if (videoLoading) videoLoading.classList.add('hidden');
                     if (btn) {
                         btn.disabled = false;
-                        btn.textContent = '🎥 GENERATE SAFETY VIDEO';
+                        btn.textContent = t.generateVideoBtn;
                     }
-                    alert('Error generating video');
+                    alert(t.videoError);
                     if (videoContainer) videoContainer.classList.add('hidden');
                 });
         }

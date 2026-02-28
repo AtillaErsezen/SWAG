@@ -3,43 +3,31 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, CheckCircle, Circle, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { machineDB } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 
-const checklistItems = {
-    "Excavator": [
-        { id: 'c1', label: 'Engine oil level verified', critical: true },
-        { id: 'c2', label: 'Hydraulic fluid level verified', critical: true },
-        { id: 'c3', label: 'Coolant level verified', critical: true },
-        { id: 'c4', label: 'Tracks and undercarriage inspected', critical: false },
-        { id: 'c5', label: 'All mirrors and cameras clean', critical: false },
-        { id: 'c6', label: 'Fire extinguisher present and charged', critical: true },
-        { id: 'c7', label: 'Seat belt functional', critical: true },
-        { id: 'c8', label: 'Horn and backup alarm tested', critical: false },
-        { id: 'c9', label: 'No visible hydraulic leaks', critical: true },
-        { id: 'c10', label: 'PPE worn (hardhat, vest, boots)', critical: true },
-    ],
-    "Mobile Crane": [
-        { id: 'c1', label: 'Outrigger pads and timber mats staged', critical: true },
-        { id: 'c2', label: 'Load chart for planned lift reviewed', critical: true },
-        { id: 'c3', label: 'Wind speed below operational limit', critical: true },
-        { id: 'c4', label: 'Overhead power line survey complete', critical: true },
-        { id: 'c5', label: 'All rigging and slings inspected', critical: true },
-        { id: 'c6', label: 'Boom and jib visually inspected', critical: false },
-        { id: 'c7', label: 'Anti-two-block device tested', critical: true },
-        { id: 'c8', label: 'Ground conditions assessed', critical: true },
-        { id: 'c9', label: 'Fire extinguisher present and charged', critical: true },
-        { id: 'c10', label: 'PPE worn (hardhat, vest, boots)', critical: true },
-    ]
-};
-
+import { localizedChecklists } from '../data/localizedChecklists';
 const PreShiftChecklist = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const machine = machineDB.find(m => m.id === id);
     const [checked, setChecked] = useState({});
+    const { tMachine, currentLang } = useAppContext();
 
     if (!machine) return <div className="p-8">Machine Not Found</div>;
 
-    const items = checklistItems[machine.type] || checklistItems["Excavator"];
+    const langData = localizedChecklists[currentLang] || localizedChecklists['en'];
+    const ui = langData.ui;
+
+    // Map existing types to Excavator/Mobile Crane for mocked data if needed,
+    // or just use Excavator as a fallback like before.
+    let baseDict = langData.checklists[machine.type];
+    if (!baseDict) {
+        // Fallback mapping: Cranes get the crane checklist, others get Excavator
+        if (machine.type.includes("Crane")) baseDict = langData.checklists["Mobile Crane"];
+        else baseDict = langData.checklists["Excavator"];
+    }
+
+    const items = baseDict;
     const totalChecked = Object.values(checked).filter(Boolean).length;
     const allChecked = totalChecked === items.length;
     const criticalsMissing = items.filter(i => i.critical && !checked[i.id]).length;
@@ -59,8 +47,8 @@ const PreShiftChecklist = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">Pre-Shift Inspection</h2>
-                    <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{machine.model} · {machine.type}</p>
+                    <h2 className="text-xl font-bold tracking-tight">{ui.pre_shift_inspection}</h2>
+                    <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{machine.model} · {tMachine(machine.type)}</p>
                 </div>
             </div>
 
@@ -68,7 +56,7 @@ const PreShiftChecklist = () => {
                 {/* Progress */}
                 <div className="mb-6">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-black text-slate-gray uppercase tracking-widest">{totalChecked} of {items.length} items verified</span>
+                        <span className="text-sm font-black text-slate-gray uppercase tracking-widest">{totalChecked} {ui.of} {items.length} {ui.items_verified}</span>
                         <span className="text-sm font-black text-matte-indigo">{Math.round((totalChecked / items.length) * 100)}%</span>
                     </div>
                     <div className="w-full h-2 bg-slate-gray/10 rounded-full overflow-hidden">
@@ -83,7 +71,7 @@ const PreShiftChecklist = () => {
                 {criticalsMissing > 0 && (
                     <div className="bg-rust-red/10 border border-rust-red/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
                         <AlertTriangle size={24} className="text-rust-red flex-shrink-0" />
-                        <p className="text-rust-red font-bold text-sm">{criticalsMissing} critical item{criticalsMissing > 1 ? 's' : ''} remaining. Machine operation is prohibited until all critical items are verified.</p>
+                        <p className="text-rust-red font-bold text-sm">{criticalsMissing} {ui.critical_items_remaining}. {ui.machine_operation_prohibited}</p>
                     </div>
                 )}
 
@@ -96,10 +84,10 @@ const PreShiftChecklist = () => {
                             transition={{ delay: idx * 0.05 }}
                             onClick={() => toggle(item.id)}
                             className={`w-full flex items-center gap-4 p-5 rounded-2xl border transition-all active:scale-[0.98] text-left ${checked[item.id]
-                                    ? 'bg-sage-green/5 border-sage-green/30'
-                                    : item.critical
-                                        ? 'bg-white border-rust-red/20 shadow-sm'
-                                        : 'bg-white border-slate-gray/20 shadow-sm'
+                                ? 'bg-sage-green/5 border-sage-green/30'
+                                : item.critical
+                                    ? 'bg-white border-rust-red/20 shadow-sm'
+                                    : 'bg-white border-slate-gray/20 shadow-sm'
                                 }`}
                         >
                             {checked[item.id]
@@ -111,7 +99,7 @@ const PreShiftChecklist = () => {
                                     {item.label}
                                 </span>
                                 {item.critical && !checked[item.id] && (
-                                    <span className="block text-[10px] font-black text-rust-red uppercase tracking-widest mt-1">CRITICAL · MANDATORY</span>
+                                    <span className="block text-[10px] font-black text-rust-red uppercase tracking-widest mt-1">{ui.critical_mandatory}</span>
                                 )}
                             </div>
                         </motion.button>
@@ -125,12 +113,12 @@ const PreShiftChecklist = () => {
                     onClick={handleSubmit}
                     disabled={!allChecked}
                     className={`w-full py-5 font-black text-xl rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 ${allChecked
-                            ? 'bg-sage-green text-white'
-                            : 'bg-slate-gray/20 text-slate-gray cursor-not-allowed'
+                        ? 'bg-sage-green text-white'
+                        : 'bg-slate-gray/20 text-slate-gray cursor-not-allowed'
                         }`}
                 >
                     <ClipboardCheck size={24} />
-                    {allChecked ? 'SIGN OFF & PROCEED' : `${items.length - totalChecked} ITEMS REMAINING`}
+                    {allChecked ? ui.sign_off_proceed : `${items.length - totalChecked} ${ui.items_remaining}`}
                 </button>
             </div>
         </div>

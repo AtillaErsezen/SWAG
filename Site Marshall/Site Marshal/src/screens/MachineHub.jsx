@@ -34,7 +34,7 @@ const CATEGORY_ICONS = {
 const MachineHub = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t, workerId, currentLang, setTrainingCount } = useAppContext();
+    const { t, workerId, currentLang, setTrainingCount, tMachine } = useAppContext();
 
     const [isListening, setIsListening] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
@@ -116,7 +116,20 @@ const MachineHub = () => {
                 transcription: res.transcription ?? null,
             }]);
 
-            setPendingLogId(res.log_id);
+            // Check if backend reported confidence < 0.4 OR if LLM manually triggered 'Information not found'
+            const lowerAiText = aiText.toLowerCase();
+            const isInformationNotFound = lowerAiText.includes('information not found') ||
+                lowerAiText.includes('not found in safety manuals') ||
+                lowerAiText.includes('no matching safety procedure found') ||
+                lowerAiText.includes('keine passende sicherheitsvorschrift') ||
+                lowerAiText.includes('informationen nicht gefunden') ||
+                lowerAiText.includes('nicht in den sicherheitshandbüchern') ||
+                lowerAiText.includes('information nicht in den handbüchern');
+
+            // Only show the Confirmation button if confidence >= 0.4 AND it didn't trigger a 'not found' message
+            if (res.confidence >= 0.4 && !isInformationNotFound) {
+                setPendingLogId(res.log_id);
+            }
 
             // If voice query, show transcription as first bubble
             if (mode === 'voice' && res.transcription) {
@@ -151,7 +164,7 @@ const MachineHub = () => {
             setTrainingCount(prev => prev + 1);
             setChatHistory(prev => [...prev, {
                 type: 'system',
-                text: '✅ Training logged and verified!',
+                text: `✅ ${t('training_verified')}`,
             }]);
         } catch (err) {
             console.error('Verify error:', err);
@@ -182,14 +195,14 @@ const MachineHub = () => {
                         className="flex-1 h-14 bg-white text-matte-indigo border-2 border-matte-indigo/20 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-matte-indigo/5 active:scale-95 transition-all"
                     >
                         <ClipboardCheck size={20} />
-                        PRE-SHIFT
+                        {t('pre_shift')}
                     </button>
                     <button
                         onClick={() => navigate(`/machine/${id}/academy`)}
                         className="flex-[2] h-14 bg-safety-orange text-app-bg rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-md hover:brightness-110 active:scale-95 transition-all"
                     >
                         <GraduationCap size={24} />
-                        THE ACADEMY
+                        {t('academy_title')}
                     </button>
                 </div>
             </div>
@@ -218,7 +231,7 @@ const MachineHub = () => {
                             transition={{ delay: 0.5 }}
                             className="text-matte-indigo font-bold uppercase tracking-widest text-sm mt-1"
                         >
-                            {machine.type}
+                            {tMachine(machine.type)}
                         </motion.p>
                     </div>
                 </div>
@@ -239,7 +252,7 @@ const MachineHub = () => {
                         >
                             <Mic size={48} className="opacity-50" />
                             <p className="text-center max-w-xs font-bold text-lg leading-snug">
-                                I am Marshall AI. Press and hold the microphone, or open the keyboard, to ask me about this machine.
+                                {t('marshall_ai_greeting')}
                             </p>
                         </motion.div>
                     ) : (
@@ -332,7 +345,7 @@ const MachineHub = () => {
                                 className="w-full max-w-lg mx-auto flex h-14 items-center justify-center gap-2 bg-sage-green text-white font-black text-base rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all"
                             >
                                 <CheckCircle size={20} />
-                                I CONFIRM UNDERSTANDING
+                                {t('confirm_understanding')}
                             </button>
                         </motion.div>
                     )}
@@ -356,7 +369,7 @@ const MachineHub = () => {
                                         autoFocus
                                         value={textInput}
                                         onChange={(e) => setTextInput(e.target.value)}
-                                        placeholder="Ask Marshall AI..."
+                                        placeholder={t('ask_marshall_ai')}
                                         className="w-full bg-transparent px-4 py-2 text-lg font-medium focus:outline-none"
                                     />
                                     <button

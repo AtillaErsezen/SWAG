@@ -1,191 +1,43 @@
 ﻿// ============================================================
-// Site Marshall â€” Mock Data Layer
+// Site Marshall — Mock Data Layer
 // ============================================================
+
+import { localizedMachineUnits } from './localizedUnits';
 
 export const languages = [
     { code: 'en', name: 'English', native: 'English', flag: 'GB' },
-    { code: 'tr', name: 'Turkish', native: 'TÃ¼rkÃ§e', flag: 'TR' },
-    { code: 'ar', name: 'Arabic', native: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©', flag: 'SA' },
+    { code: 'tr', name: 'Turkish', native: 'Türkçe', flag: 'TR' },
+    { code: 'ar', name: 'Arabic', native: 'الْعَرَبِيَّة', flag: 'SA' },
     { code: 'pl', name: 'Polish', native: 'Polski', flag: 'PL' },
-    { code: 'ro', name: 'Romanian', native: 'RomÃ¢nÄƒ', flag: 'RO' },
-    { code: 'pt', name: 'Portuguese', native: 'PortuguÃªs', flag: 'BR' },
-    { code: 'es', name: 'Spanish', native: 'EspaÃ±ol', flag: 'ES' },
-    { code: 'fr', name: 'French', native: 'FranÃ§ais', flag: 'FR' },
+    { code: 'ro', name: 'Romanian', native: 'Română', flag: 'RO' },
+    { code: 'pt', name: 'Portuguese', native: 'Português', flag: 'BR' },
+    { code: 'es', name: 'Spanish', native: 'Español', flag: 'ES' },
+    { code: 'fr', name: 'French', native: 'Français', flag: 'FR' },
     { code: 'de', name: 'German', native: 'Deutsch', flag: 'DE' },
     { code: 'it', name: 'Italian', native: 'Italiano', flag: 'IT' },
     { code: 'nl', name: 'Dutch', native: 'Nederlands', flag: 'NL' },
-    { code: 'el', name: 'Greek', native: 'Î•Î»Î»Î·Î½Î¹ÎºÎ¬', flag: 'GR' },
+    { code: 'el', name: 'Greek', native: 'Ελληνικά', flag: 'GR' },
     { code: 'hu', name: 'Hungarian', native: 'Magyar', flag: 'HU' },
-    { code: 'cs', name: 'Czech', native: 'ÄŒeÅ¡tina', flag: 'CZ' },
-    { code: 'bg', name: 'Bulgarian', native: 'Ğ‘ÑŠĞ»Ğ³Ğ°Ñ€ÑĞºĞ¸', flag: 'BG' },
-    { code: 'uk', name: 'Ukrainian', native: 'Ğ£ĞºÑ€Ğ°Ñ—Ğ½ÑÑŒĞºĞ°', flag: 'UA' },
-    { code: 'sr', name: 'Serbian', native: 'Ğ¡Ñ€Ğ¿ÑĞºĞ¸', flag: 'RS' },
-    { code: 'hi', name: 'Hindi', native: 'à¤¹à¤¿à¤¨à¥à¤¦à¥€', flag: 'IN' },
-    { code: 'bn', name: 'Bengali', native: 'à¦¬à¦¾à¦‚à¦²à¦¾', flag: 'BD' },
-    { code: 'ur', name: 'Urdu', native: 'Ø§Ø±Ø¯Ùˆ', flag: 'PK' },
+    { code: 'cs', name: 'Czech', native: 'Čeština', flag: 'CZ' },
+    { code: 'bg', name: 'Bulgarian', native: 'Български', flag: 'BG' },
+    { code: 'uk', name: 'Ukrainian', native: 'Українська', flag: 'UA' },
+    { code: 'sr', name: 'Serbian', native: 'Српски', flag: 'RS' },
+    { code: 'hi', name: 'Hindi', native: 'हिन्दी', flag: 'IN' },
+    { code: 'bn', name: 'Bengali', native: 'বাংলা', flag: 'BD' },
+    { code: 'ur', name: 'Urdu', native: 'اردو', flag: 'PK' },
     { code: 'id', name: 'Indonesian', native: 'Bahasa Indonesia', flag: 'ID' },
 ];
 // ─── Training content templates (shared within category) ────────────────────
+// These are now fetched dynamically via getLocalizedUnits based on the user's selected language.
+export const getLocalizedUnits = (categoryStr, langCode = 'en') => {
+    // Fallback to English if the language isn't found
+    const langData = localizedMachineUnits[langCode] || localizedMachineUnits['en'];
 
-const TAMPING_UNITS = [
-    {
-        id: "unit-1", title: "On-Track Safety & Protection", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Line Blockage & Exclusion Zones", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "A tamping machine must NEVER enter an unprotected line. A formal Engineering Possession must be confirmed before any on-track movement. Exclusion zones extend min 50 m each side of the work site, protected by detonators or signals.",
-                qChatContext: "Explain the difference between a line blockage and a possession, and why verbal-only permission is insufficient for tamping operations.",
-                summary: "Formal possession required before on-track work. 50m exclusion zones each side. No verbal-only permission.",
-                learnCards: [
-                    { q: "What must be confirmed before a tamping machine moves on-track?", a: "A formal Engineering Possession.", options: ["Verbal approval from a site supervisor.", "A formal Engineering Possession.", "The nearest signal showing green.", "Track cleared of ballast."], correct: 1 },
-                    { q: "Minimum exclusion zone either side of a tamping site?", a: "50 metres.", options: ["10 m.", "25 m.", "50 metres.", "100 m."], correct: 2 },
-                    { q: "Can a tamping machine move on verbal permission only?", a: "No — written blockage authority is required.", options: ["Yes, if the supervisor is on site.", "No — written blockage authority is required.", "Yes, during daylight hours only.", "Yes, below 5 km/h."], correct: 1 }
-                ]
-            },
-            {
-                id: "1.2", title: "Tamping Tine Safety", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "Tamping tines vibrate at high frequency and penetrate ballast to 450 mm depth. Never reach into the tamping zone while powered. Raise the tamping unit fully before travelling. Inspect tines for wear before each working cycle.",
-                qChatContext: "Why is contact with a vibrating tamping tine at operating frequency fatal, and what guarding prevents it?",
-                summary: "Never enter tamping zone while powered. Raise unit before travel. Inspect tines before each cycle.",
-                learnCards: [
-                    { q: "Ballast penetration depth of tamping tines?", a: "Up to 450 mm.", options: ["100 mm.", "200 mm.", "Up to 450 mm.", "600 mm."], correct: 2 },
-                    { q: "When must tamping tines be inspected?", a: "Before every working cycle.", options: ["Weekly.", "Monthly.", "Before every working cycle.", "After blockage ends."], correct: 2 },
-                    { q: "What must be done before travelling between working positions?", a: "Tamping unit fully raised and locked.", options: ["Reduce to idle.", "Tamping unit fully raised and locked.", "Sound horn twice.", "Confirm with PIC."], correct: 1 }
-                ]
-            }
-        ]
-    }
-];
+    // Return the specific category (e.g. 'TAMPING_UNITS')
+    return langData[categoryStr] || [];
+};
 
-const CRANE_UNITS = [
-    {
-        id: "unit-1", title: "Railway Crane Safety", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Outrigger Deployment", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "All outriggers must be fully extended and locked before any lift. Ground-bearing pads are mandatory under each foot. A competent person must assess ground-bearing capacity — railway ballast and embankments require engineered pads.",
-                qChatContext: "How does uneven outrigger settlement cause overload during a railway crane lift?",
-                summary: "Outriggers fully extended and locked. Ground pads mandatory. Competent person assesses ground.",
-                learnCards: [
-                    { q: "Outrigger position before any lift?", a: "Fully extended and mechanically locked.", options: ["Half extended.", "Fully extended and mechanically locked.", "Ballast surface only.", "Retracted for on-track lifts."], correct: 1 },
-                    { q: "Can a lift proceed with one outrigger not fully deployed?", a: "No — all outriggers must be fully deployed.", options: ["Yes, under 5 t.", "Yes, for side lifts.", "No — all outriggers must be fully deployed.", "Only for tandem lifts."], correct: 2 },
-                    { q: "Who assesses ground-bearing capacity?", a: "A competent person.", options: ["The crane operator.", "Any team member.", "A competent person.", "The network controller."], correct: 2 }
-                ]
-            },
-            {
-                id: "1.2", title: "Load Moment Indicator (LMI)", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "The LMI must be active at all times. If the alarm triggers, stop all boom and slew movement immediately. Never bypass the LMI. On-track recovery lifts require a formal lift plan per the Network's Vehicle Recovery Procedure.",
-                qChatContext: "Why is bypassing the LMI on a railway crane particularly dangerous compared to a road crane?",
-                summary: "LMI always active. Stop immediately on alarm. Never bypass. Formal lift plan for recovery lifts.",
-                learnCards: [
-                    { q: "If LMI alarm activates, first action?", a: "Stop all boom and slew movements.", options: ["Lower load immediately.", "Override and continue.", "Stop all boom and slew movements.", "Radio network controller."], correct: 2 },
-                    { q: "Can the LMI be bypassed for a critical recovery lift?", a: "No — bypassing LMI is prohibited.", options: ["Yes, in emergency.", "Supervisor approval required.", "Only at night.", "No — bypassing LMI is prohibited."], correct: 3 },
-                    { q: "What document is needed before a vehicle recovery lift?", a: "Formal lift plan signed by appointed person.", options: ["Email from operations.", "Verbal briefing from PIC.", "Formal lift plan signed by appointed person.", "Daily inspection form only."], correct: 2 }
-                ]
-            }
-        ]
-    }
-];
 
-const GRINDING_UNITS = [
-    {
-        id: "unit-1", title: "Rail Grinding Safety", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Spark & Fire Risk", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "Rail grinding generates intense sparks that ignite lineside vegetation. A fire watch person must be posted in fire-risk conditions. Water suppression must be operational before work starts. A 30-minute post-work fire patrol is mandatory.",
-                qChatContext: "Why is rail grinding classified as a high fire-risk activity and what seasonal restrictions apply?",
-                summary: "Sparks ignite vegetation. Fire watch required. Water suppression active. 30-min fire patrol after work.",
-                learnCards: [
-                    { q: "Duration of mandatory post-work fire patrol?", a: "30 minutes minimum.", options: ["5 min.", "15 min.", "30 minutes minimum.", "60 min."], correct: 2 },
-                    { q: "What system must be operational before grinding?", a: "On-board water suppression.", options: ["Track circuit.", "On-board water suppression.", "Adjacent line warning.", "GPS tracking."], correct: 1 },
-                    { q: "Highest fire risk condition for grinding?", a: "Dry weather, low humidity, dense vegetation.", options: ["Wet/windy weather.", "Below 5°C.", "Dry weather, low humidity, dense vegetation.", "Night operations."], correct: 2 }
-                ]
-            },
-            {
-                id: "1.2", title: "Grinding Stone Inspection", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "Inspect all grinding stones before each shift for cracks or chips. A cracked stone can explode at operating speed. Never exceed the max RPM rating. Discard stones worn below minimum diameter. Store dry and shock-free.",
-                qChatContext: "What is the physics of a grinding stone failure at operating speed and what PPE does not protect against it?",
-                summary: "Inspect stones before each shift. Never exceed max RPM. Discard at minimum diameter. Store dry.",
-                learnCards: [
-                    { q: "Consequence of operating a cracked grinding stone?", a: "The stone can explode causing fatal injuries.", options: ["Increased vibration.", "Reduced effectiveness.", "The stone can explode causing fatal injuries.", "Machine stops automatically."], correct: 2 },
-                    { q: "When must grinding stones be discarded?", a: "Worn to minimum permitted diameter.", options: ["After every shift.", "Worn to minimum permitted diameter.", "After 100 km grinding.", "Only when visibly cracked."], correct: 1 },
-                    { q: "How often must grinding stones be inspected?", a: "Before each shift.", options: ["Weekly.", "Monthly.", "Before each shift.", "When machine slows unexpectedly."], correct: 2 }
-                ]
-            }
-        ]
-    }
-];
-
-const RENEWAL_UNITS = [
-    {
-        id: "unit-1", title: "Track Renewal Safety", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Machine Train Formation", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "Renewal machines operate as multi-unit trains. All units must be coupled per the manufacturer's sequence before movement. Never uncouple a wagon on a gradient without applying the handbrake first.",
-                qChatContext: "Explain what a runaway wagon event is and how improper handbrake procedures cause them.",
-                summary: "Couple per manufacturer sequence. Apply wagon handbrakes before uncoupling on gradients.",
-                learnCards: [
-                    { q: "Before uncoupling on a gradient?", a: "Apply the wagon handbrake.", options: ["Chain between wagons.", "Apply the wagon handbrake.", "Wooden chocks under wheels.", "Machine emergency brake."], correct: 1 },
-                    { q: "What is a runaway wagon?", a: "An uncoupled wagon rolling uncontrolled on a gradient.", options: ["Wagon exceeding speed limit.", "An uncoupled wagon rolling uncontrolled on a gradient.", "Wagon derailing during coupling.", "Wagon vibrating excessively."], correct: 1 },
-                    { q: "Can the train travel with a wagon brake defect?", a: "No — all brakes must be in working order.", options: ["Yes, reduced speed.", "Yes, one wagon OK.", "No — all brakes must be in working order.", "Gradient <1% OK."], correct: 2 }
-                ]
-            },
-            {
-                id: "1.2", title: "Silica Dust Control", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "Ballast renewal generates crystalline silica dust causing silicosis. FFP3 RPE is mandatory. Water suppression or dust extraction must be operational. Formal dust monitoring is required for operations exceeding 30 minutes.",
-                qChatContext: "Why is crystalline silica dust more dangerous than ordinary dust, and why is monitoring mandatory?",
-                summary: "Silica dust — FFP3 RPE mandatory. Water suppression required. Monitor dust for operations >30 min.",
-                learnCards: [
-                    { q: "What substance in ballast dust causes silicosis?", a: "Crystalline silica (quartz).", options: ["Limestone dust.", "Iron oxide.", "Crystalline silica (quartz).", "Granite aggregate."], correct: 2 },
-                    { q: "Minimum RPE for ballast renewal work?", a: "FFP3 filtering facepiece.", options: ["FFP1.", "FFP2.", "FFP3 filtering facepiece.", "Full airline set."], correct: 2 },
-                    { q: "When is formal silica dust monitoring required?", a: "Operations exceeding 30 minutes.", options: [">2 hours.", ">1 hour.", "Operations exceeding 30 minutes.", "Always, regardless of duration."], correct: 2 }
-                ]
-            }
-        ]
-    }
-];
-
-const LOCO_UNITS = [
-    {
-        id: "unit-1", title: "Traction & Electrical Safety", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Overhead Line Equipment (OLE)", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "OLE operates at 25 kV AC or 15 kV AC — instantly fatal on contact. Minimum approach distance is 600 mm. OLE can only be touched after a formal Line Isolation and Earthing certificate is issued and confirmed.",
-                qChatContext: "Why can OLE become re-energised without warning even after an isolation has been confirmed?",
-                summary: "OLE 25kV/15kV — instantly fatal. Min 600mm approach. Only touch after Line Isolation & Earthing certificate.",
-                learnCards: [
-                    { q: "Minimum approach distance to live OLE?", a: "600 mm.", options: ["100 mm.", "300 mm.", "600 mm.", "1 metre."], correct: 2 },
-                    { q: "When can OLE be physically touched?", a: "Only after Line Isolation and Earthing certificate confirmed.", options: ["Pantograph lowered.", "Substation visually off.", "Only after Line Isolation and Earthing certificate confirmed.", "10 min no train movement."], correct: 2 },
-                    { q: "Why is OLE dangerous even when believed isolated?", a: "Voltage can be re-introduced by automatic switching.", options: ["Static build-up.", "Voltage can be re-introduced by automatic switching.", "Wire stays warm.", "Other workers unaware."], correct: 1 }
-                ]
-            },
-            {
-                id: "1.2", title: "Brake Testing Before Departure", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "A full brake test is mandatory before any movement. Brake pipe must be charged to 5 bar. A continuity test must confirm all wagon brakes are connected. Departure checklist must be signed before the train moves.",
-                qChatContext: "Explain the difference between the automatic brake and independent brake and why both must be tested.",
-                summary: "Full brake test before movement. Brake pipe 5 bar. All wagon brakes confirmed. Checklist signed.",
-                learnCards: [
-                    { q: "Required brake pipe pressure before departure?", a: "5 bar.", options: ["2 bar.", "3.5 bar.", "5 bar.", "7 bar."], correct: 2 },
-                    { q: "What confirms all wagon brakes are functional?", a: "The brake continuity test.", options: ["Independent brake application.", "The brake continuity test.", "Visual walk-around.", "Low-speed braking test."], correct: 1 },
-                    { q: "If the brake test fails, what happens?", a: "Fault must be rectified before any movement.", options: ["Move at half speed.", "Fault must be rectified before any movement.", "Report and proceed.", "Only automatic brake is mandatory."], correct: 1 }
-                ]
-            }
-        ]
-    }
-];
 
 // ─── Helper to build a machine entry ─────────────────────────────────────────
 const img = {
@@ -197,67 +49,67 @@ const img = {
 
 export const machineDB = [
     // ── Track Tamping Machines ─────────────────────────────────────────────────
-    { id: "08-275_Unimat", model: "Plasser 08-275 Unimat", type: "Track Tamping Machine", image: img.rail, confidence: 0.90, trainingProgress: 20, units: TAMPING_UNITS },
-    { id: "09-16_CAT", model: "Plasser 09-16 CAT", type: "Track Tamping Machine", image: img.rail, confidence: 0.88, trainingProgress: 15, units: TAMPING_UNITS },
-    { id: "09-32_CSM", model: "Plasser 09-32 CSM", type: "Track Tamping Machine", image: img.rail, confidence: 0.85, trainingProgress: 10, units: TAMPING_UNITS },
-    { id: "09-3X_Dynamic", model: "Plasser 09-3X Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 25, units: TAMPING_UNITS },
-    { id: "Beaver_Lightweight_Tamper", model: "Beaver Lightweight Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.82, trainingProgress: 30, units: TAMPING_UNITS },
-    { id: "UnimatExpress_2X-4x4_Dynamic", model: "Unimat Express 2X-4x4 Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.91, trainingProgress: 40, units: TAMPING_UNITS },
-    { id: "Unimat_08-475_4S", model: "Unimat 08-475 4S", type: "Track Tamping Machine", image: img.rail, confidence: 0.94, trainingProgress: 60, units: TAMPING_UNITS },
-    { id: "Unimat_09-4x4_4S_Dynamic_E\u00c2\u00b3", model: "Unimat 09-4x4/4S Dynamic E\u00b3", type: "Track Tamping Machine", image: img.rail, confidence: 0.89, trainingProgress: 35, units: TAMPING_UNITS },
+    { id: "08-275_Unimat", model: "Plasser 08-275 Unimat", type: "Track Tamping Machine", image: img.rail, confidence: 0.90, trainingProgress: 20, unitCategory: "TAMPING_UNITS" },
+    { id: "09-16_CAT", model: "Plasser 09-16 CAT", type: "Track Tamping Machine", image: img.rail, confidence: 0.88, trainingProgress: 15, unitCategory: "TAMPING_UNITS" },
+    { id: "09-32_CSM", model: "Plasser 09-32 CSM", type: "Track Tamping Machine", image: img.rail, confidence: 0.85, trainingProgress: 10, unitCategory: "TAMPING_UNITS" },
+    { id: "09-3X_Dynamic", model: "Plasser 09-3X Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 25, unitCategory: "TAMPING_UNITS" },
+    { id: "Beaver_Lightweight_Tamper", model: "Beaver Lightweight Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.82, trainingProgress: 30, unitCategory: "TAMPING_UNITS" },
+    { id: "UnimatExpress_2X-4x4_Dynamic", model: "Unimat Express 2X-4x4 Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.91, trainingProgress: 40, unitCategory: "TAMPING_UNITS" },
+    { id: "Unimat_08-475_4S", model: "Unimat 08-475 4S", type: "Track Tamping Machine", image: img.rail, confidence: 0.94, trainingProgress: 60, unitCategory: "TAMPING_UNITS" },
+    { id: "Unimat_09-4x4_4S_Dynamic_E\u00c2\u00b3", model: "Unimat 09-4x4/4S Dynamic E\u00b3", type: "Track Tamping Machine", image: img.rail, confidence: 0.89, trainingProgress: 35, unitCategory: "TAMPING_UNITS" },
 
     // ── Railway Cranes ─────────────────────────────────────────────────────────
-    { id: "EDK_1000", model: "EDK 1000 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 30, units: CRANE_UNITS },
-    { id: "EDK_750", model: "EDK 750 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.85, trainingProgress: 20, units: CRANE_UNITS },
-    { id: "Kirow_GPC", model: "Kirow GPC", type: "Railway Crane", image: img.crane, confidence: 0.86, trainingProgress: 25, units: CRANE_UNITS },
-    { id: "Kirow_KRC_1200", model: "Kirow KRC 1200", type: "Railway Crane", image: img.crane, confidence: 0.90, trainingProgress: 40, units: CRANE_UNITS },
-    { id: "Kirow_KRC_1600", model: "Kirow KRC 1600", type: "Railway Crane", image: img.crane, confidence: 0.92, trainingProgress: 45, units: CRANE_UNITS },
-    { id: "Kirow_KRC_400", model: "Kirow KRC 400", type: "Railway Crane", image: img.crane, confidence: 0.84, trainingProgress: 15, units: CRANE_UNITS },
-    { id: "Kirow_KRC_810", model: "Kirow KRC 810", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 45, units: CRANE_UNITS },
-    { id: "Kirow_KRC_910", model: "Kirow KRC 910", type: "Railway Crane", image: img.crane, confidence: 0.87, trainingProgress: 35, units: CRANE_UNITS },
+    { id: "EDK_1000", model: "EDK 1000 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 30, unitCategory: "CRANE_UNITS" },
+    { id: "EDK_750", model: "EDK 750 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.85, trainingProgress: 20, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_GPC", model: "Kirow GPC", type: "Railway Crane", image: img.crane, confidence: 0.86, trainingProgress: 25, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_KRC_1200", model: "Kirow KRC 1200", type: "Railway Crane", image: img.crane, confidence: 0.90, trainingProgress: 40, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_KRC_1600", model: "Kirow KRC 1600", type: "Railway Crane", image: img.crane, confidence: 0.92, trainingProgress: 45, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_KRC_400", model: "Kirow KRC 400", type: "Railway Crane", image: img.crane, confidence: 0.84, trainingProgress: 15, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_KRC_810", model: "Kirow KRC 810", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 45, unitCategory: "CRANE_UNITS" },
+    { id: "Kirow_KRC_910", model: "Kirow KRC 910", type: "Railway Crane", image: img.crane, confidence: 0.87, trainingProgress: 35, unitCategory: "CRANE_UNITS" },
 
     // ── Rail Grinding Machines ─────────────────────────────────────────────────
-    { id: "HSG-city", model: "HSG-city Rail Grinder", type: "Rail Grinding Machine", image: img.grind, confidence: 0.83, trainingProgress: 20, units: GRINDING_UNITS },
-    { id: "MG_31_Rail_Grinding_Machine", model: "MG 31 Rail Grinding Machine", type: "Rail Grinding Machine", image: img.grind, confidence: 0.87, trainingProgress: 30, units: GRINDING_UNITS },
-    { id: "SF_03_Rail_Milling_Machine", model: "SF 03 Rail Milling Machine", type: "Rail Milling Machine", image: img.grind, confidence: 0.85, trainingProgress: 25, units: GRINDING_UNITS },
-    { id: "Speno_RR_48", model: "Speno RR-48", type: "Rail Grinding Machine", image: img.grind, confidence: 0.82, trainingProgress: 35, units: GRINDING_UNITS },
+    { id: "HSG-city", model: "HSG-city Rail Grinder", type: "Rail Grinding Machine", image: img.grind, confidence: 0.83, trainingProgress: 20, unitCategory: "GRINDING_UNITS" },
+    { id: "MG_31_Rail_Grinding_Machine", model: "MG 31 Rail Grinding Machine", type: "Rail Grinding Machine", image: img.grind, confidence: 0.87, trainingProgress: 30, unitCategory: "GRINDING_UNITS" },
+    { id: "SF_03_Rail_Milling_Machine", model: "SF 03 Rail Milling Machine", type: "Rail Milling Machine", image: img.grind, confidence: 0.85, trainingProgress: 25, unitCategory: "GRINDING_UNITS" },
+    { id: "Speno_RR_48", model: "Speno RR-48", type: "Rail Grinding Machine", image: img.grind, confidence: 0.82, trainingProgress: 35, unitCategory: "GRINDING_UNITS" },
 
     // ── Track Renewal & Maintenance ────────────────────────────────────────────
-    { id: "BDS_2000", model: "BDS 2000 Ballast Distribution", type: "Ballast Distribution System", image: img.rail, confidence: 0.80, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "DGS_62_N", model: "DGS 62 N Dynamic Stabilizer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.83, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "MFS_100", model: "MFS 100 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.81, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "MFS_40", model: "MFS 40 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.79, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "Multi_Tasker_100", model: "Multi Tasker 100", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "Multi_Tasker_160", model: "Multi Tasker 160", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "Plasser_StabilizingTrailer", model: "Plasser Stabilizing Trailer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.80, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "Plasser_TMT", model: "Plasser TMT", type: "Track Maintenance Train", image: img.rail, confidence: 0.85, trainingProgress: 25, units: RENEWAL_UNITS },
-    { id: "PM_1000", model: "PM 1000 Production Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 30, units: RENEWAL_UNITS },
-    { id: "RM_800", model: "RM 800 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.86, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "RM_95-800_W", model: "RM 95-800 W Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 25, units: RENEWAL_UNITS },
-    { id: "RPM_900", model: "RPM 900 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "RU_800_S", model: "RU 800 S Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.80, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "SSP_110_SW", model: "SSP 110 SW Switch Renewal", type: "Switch & Crossing Renewal", image: img.rail, confidence: 0.83, trainingProgress: 20, units: RENEWAL_UNITS },
+    { id: "BDS_2000", model: "BDS 2000 Ballast Distribution", type: "Ballast Distribution System", image: img.rail, confidence: 0.80, trainingProgress: 15, unitCategory: "RENEWAL_UNITS" },
+    { id: "DGS_62_N", model: "DGS 62 N Dynamic Stabilizer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.83, trainingProgress: 20, unitCategory: "RENEWAL_UNITS" },
+    { id: "MFS_100", model: "MFS 100 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.81, trainingProgress: 10, unitCategory: "RENEWAL_UNITS" },
+    { id: "MFS_40", model: "MFS 40 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.79, trainingProgress: 10, unitCategory: "RENEWAL_UNITS" },
+    { id: "Multi_Tasker_100", model: "Multi Tasker 100", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, unitCategory: "RENEWAL_UNITS" },
+    { id: "Multi_Tasker_160", model: "Multi Tasker 160", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 20, unitCategory: "RENEWAL_UNITS" },
+    { id: "Plasser_StabilizingTrailer", model: "Plasser Stabilizing Trailer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.80, trainingProgress: 10, unitCategory: "RENEWAL_UNITS" },
+    { id: "Plasser_TMT", model: "Plasser TMT", type: "Track Maintenance Train", image: img.rail, confidence: 0.85, trainingProgress: 25, unitCategory: "RENEWAL_UNITS" },
+    { id: "PM_1000", model: "PM 1000 Production Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 30, unitCategory: "RENEWAL_UNITS" },
+    { id: "RM_800", model: "RM 800 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.86, trainingProgress: 20, unitCategory: "RENEWAL_UNITS" },
+    { id: "RM_95-800_W", model: "RM 95-800 W Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 25, unitCategory: "RENEWAL_UNITS" },
+    { id: "RPM_900", model: "RPM 900 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, unitCategory: "RENEWAL_UNITS" },
+    { id: "RU_800_S", model: "RU 800 S Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.80, trainingProgress: 10, unitCategory: "RENEWAL_UNITS" },
+    { id: "SSP_110_SW", model: "SSP 110 SW Switch Renewal", type: "Switch & Crossing Renewal", image: img.rail, confidence: 0.83, trainingProgress: 20, unitCategory: "RENEWAL_UNITS" },
 
     // ── Locomotives & Multi-Purpose Vehicles ───────────────────────────────────
-    { id: "Alstom_Prima_H3", model: "Alstom Prima H3", type: "Hybrid Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 40, units: LOCO_UNITS },
-    { id: "Bombardier_TRAXX", model: "Bombardier TRAXX", type: "Electric Locomotive", image: img.loco, confidence: 0.90, trainingProgress: 50, units: LOCO_UNITS },
-    { id: "BR_711.1", model: "DB BR 711.1", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.85, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "BR_714", model: "DB BR 714", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "CatenaryCrafter_15.4_E\u00c2\u00b3", model: "Catenary Crafter 15.4 E\u00b3", type: "Catenary Maintenance Vehicle", image: img.loco, confidence: 0.81, trainingProgress: 20, units: LOCO_UNITS },
-    { id: "Class_218", model: "DB Class 218", type: "Diesel Locomotive", image: img.loco, confidence: 0.87, trainingProgress: 35, units: LOCO_UNITS },
-    { id: "Class_232", model: "DB Class 232", type: "Diesel Locomotive", image: img.loco, confidence: 0.85, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "Class_290_V_90", model: "DB Class 290 V90", type: "Shunting Locomotive", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "Class_333_335", model: "Class 333 / 335", type: "Diesel Locomotive", image: img.loco, confidence: 0.82, trainingProgress: 20, units: LOCO_UNITS },
-    { id: "G_1206", model: "G 1206", type: "Diesel-Electric Locomotive", image: img.loco, confidence: 0.84, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "ROBEL_Mobile_Maintenance_Unit", model: "ROBEL Mobile Maintenance Unit", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.80, trainingProgress: 15, units: LOCO_UNITS },
-    { id: "Siemens_Vectron", model: "Siemens Vectron", type: "Electric Locomotive", image: img.loco, confidence: 0.92, trainingProgress: 55, units: LOCO_UNITS },
-    { id: "Vossloh_DM_20-BDD", model: "Vossloh DM 20 BDD", type: "Diesel-Hydraulic Shunter", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "Vossloh_Gravita", model: "Vossloh Gravita", type: "Diesel Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 35, units: LOCO_UNITS },
-    { id: "Windhoff_MPV", model: "Windhoff MPV", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.84, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "ZPW_4.5", model: "ZPW 4.5 Track Circuit", type: "Track Circuit Equipment", image: img.loco, confidence: 0.79, trainingProgress: 10, units: LOCO_UNITS },
+    { id: "Alstom_Prima_H3", model: "Alstom Prima H3", type: "Hybrid Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 40, unitCategory: "LOCO_UNITS" },
+    { id: "Bombardier_TRAXX", model: "Bombardier TRAXX", type: "Electric Locomotive", image: img.loco, confidence: 0.90, trainingProgress: 50, unitCategory: "LOCO_UNITS" },
+    { id: "BR_711.1", model: "DB BR 711.1", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.85, trainingProgress: 30, unitCategory: "LOCO_UNITS" },
+    { id: "BR_714", model: "DB BR 714", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.83, trainingProgress: 25, unitCategory: "LOCO_UNITS" },
+    { id: "CatenaryCrafter_15.4_E\u00c2\u00b3", model: "Catenary Crafter 15.4 E\u00b3", type: "Catenary Maintenance Vehicle", image: img.loco, confidence: 0.81, trainingProgress: 20, unitCategory: "LOCO_UNITS" },
+    { id: "Class_218", model: "DB Class 218", type: "Diesel Locomotive", image: img.loco, confidence: 0.87, trainingProgress: 35, unitCategory: "LOCO_UNITS" },
+    { id: "Class_232", model: "DB Class 232", type: "Diesel Locomotive", image: img.loco, confidence: 0.85, trainingProgress: 30, unitCategory: "LOCO_UNITS" },
+    { id: "Class_290_V_90", model: "DB Class 290 V90", type: "Shunting Locomotive", image: img.loco, confidence: 0.83, trainingProgress: 25, unitCategory: "LOCO_UNITS" },
+    { id: "Class_333_335", model: "Class 333 / 335", type: "Diesel Locomotive", image: img.loco, confidence: 0.82, trainingProgress: 20, unitCategory: "LOCO_UNITS" },
+    { id: "G_1206", model: "G 1206", type: "Diesel-Electric Locomotive", image: img.loco, confidence: 0.84, trainingProgress: 30, unitCategory: "LOCO_UNITS" },
+    { id: "ROBEL_Mobile_Maintenance_Unit", model: "ROBEL Mobile Maintenance Unit", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.80, trainingProgress: 15, unitCategory: "LOCO_UNITS" },
+    { id: "Siemens_Vectron", model: "Siemens Vectron", type: "Electric Locomotive", image: img.loco, confidence: 0.92, trainingProgress: 55, unitCategory: "LOCO_UNITS" },
+    { id: "Vossloh_DM_20-BDD", model: "Vossloh DM 20 BDD", type: "Diesel-Hydraulic Shunter", image: img.loco, confidence: 0.83, trainingProgress: 25, unitCategory: "LOCO_UNITS" },
+    { id: "Vossloh_Gravita", model: "Vossloh Gravita", type: "Diesel Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 35, unitCategory: "LOCO_UNITS" },
+    { id: "Windhoff_MPV", model: "Windhoff MPV", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.84, trainingProgress: 30, unitCategory: "LOCO_UNITS" },
+    { id: "ZPW_4.5", model: "ZPW 4.5 Track Circuit", type: "Track Circuit Equipment", image: img.loco, confidence: 0.79, trainingProgress: 10, unitCategory: "LOCO_UNITS" },
 ];
 export const translations = {
-    en: { welcome: "Welcome to Site Marshall", identify_machine: "Identify Machine", push_to_speak: "Push To Speak", enter_academy: "Enter the Academy" },
+    en: { welcome: "Welcome to Site Marshall", identify_machine: "Identify Machine", push_to_speak: "Push To Speak", enter_academy: "Enter the Academy", quiz_confirm: "Confirm Answer", quiz_next: "Next Question \u2192", quiz_question: "Question", quiz_score_so_far: "Score so far:", quiz_see_results: "See Results", quiz_keep_studying: "Keep studying", quiz_well_done: "Well done!", quiz_of: "of", quiz_correct: "correct", quiz_retake: "RETAKE QUIZ", knowledge_check: "Knowledge Check", next_card: "NEXT CARD", restart_deck: "RESTART DECK", marshall_ai_greeting: "I am Marshall AI. Press and hold the microphone, or open the keyboard, to ask me about this machine.", ask_marshall_ai: "Ask Marshall AI...", marshall_ai_listening: "Marshall AI Listening...", processing: "Processing...", marshall_ai_active: "Marshall AI Active", reply_to_marshall_ai: "Reply to Marshall AI...", marshall_ai_welcome_prefix: "Marshall AI: Welcome to your training session on", marshall_ai_welcome_suffix: "What aspect of this topic would you like to explore first?", marshall_ai_insightful: "Marshall AI: That's an insightful question about", marshall_ai_affect: "How does this affect your approach to safe machine operation?", academy_title: "The Academy", pre_shift: "PRE-SHIFT", sidebar_active_machines: "My Active Machines", sidebar_earned_certs: "Earned Certifications", sidebar_cert_instruction: "Complete all sections in a unit to earn a certification badge.", sidebar_settings: "Settings & Profile", sidebar_login_prompt: "Please log in to view your assigned fleet.", fleet_drawer: "Fleet Drawer", cv_title: "Identify a Machine", cv_subtitle: "Take a photo or select one from your library", cv_take_photo: "TAKE PHOTO", cv_upload: "UPLOAD", cv_waiting: "WAITING FOR IMAGE", cv_detecting: "DETECTING...", cv_complete: "DETECTION COMPLETE", cv_frame: "FRAME MACHINE", cv_starting_cam: "Starting camera...", cv_go_back: "Go Back", cv_proximity: "PROXIMITY ALERT", cv_person_detected: "person detected in swing radius", cv_multiple: "MULTIPLE MATCHES \u2014 select one", cv_tap_open: "tap to open", cv_match: "match", cv_matches: "matches", enter_id: "Enter your Worker ID to begin", login: "Login", settings_title: "System Settings", preferences: "Preferences", notifications: "Notifications", logout_worker: "LOG OUT WORKER", training_verified: "Training logged and verified!", confirm_understanding: "I CONFIRM UNDERSTANDING" },
     tr: { welcome: "Site Marshall'a HoÅŸ Geldiniz", identify_machine: "Makineyi TanÄ±mla", push_to_speak: "KonuÅŸmak Ä°Ã§in BasÄ±n", enter_academy: "Akademiye Gir" },
     ar: { welcome: "Ù…Ø±Ø­Ø¨Ù‹Ø§ Ø¨ÙƒÙ… ÙÙŠ Site Marshall", identify_machine: "Ø§Ù„ØªØ¹Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø¢Ù„Ø©", push_to_speak: "Ø§Ø¶ØºØ· Ù„Ù„ØªØ­Ø¯Ø«", enter_academy: "Ø¯Ø®ÙˆÙ„ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©" },
     pl: { welcome: "Witamy w Site Marshall", identify_machine: "Zidentyfikuj maszynÄ™", push_to_speak: "NaciÅ›nij, aby mÃ³wiÄ‡", enter_academy: "WejdÅº do Akademii" },
@@ -265,7 +117,7 @@ export const translations = {
     pt: { welcome: "Bem-vindo ao Site Marshall", identify_machine: "Identificar MÃ¡quina", push_to_speak: "Pressione para Falar", enter_academy: "Entrar na Academia" },
     es: { welcome: "Bienvenido a Site Marshall", identify_machine: "Identificar MÃ¡quina", push_to_speak: "Presione para Hablar", enter_academy: "Entrar a la Academia" },
     fr: { welcome: "Bienvenue sur Site Marshall", identify_machine: "Identifier la Machine", push_to_speak: "Appuyez pour Parler", enter_academy: "Entrer dans l'AcadÃ©mie" },
-    de: { welcome: "Willkommen bei Site Marshall", identify_machine: "Maschine Identifizieren", push_to_speak: "Zum Sprechen DrÃ¼cken", enter_academy: "Akademie Betreten" },
+    de: { welcome: "Willkommen bei Site Marshall", identify_machine: "Maschine Identifizieren", push_to_speak: "Zum Sprechen Dr\u00fccken", enter_academy: "Akademie Betreten", quiz_confirm: "Antwort best\u00e4tigen", quiz_next: "N\u00e4chste Frage \u2192", quiz_question: "Frage", quiz_score_so_far: "Bisheriges Ergebnis:", quiz_see_results: "Ergebnisse anzeigen", quiz_keep_studying: "Weiterlernen", quiz_well_done: "Gut gemacht!", quiz_of: "von", quiz_correct: "richtig", quiz_retake: "QUIZ WIEDERHOLEN", knowledge_check: "Wissens\u00fcberpr\u00fcfung", next_card: "N\u00c4CHSTE KARTE", restart_deck: "DECK NEU STARTEN", marshall_ai_greeting: "Ich bin Marshall AI. Halten Sie das Mikrofon gedr\u00fcckt oder \u00f6ffnen Sie die Tastatur, um mich \u00fcber diese Maschine zu fragen.", ask_marshall_ai: "Fragen Sie Marshall AI...", marshall_ai_listening: "Marshall AI h\u00f6rt zu...", processing: "Verarbeitung...", marshall_ai_active: "Marshall AI Aktiv", reply_to_marshall_ai: "Antwort an Marshall AI...", marshall_ai_welcome_prefix: "Marshall AI: Willkommen zu Ihrer Schulungseinheit \u00fcber", marshall_ai_welcome_suffix: "Welchen Aspekt dieses Themas m\u00f6chten Sie zuerst untersuchen?", marshall_ai_insightful: "Marshall AI: Das ist eine aufschlussreiche Frage zu", marshall_ai_affect: "Wie wirkt sich das auf Ihre Herangehensweise an den sicheren Maschinenbetrieb aus?", academy_title: "Die Akademie", pre_shift: "SCHICHTBEGINN", sidebar_active_machines: "Meine aktiven Maschinen", sidebar_earned_certs: "Erhaltene Zertifikate", sidebar_cert_instruction: "Schlie\u00dfen Sie alle Abschnitte einer Einheit ab, um ein Zertifizierungsabzeichen zu erhalten.", sidebar_settings: "Einstellungen & Profil", sidebar_login_prompt: "Bitte melden Sie sich an, um Ihren zugewiesenen Fuhrpark zu sehen.", fleet_drawer: "Fuhrpark", cv_title: "Maschine Identifizieren", cv_subtitle: "Machen Sie ein Foto oder w\u00e4hlen Sie eines aus Ihrer Galerie", cv_take_photo: "FOTO MACHEN", cv_upload: "HOCHLADEN", cv_waiting: "WARTE AUF BILD", cv_detecting: "ERKENNUNG L\u00c4UFT...", cv_complete: "ERKENNUNG ABGESCHLOSSEN", cv_frame: "MASCHINE EINRAHMEN", cv_starting_cam: "Kamera wird gestartet...", cv_go_back: "Zur\u00fcck", cv_proximity: "N\u00c4HERUNGSALARM", cv_person_detected: "Person im Schwenkbereich erkannt", cv_multiple: "MEHRERE TREFFER \u2014 w\u00e4hlen Sie einen", cv_tap_open: "zum \u00d6ffnen tippen", cv_match: "Treffer", cv_matches: "Treffer", enter_id: "Geben Sie Ihre Arbeiter-ID ein, um zu beginnen", login: "Anmelden", settings_title: "Systemeinstellungen", preferences: "Pr\u00e4ferenzen", notifications: "Benachrichtigungen", logout_worker: "ARBEITER ABMELDEN", training_verified: "Schulung protokolliert und verifiziert!", confirm_understanding: "ICH BESTÄTIGE DAS VERSTÄNDNIS" },
     it: { welcome: "Benvenuto su Site Marshall", identify_machine: "Identificare la Macchina", push_to_speak: "Premi per Parlare", enter_academy: "Entra nell'Accademia" },
     nl: { welcome: "Welkom bij Site Marshall", identify_machine: "Machine Identificeren", push_to_speak: "Druk om te Spreken", enter_academy: "Ga naar de Academie" },
     el: { welcome: "ÎšÎ±Î»ÏÏ‚ Î®ÏÎ¸Î±Ï„Îµ ÏƒÏ„Î¿ Site Marshall", identify_machine: "Î‘Î½Î±Î³Î½ÏÏÎ¹ÏƒÎ· ÎœÎ·Ï‡Î±Î½Î®Î¼Î±Ï„Î¿Ï‚", push_to_speak: "Î Î±Ï„Î®ÏƒÏ„Îµ Î³Î¹Î± ÎŸÎ¼Î¹Î»Î¯Î±", enter_academy: "Î•Î¯ÏƒÎ¿Î´Î¿Ï‚ ÏƒÏ„Î·Î½ Î‘ÎºÎ±Î´Î·Î¼Î¯Î±" },

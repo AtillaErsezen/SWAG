@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { translations, languages } from '../data/mockData';
+import machineTranslations from '../data/machineTranslations.json';
 
 const AppContext = createContext();
 
@@ -13,6 +14,12 @@ export const AppProvider = ({ children }) => {
     const t = (key) => {
         return translations[currentLang]?.[key] || translations['en'][key] || key;
     };
+
+    const tMachine = (machineType) => {
+        const key = 'type_' + machineType.toLowerCase().replace(/[ &/-]+/g, '_');
+        return machineTranslations[currentLang]?.[key] || machineTranslations['en']?.[key] || machineType;
+    };
+
 
     /** Called after a successful backend login. count comes from the API response. */
     const login = (id, count = 0) => {
@@ -39,6 +46,7 @@ export const AppProvider = ({ children }) => {
             changeLanguage,
             availableLanguages: languages,
             t,
+            tMachine,
             activeMachineId,
             setActiveMachineId,
             sidebarOpen,

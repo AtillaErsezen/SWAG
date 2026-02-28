@@ -6,7 +6,7 @@ import { machineDB } from '../../data/mockData';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-    const { sidebarOpen, toggleSidebar, t, workerId, setActiveMachineId } = useAppContext();
+    const { sidebarOpen, toggleSidebar, t, workerId, setActiveMachineId, tMachine } = useAppContext();
     const navigate = useNavigate();
 
     const handleMachineSelect = (id) => {
@@ -39,7 +39,7 @@ const Sidebar = () => {
                         <div className="p-4 flex items-center justify-between border-b border-deep-concrete">
                             <div className="flex items-center gap-2">
                                 <ShieldAlert className="text-safety-orange" />
-                                <h2 className="text-xl font-bold">Fleet Drawer</h2>
+                                <h2 className="text-xl font-bold">{t('fleet_drawer')}</h2>
                             </div>
                             <button
                                 onClick={toggleSidebar}
@@ -53,7 +53,7 @@ const Sidebar = () => {
                         {workerId ? (
                             <div className="flex-1 overflow-y-auto py-4">
                                 <div className="px-4 text-xs font-semibold text-slate-gray uppercase tracking-wider mb-2">
-                                    My Active Machines
+                                    {t('sidebar_active_machines')}
                                 </div>
                                 <ul className="space-y-1">
                                     {machineDB.map((machine) => (
@@ -66,7 +66,7 @@ const Sidebar = () => {
                                                     <Tractor className="text-sage-green" size={20} />
                                                     <div>
                                                         <div className="font-medium text-app-bg">{machine.model}</div>
-                                                        <div className="text-[10px] text-slate-gray uppercase tracking-widest mt-0.5">{machine.type}</div>
+                                                        <div className="text-[10px] text-slate-gray uppercase tracking-widest mt-0.5">{tMachine(machine.type)}</div>
                                                         <div className="flex items-center gap-2 mt-1.5">
                                                             <div className="w-20 h-1.5 bg-black/40 rounded-full overflow-hidden">
                                                                 <div
@@ -87,7 +87,7 @@ const Sidebar = () => {
                                 {/* Gamification Badges */}
                                 <div className="px-4 py-4 mt-2 border-t border-deep-concrete">
                                     <div className="text-xs font-semibold text-slate-gray uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        <Award size={14} /> Earned Certifications
+                                        <Award size={14} /> {t('sidebar_earned_certs')}
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {machineDB.flatMap(m =>
@@ -99,14 +99,14 @@ const Sidebar = () => {
                                             ))
                                         )}
                                         {machineDB.flatMap(m => (m.units || []).filter(u => u.completed)).length === 0 && (
-                                            <p className="text-[10px] text-slate-gray italic">Complete all sections in a unit to earn a certification badge.</p>
+                                            <p className="text-[10px] text-slate-gray italic">{t('sidebar_cert_instruction')}</p>
                                         )}
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             <div className="p-8 text-center text-slate-gray">
-                                Please log in to view your assigned fleet.
+                                {t('sidebar_login_prompt')}
                             </div>
                         )}
 
@@ -119,7 +119,7 @@ const Sidebar = () => {
                                 className="w-full flex items-center gap-3 p-3 hover:bg-deep-concrete rounded-md transition-colors text-left"
                             >
                                 <Settings size={20} className="text-slate-gray" />
-                                <span>Settings & Profile</span>
+                                <span>{t('sidebar_settings')}</span>
                             </button>
                         </div>
                     </motion.div>
