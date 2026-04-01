@@ -15,7 +15,6 @@ Features:
 - optimize llama3.2:1b answer generation
 - make llama3 always output exactly 3 items, 1 for each category?
 - better ui
-- video generation with api
 - test with real life images
 
 Run:
@@ -55,8 +54,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import Ollama
-# Video Generation (lazy import - only when needed)
-# Moved imports inside generate_video() to avoid slow startup
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -745,58 +742,6 @@ def detect_objects():
     except Exception as e:
         print(f"[DETECT] === FAILED after {time.time() - t_total:.2f}s ===")
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/generate_video', methods=['POST'])
-def generate_video():
-    """Generate safety video from query using Gemini Veo API."""
-    t_total = time.time()
-    data = request.json
-    query = data.get('query', '')
-    category = data.get('category', 'OPERATIONAL_PROCEDURE')
-    machine = data.get('machine', 'general')
-    rag_answer = data.get('rag_answer', None)  # RAG answer for LLM-based prompt grounding
-    
-    if not query:
-        return jsonify({"error": "Query required"}), 400
-        
-    try:
-        # Lazy import - only load when this endpoint is called
-        t0 = time.time()
-        from swag_video_gemini import generate_video_gemini
-        from pipeline.director import create_visual_prompt_llm
-        print(f"[VIDEO] Lazy imports: {time.time() - t0:.2f}s")
-
-        # 1. Let Llama generate the video prompt from the RAG answer
-        t0 = time.time()
-        print(f"[VIDEO] Generating prompt via LLM (RAG answer: {len(rag_answer) if rag_answer else 0} chars)")
-        visual_prompt_obj = create_visual_prompt_llm(
-            query, category, machine,
-            ollama_model=OLLAMA_MODEL,
-            rag_answer=rag_answer
-        )
-        prompt = visual_prompt_obj.wan_2_2_prompt
-        print(f"[VIDEO] Create visual prompt: {time.time() - t0:.2f}s")
-        print(f"[VIDEO] Prompt: {prompt[:150]}...")
-        
-        # 2. Generate video via Gemini Veo API
-        t0 = time.time()
-        video_path = generate_video_gemini(prompt)
-        print(f"[VIDEO] Generate video (Gemini): {time.time() - t0:.2f}s")
-        
-        if not video_path:
-            return jsonify({"error": "Video generation failed"}), 500
-            
-        print(f"[VIDEO] === TOTAL generate_video: {time.time() - t_total:.2f}s ===")
-        return jsonify({
-            "success": True,
-            "video_url": video_path,
-            "prompt": prompt
-        })
-        
-    except Exception as e:
-        print(f"[VIDEO] === FAILED after {time.time() - t_total:.2f}s ===")
-        return jsonify({"error": str(e)}), 500
-
 
 def preload_models():
     """Preload all models during startup."""
