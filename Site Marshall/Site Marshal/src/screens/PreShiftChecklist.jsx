@@ -2,34 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, CheckCircle, Circle, ClipboardCheck, AlertTriangle } from 'lucide-react';
-import { machineDB } from '../data/mockData';
+import { machineDB, checklistDB } from '../data/mockData';
 
-const checklistItems = {
-    "Excavator": [
-        { id: 'c1', label: 'Engine oil level verified', critical: true },
-        { id: 'c2', label: 'Hydraulic fluid level verified', critical: true },
-        { id: 'c3', label: 'Coolant level verified', critical: true },
-        { id: 'c4', label: 'Tracks and undercarriage inspected', critical: false },
-        { id: 'c5', label: 'All mirrors and cameras clean', critical: false },
-        { id: 'c6', label: 'Fire extinguisher present and charged', critical: true },
-        { id: 'c7', label: 'Seat belt functional', critical: true },
-        { id: 'c8', label: 'Horn and backup alarm tested', critical: false },
-        { id: 'c9', label: 'No visible hydraulic leaks', critical: true },
-        { id: 'c10', label: 'PPE worn (hardhat, vest, boots)', critical: true },
-    ],
-    "Mobile Crane": [
-        { id: 'c1', label: 'Outrigger pads and timber mats staged', critical: true },
-        { id: 'c2', label: 'Load chart for planned lift reviewed', critical: true },
-        { id: 'c3', label: 'Wind speed below operational limit', critical: true },
-        { id: 'c4', label: 'Overhead power line survey complete', critical: true },
-        { id: 'c5', label: 'All rigging and slings inspected', critical: true },
-        { id: 'c6', label: 'Boom and jib visually inspected', critical: false },
-        { id: 'c7', label: 'Anti-two-block device tested', critical: true },
-        { id: 'c8', label: 'Ground conditions assessed', critical: true },
-        { id: 'c9', label: 'Fire extinguisher present and charged', critical: true },
-        { id: 'c10', label: 'PPE worn (hardhat, vest, boots)', critical: true },
-    ]
-};
 
 const PreShiftChecklist = () => {
     const { id } = useParams();
@@ -39,7 +13,8 @@ const PreShiftChecklist = () => {
 
     if (!machine) return <div className="p-8">Machine Not Found</div>;
 
-    const items = checklistItems[machine.type] || checklistItems["Excavator"];
+    const items = checklistDB[machine.type] || checklistDB["Crawler Excavator"];
+
     const totalChecked = Object.values(checked).filter(Boolean).length;
     const allChecked = totalChecked === items.length;
     const criticalsMissing = items.filter(i => i.critical && !checked[i.id]).length;

@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Site Marshall â€” Mock Data Layer
 // ============================================================
 
@@ -27,160 +27,116 @@ export const languages = [
 ];
 // ─── Training content templates (shared within category) ────────────────────
 
-const TAMPING_UNITS = [
+const EXCAVATION_UNITS = [
     {
-        id: "unit-1", title: "On-Track Safety & Protection", completed: false, progress: 0,
+        id: "excavation-1", title: "Excavation & Loading Safety", completed: false, progress: 0,
         sections: [
             {
-                id: "1.1", title: "Line Blockage & Exclusion Zones", criticality: "rust-red",
+                id: "1.1", title: "Hydraulic System Integrity", criticality: "rust-red",
                 completed: false, progress: 0,
-                content: "A tamping machine must NEVER enter an unprotected line. A formal Engineering Possession must be confirmed before any on-track movement. Exclusion zones extend min 50 m each side of the work site, protected by detonators or signals.",
-                qChatContext: "Explain the difference between a line blockage and a possession, and why verbal-only permission is insufficient for tamping operations.",
-                summary: "Formal possession required before on-track work. 50m exclusion zones each side. No verbal-only permission.",
+                content: "High-pressure hydraulic leaks can cause fatal injection injuries. Never use hands to check for leaks — use a piece of cardboard. If a hose bursts, lower the attachment to the ground immediately and shut down the engine.",
+                qChatContext: "Explain why hydraulic injection is a medical emergency and what pressure thresholds are involved.",
+                summary: "Hydraulic leaks — use cardboard, not hands. Lower attachment if hose bursts. Medical emergency.",
                 learnCards: [
-                    { q: "What must be confirmed before a tamping machine moves on-track?", a: "A formal Engineering Possession.", options: ["Verbal approval from a site supervisor.", "A formal Engineering Possession.", "The nearest signal showing green.", "Track cleared of ballast."], correct: 1 },
-                    { q: "Minimum exclusion zone either side of a tamping site?", a: "50 metres.", options: ["10 m.", "25 m.", "50 metres.", "100 m."], correct: 2 },
-                    { q: "Can a tamping machine move on verbal permission only?", a: "No — written blockage authority is required.", options: ["Yes, if the supervisor is on site.", "No — written blockage authority is required.", "Yes, during daylight hours only.", "Yes, below 5 km/h."], correct: 1 }
+                    { q: "How should you check for a hydraulic leak?", a: "Use a piece of cardboard or wood.", options: ["Feel with your hand.", "Wait for a pool to form.", "Use a piece of cardboard or wood.", "Use a flashlight only."], correct: 2 },
+                    { q: "First action if a hydraulic hose bursts?", a: "Lower attachment to ground and shut down engine.", options: ["Keep working carefully.", "Lower attachment to ground and shut down engine.", "Call maintenance while running.", "Tighten the fitting."], correct: 1 },
+                    { q: "Why is a pinhole hydraulic leak dangerous?", a: "It can inject oil under the skin (injection surgery).", options: ["It might stain the ground.", "It can inject oil under the skin (injection surgery).", "It reduces fuel efficiency.", "It is a slip hazard."], correct: 1 }
                 ]
             },
             {
-                id: "1.2", title: "Tamping Tine Safety", criticality: "safety-orange",
+                id: "1.2", title: "Swing Radius & Undergrounds", criticality: "safety-orange",
                 completed: false, progress: 0,
-                content: "Tamping tines vibrate at high frequency and penetrate ballast to 450 mm depth. Never reach into the tamping zone while powered. Raise the tamping unit fully before travelling. Inspect tines for wear before each working cycle.",
-                qChatContext: "Why is contact with a vibrating tamping tine at operating frequency fatal, and what guarding prevents it?",
-                summary: "Never enter tamping zone while powered. Raise unit before travel. Inspect tines before each cycle.",
+                content: "Maintain a 360-degree exclusion zone around the machine's swing radius. Always confirm underground service cable locations (dial before you dig) before breaking ground. Use a spotter for tight spaces.",
+                qChatContext: "What are the common color codes for underground utilities and what is the 'safety hand' technique for spotters?",
+                summary: "360-degree swing zone. Confirm undergrounds before digging. Use spotters.",
                 learnCards: [
-                    { q: "Ballast penetration depth of tamping tines?", a: "Up to 450 mm.", options: ["100 mm.", "200 mm.", "Up to 450 mm.", "600 mm."], correct: 2 },
-                    { q: "When must tamping tines be inspected?", a: "Before every working cycle.", options: ["Weekly.", "Monthly.", "Before every working cycle.", "After blockage ends."], correct: 2 },
-                    { q: "What must be done before travelling between working positions?", a: "Tamping unit fully raised and locked.", options: ["Reduce to idle.", "Tamping unit fully raised and locked.", "Sound horn twice.", "Confirm with PIC."], correct: 1 }
+                    { q: "Minimum safety zone for a working excavator?", a: "Full swing radius plus 2 metres.", options: ["5 metres.", "Full swing radius plus 2 metres.", "Inside the tracks.", "10 metres."], correct: 1 },
+                    { q: "What must be done before the first dig?", a: "Verify underground utility maps.", options: ["Check fuel level.", "Sound horn twice.", "Verify underground utility maps.", "Grease the bucket."], correct: 2 },
+                    { q: "Excavator spotter's primary role?", a: "Maintaining clear lines of sight and ensuring the exclusion zone.", options: ["Checking the time.", "Directing traffic only.", "Maintaining clear lines of sight and ensuring the exclusion zone.", "Cleaning the windows."], correct: 2 }
                 ]
             }
         ]
     }
 ];
 
-const CRANE_UNITS = [
+const PAVING_UNITS = [
     {
-        id: "unit-1", title: "Railway Crane Safety", completed: false, progress: 0,
+        id: "paving-1", title: "Paving & Material Handling", completed: false, progress: 0,
         sections: [
             {
-                id: "1.1", title: "Outrigger Deployment", criticality: "rust-red",
+                id: "1.1", title: "Thermal and Crushing Hazards", criticality: "rust-red",
                 completed: false, progress: 0,
-                content: "All outriggers must be fully extended and locked before any lift. Ground-bearing pads are mandatory under each foot. A competent person must assess ground-bearing capacity — railway ballast and embankments require engineered pads.",
-                qChatContext: "How does uneven outrigger settlement cause overload during a railway crane lift?",
-                summary: "Outriggers fully extended and locked. Ground pads mandatory. Competent person assesses ground.",
+                content: "Asphalt is laid at temperatures exceeding 150°C. Contact causes severe burns. Stay clear of the hopper and conveyor zones where crushing hazards are high. Never step on a moving screed.",
+                qChatContext: "Why is asphalt steam hazardous and what are the specific PPE requirements for paving crews?",
+                summary: "Hot asphalt (>150°C). Crushing hazards in hopper. No stepping on moving screed.",
                 learnCards: [
-                    { q: "Outrigger position before any lift?", a: "Fully extended and mechanically locked.", options: ["Half extended.", "Fully extended and mechanically locked.", "Ballast surface only.", "Retracted for on-track lifts."], correct: 1 },
-                    { q: "Can a lift proceed with one outrigger not fully deployed?", a: "No — all outriggers must be fully deployed.", options: ["Yes, under 5 t.", "Yes, for side lifts.", "No — all outriggers must be fully deployed.", "Only for tandem lifts."], correct: 2 },
-                    { q: "Who assesses ground-bearing capacity?", a: "A competent person.", options: ["The crane operator.", "Any team member.", "A competent person.", "The network controller."], correct: 2 }
+                    { q: "Operating temperature of hot-mix asphalt?", a: "Exceeding 150°C.", options: ["50°C.", "80°C.", "150°C.", "Exceeding 150°C."], correct: 3 },
+                    { q: "Where is the main crushing hazard on a paver?", a: "The hopper and conveyor mechanisms.", options: ["The fuel tank.", "The driver's seat.", "The hopper and conveyor mechanisms.", "The front tires."], correct: 2 },
+                    { q: "Can you ride on the screed during operation?", a: "Only if configured with a dedicated platform and PPE.", options: ["Yes, anywhere.", "No — strictly prohibited while moving.", "Only if configured with a dedicated platform and PPE.", "Only when reversing."], correct: 2 }
                 ]
             },
             {
-                id: "1.2", title: "Load Moment Indicator (LMI)", criticality: "rust-red",
+                id: "1.2", title: "Compactor Visibility", criticality: "safety-orange",
                 completed: false, progress: 0,
-                content: "The LMI must be active at all times. If the alarm triggers, stop all boom and slew movement immediately. Never bypass the LMI. On-track recovery lifts require a formal lift plan per the Network's Vehicle Recovery Procedure.",
-                qChatContext: "Why is bypassing the LMI on a railway crane particularly dangerous compared to a road crane?",
-                summary: "LMI always active. Stop immediately on alarm. Never bypass. Formal lift plan for recovery lifts.",
+                content: "Rollers have significant blind spots. Always maintain eye contact with the paving crew. Use backup cameras and audible alarms. Never reverse without checking the path behind the drum fully.",
+                qChatContext: "What is the 'circle of safety' and how does it apply to compaction rollers in a tight urban site?",
+                summary: "Blind spots on rollers. Maintain eye contact. Check path before reversing.",
                 learnCards: [
-                    { q: "If LMI alarm activates, first action?", a: "Stop all boom and slew movements.", options: ["Lower load immediately.", "Override and continue.", "Stop all boom and slew movements.", "Radio network controller."], correct: 2 },
-                    { q: "Can the LMI be bypassed for a critical recovery lift?", a: "No — bypassing LMI is prohibited.", options: ["Yes, in emergency.", "Supervisor approval required.", "Only at night.", "No — bypassing LMI is prohibited."], correct: 3 },
-                    { q: "What document is needed before a vehicle recovery lift?", a: "Formal lift plan signed by appointed person.", options: ["Email from operations.", "Verbal briefing from PIC.", "Formal lift plan signed by appointed person.", "Daily inspection form only."], correct: 2 }
+                    { q: "Primary cause of roller accidents?", a: "Poor visibility and blind spots.", options: ["Engine failure.", "Poor visibility and blind spots.", "Low fuel.", "Tire blowouts."], correct: 1 },
+                    { q: "What should a roller driver do if they lose sight of ground crew?", a: "Stop immediately.", options: ["Keep moving slowly.", "Sound horn and continue.", "Stop immediately.", "Radio the supervisor."], correct: 2 },
+                    { q: "Essential daily check for a roller?", a: "Backup alarm and camera functionality.", options: ["Paint quality.", "Backup alarm and camera functionality.", "Stereo system.", "Air conditioning."], correct: 1 }
                 ]
             }
         ]
     }
 ];
 
-const GRINDING_UNITS = [
+const LIFTING_UNITS = [
     {
-        id: "unit-1", title: "Rail Grinding Safety", completed: false, progress: 0,
+        id: "lifting-1", title: "Crane & Piling Stability", completed: false, progress: 0,
         sections: [
             {
-                id: "1.1", title: "Spark & Fire Risk", criticality: "rust-red",
+                id: "1.1", title: "LMI and Load Charts", criticality: "rust-red",
                 completed: false, progress: 0,
-                content: "Rail grinding generates intense sparks that ignite lineside vegetation. A fire watch person must be posted in fire-risk conditions. Water suppression must be operational before work starts. A 30-minute post-work fire patrol is mandatory.",
-                qChatContext: "Why is rail grinding classified as a high fire-risk activity and what seasonal restrictions apply?",
-                summary: "Sparks ignite vegetation. Fire watch required. Water suppression active. 30-min fire patrol after work.",
+                content: "The Load Moment Indicator (LMI) is the primary safety device. Overriding the LMI is a grounds-for-dismissal offense. Always cross-reference the LMI reading with the physical load chart for the current boom/jib configuration.",
+                qChatContext: "Why does the center of gravity shift during a piling operation compared to a standard vertical crane lift?",
+                summary: "Never override LMI. Cross-reference LMI with physical load chart.",
                 learnCards: [
-                    { q: "Duration of mandatory post-work fire patrol?", a: "30 minutes minimum.", options: ["5 min.", "15 min.", "30 minutes minimum.", "60 min."], correct: 2 },
-                    { q: "What system must be operational before grinding?", a: "On-board water suppression.", options: ["Track circuit.", "On-board water suppression.", "Adjacent line warning.", "GPS tracking."], correct: 1 },
-                    { q: "Highest fire risk condition for grinding?", a: "Dry weather, low humidity, dense vegetation.", options: ["Wet/windy weather.", "Below 5°C.", "Dry weather, low humidity, dense vegetation.", "Night operations."], correct: 2 }
+                    { q: "What does LMI stand for?", a: "Load Moment Indicator.", options: ["Large Machine Inspection.", "Lift Movement Interval.", "Load Moment Indicator.", "Lateral Motion Index."], correct: 2 },
+                    { q: "Can you lift a load if the LMI is in alarm?", a: "No — reduce load or change configuration.", options: ["Yes, if careful.", "No — reduce load or change configuration.", "Only with supervisor override.", "If the ground is solid."], correct: 1 },
+                    { q: "What must be checked before a piling rig mast is raised?", a: "Ground stability and overhead hazards.", options: ["Ground stability and overhead hazards.", "Hydraulic oil color.", "Operator's lunch break.", "Paint on the mast."], correct: 0 }
                 ]
             },
             {
-                id: "1.2", title: "Grinding Stone Inspection", criticality: "safety-orange",
+                id: "1.2", title: "Ground Bearing & Rigging", criticality: "rust-red",
                 completed: false, progress: 0,
-                content: "Inspect all grinding stones before each shift for cracks or chips. A cracked stone can explode at operating speed. Never exceed the max RPM rating. Discard stones worn below minimum diameter. Store dry and shock-free.",
-                qChatContext: "What is the physics of a grinding stone failure at operating speed and what PPE does not protect against it?",
-                summary: "Inspect stones before each shift. Never exceed max RPM. Discard at minimum diameter. Store dry.",
+                content: "Soft ground is the leading cause of crane tip-overs. Outrigger pads must be used on all surfaces. Inspect all slings, chains, and D-shackles before every shift for wear, stretching, or nicks.",
+                qChatContext: "What is the calculation for pressure under an outrigger pad and how do different soils react?",
+                summary: "Soft ground risk. Mandatory outrigger pads. Pre-shift rigging inspection.",
                 learnCards: [
-                    { q: "Consequence of operating a cracked grinding stone?", a: "The stone can explode causing fatal injuries.", options: ["Increased vibration.", "Reduced effectiveness.", "The stone can explode causing fatal injuries.", "Machine stops automatically."], correct: 2 },
-                    { q: "When must grinding stones be discarded?", a: "Worn to minimum permitted diameter.", options: ["After every shift.", "Worn to minimum permitted diameter.", "After 100 km grinding.", "Only when visibly cracked."], correct: 1 },
-                    { q: "How often must grinding stones be inspected?", a: "Before each shift.", options: ["Weekly.", "Monthly.", "Before each shift.", "When machine slows unexpectedly."], correct: 2 }
+                    { q: "What should be used under outrigger feet?", a: "Appropriately sized engineered pads/mats.", options: ["Loose rocks.", "Small wooden blocks.", "Appropriately sized engineered pads/mats.", "Nothing if concrete."], correct: 2 },
+                    { q: "When should rigging be inspected?", a: "Before every shift.", options: ["Monthly.", "Weekly.", "Before every shift.", "After a heavy lift only."], correct: 2 },
+                    { q: "Sign of a failed wire rope?", a: "Bird-caging, broken wires, or kinking.", options: ["Dust on surface.", "Oil on surface.", "Bird-caging, broken wires, or kinking.", "Shiny appearance."], correct: 2 }
                 ]
             }
         ]
     }
 ];
 
-const RENEWAL_UNITS = [
+const MARITIME_UNITS = [
     {
-        id: "unit-1", title: "Track Renewal Safety", completed: false, progress: 0,
+        id: "maritime-1", title: "Heavy Marine Lifting (Svanen)", completed: false, progress: 0,
         sections: [
             {
-                id: "1.1", title: "Machine Train Formation", criticality: "rust-red",
+                id: "1.1", title: "Ballast & Marine Stability", criticality: "rust-red",
                 completed: false, progress: 0,
-                content: "Renewal machines operate as multi-unit trains. All units must be coupled per the manufacturer's sequence before movement. Never uncouple a wagon on a gradient without applying the handbrake first.",
-                qChatContext: "Explain what a runaway wagon event is and how improper handbrake procedures cause them.",
-                summary: "Couple per manufacturer sequence. Apply wagon handbrakes before uncoupling on gradients.",
+                content: "The Svanen uses complex ballast management to maintain stability during 8,000-tonne lifts. Shifting ballast during a lift is a precision operation. Never bypass ballast alarms. Open water conditions must be monitored for swell/wind limits.",
+                qChatContext: "Explain the metacentric height (GM) and how it changes when lifting heavy offshore foundations.",
+                summary: "Ballast tank management is critical. Swell/wind limits apply for offshore lifting.",
                 learnCards: [
-                    { q: "Before uncoupling on a gradient?", a: "Apply the wagon handbrake.", options: ["Chain between wagons.", "Apply the wagon handbrake.", "Wooden chocks under wheels.", "Machine emergency brake."], correct: 1 },
-                    { q: "What is a runaway wagon?", a: "An uncoupled wagon rolling uncontrolled on a gradient.", options: ["Wagon exceeding speed limit.", "An uncoupled wagon rolling uncontrolled on a gradient.", "Wagon derailing during coupling.", "Wagon vibrating excessively."], correct: 1 },
-                    { q: "Can the train travel with a wagon brake defect?", a: "No — all brakes must be in working order.", options: ["Yes, reduced speed.", "Yes, one wagon OK.", "No — all brakes must be in working order.", "Gradient <1% OK."], correct: 2 }
-                ]
-            },
-            {
-                id: "1.2", title: "Silica Dust Control", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "Ballast renewal generates crystalline silica dust causing silicosis. FFP3 RPE is mandatory. Water suppression or dust extraction must be operational. Formal dust monitoring is required for operations exceeding 30 minutes.",
-                qChatContext: "Why is crystalline silica dust more dangerous than ordinary dust, and why is monitoring mandatory?",
-                summary: "Silica dust — FFP3 RPE mandatory. Water suppression required. Monitor dust for operations >30 min.",
-                learnCards: [
-                    { q: "What substance in ballast dust causes silicosis?", a: "Crystalline silica (quartz).", options: ["Limestone dust.", "Iron oxide.", "Crystalline silica (quartz).", "Granite aggregate."], correct: 2 },
-                    { q: "Minimum RPE for ballast renewal work?", a: "FFP3 filtering facepiece.", options: ["FFP1.", "FFP2.", "FFP3 filtering facepiece.", "Full airline set."], correct: 2 },
-                    { q: "When is formal silica dust monitoring required?", a: "Operations exceeding 30 minutes.", options: [">2 hours.", ">1 hour.", "Operations exceeding 30 minutes.", "Always, regardless of duration."], correct: 2 }
-                ]
-            }
-        ]
-    }
-];
-
-const LOCO_UNITS = [
-    {
-        id: "unit-1", title: "Traction & Electrical Safety", completed: false, progress: 0,
-        sections: [
-            {
-                id: "1.1", title: "Overhead Line Equipment (OLE)", criticality: "rust-red",
-                completed: false, progress: 0,
-                content: "OLE operates at 25 kV AC or 15 kV AC — instantly fatal on contact. Minimum approach distance is 600 mm. OLE can only be touched after a formal Line Isolation and Earthing certificate is issued and confirmed.",
-                qChatContext: "Why can OLE become re-energised without warning even after an isolation has been confirmed?",
-                summary: "OLE 25kV/15kV — instantly fatal. Min 600mm approach. Only touch after Line Isolation & Earthing certificate.",
-                learnCards: [
-                    { q: "Minimum approach distance to live OLE?", a: "600 mm.", options: ["100 mm.", "300 mm.", "600 mm.", "1 metre."], correct: 2 },
-                    { q: "When can OLE be physically touched?", a: "Only after Line Isolation and Earthing certificate confirmed.", options: ["Pantograph lowered.", "Substation visually off.", "Only after Line Isolation and Earthing certificate confirmed.", "10 min no train movement."], correct: 2 },
-                    { q: "Why is OLE dangerous even when believed isolated?", a: "Voltage can be re-introduced by automatic switching.", options: ["Static build-up.", "Voltage can be re-introduced by automatic switching.", "Wire stays warm.", "Other workers unaware."], correct: 1 }
-                ]
-            },
-            {
-                id: "1.2", title: "Brake Testing Before Departure", criticality: "safety-orange",
-                completed: false, progress: 0,
-                content: "A full brake test is mandatory before any movement. Brake pipe must be charged to 5 bar. A continuity test must confirm all wagon brakes are connected. Departure checklist must be signed before the train moves.",
-                qChatContext: "Explain the difference between the automatic brake and independent brake and why both must be tested.",
-                summary: "Full brake test before movement. Brake pipe 5 bar. All wagon brakes confirmed. Checklist signed.",
-                learnCards: [
-                    { q: "Required brake pipe pressure before departure?", a: "5 bar.", options: ["2 bar.", "3.5 bar.", "5 bar.", "7 bar."], correct: 2 },
-                    { q: "What confirms all wagon brakes are functional?", a: "The brake continuity test.", options: ["Independent brake application.", "The brake continuity test.", "Visual walk-around.", "Low-speed braking test."], correct: 1 },
-                    { q: "If the brake test fails, what happens?", a: "Fault must be rectified before any movement.", options: ["Move at half speed.", "Fault must be rectified before any movement.", "Report and proceed.", "Only automatic brake is mandatory."], correct: 1 }
+                    { q: "Primary stability control on the Svanen?", a: "Precision ballast tank management.", options: ["Anchor chains.", "Precision ballast tank management.", "Speed of the engines.", "Height of the waves."], correct: 1 },
+                    { q: "What stops a lift on a heavy lift vessel?", a: "Exceeding wind or wave height (swell) limits.", options: ["Rain.", "Sunset.", "Exceeding wind or wave height (swell) limits.", "Fuel low."], correct: 2 },
+                    { q: "Why is swell more dangerous than wind for marine cranes?", a: "It causes un-damped oscillation of the load.", options: ["It makes the deck wet.", "It causes un-damped oscillation of the load.", "It reduces engine power.", "It makes workers seasick."], correct: 1 }
                 ]
             }
         ]
@@ -189,73 +145,101 @@ const LOCO_UNITS = [
 
 // ─── Helper to build a machine entry ─────────────────────────────────────────
 const img = {
-    rail: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800",
-    crane: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800",
-    grind: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&q=80&w=800",
-    loco: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&q=80&w=800",
+    loader: "https://images.unsplash.com/photo-1590483734731-50e59c5d2634?auto=format&fit=crop&q=80&w=800",
+    excavator: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800",
+    paver: "https://images.unsplash.com/photo-1541888946425-d81bb19480c5?auto=format&fit=crop&q=80&w=800",
+    piling: "https://images.unsplash.com/photo-1517456793574-270fb673323a?auto=format&fit=crop&q=80&w=800",
+    crane: "https://images.unsplash.com/photo-1547619292-8816ee7cdd50?auto=format&fit=crop&q=80&w=800",
+    roller: "https://images.unsplash.com/photo-1618220044234-fc82500096c4?auto=format&fit=crop&q=80&w=800",
+    vessel: "https://images.unsplash.com/photo-1494412651409-8963ce7935a7?auto=format&fit=crop&q=80&w=800",
 };
 
 export const machineDB = [
-    // ── Track Tamping Machines ─────────────────────────────────────────────────
-    { id: "08-275_Unimat", model: "Plasser 08-275 Unimat", type: "Track Tamping Machine", image: img.rail, confidence: 0.90, trainingProgress: 20, units: TAMPING_UNITS },
-    { id: "09-16_CAT", model: "Plasser 09-16 CAT", type: "Track Tamping Machine", image: img.rail, confidence: 0.88, trainingProgress: 15, units: TAMPING_UNITS },
-    { id: "09-32_CSM", model: "Plasser 09-32 CSM", type: "Track Tamping Machine", image: img.rail, confidence: 0.85, trainingProgress: 10, units: TAMPING_UNITS },
-    { id: "09-3X_Dynamic", model: "Plasser 09-3X Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 25, units: TAMPING_UNITS },
-    { id: "Beaver_Lightweight_Tamper", model: "Beaver Lightweight Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.82, trainingProgress: 30, units: TAMPING_UNITS },
-    { id: "UnimatExpress_2X-4x4_Dynamic", model: "Unimat Express 2X-4x4 Dynamic", type: "Track Tamping Machine", image: img.rail, confidence: 0.91, trainingProgress: 40, units: TAMPING_UNITS },
-    { id: "Unimat_08-475_4S", model: "Unimat 08-475 4S", type: "Track Tamping Machine", image: img.rail, confidence: 0.94, trainingProgress: 60, units: TAMPING_UNITS },
-    { id: "Unimat_09-4x4_4S_Dynamic_E\u00c2\u00b3", model: "Unimat 09-4x4/4S Dynamic E\u00b3", type: "Track Tamping Machine", image: img.rail, confidence: 0.89, trainingProgress: 35, units: TAMPING_UNITS },
-
-    // ── Railway Cranes ─────────────────────────────────────────────────────────
-    { id: "EDK_1000", model: "EDK 1000 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 30, units: CRANE_UNITS },
-    { id: "EDK_750", model: "EDK 750 Railway Crane", type: "Railway Crane", image: img.crane, confidence: 0.85, trainingProgress: 20, units: CRANE_UNITS },
-    { id: "Kirow_GPC", model: "Kirow GPC", type: "Railway Crane", image: img.crane, confidence: 0.86, trainingProgress: 25, units: CRANE_UNITS },
-    { id: "Kirow_KRC_1200", model: "Kirow KRC 1200", type: "Railway Crane", image: img.crane, confidence: 0.90, trainingProgress: 40, units: CRANE_UNITS },
-    { id: "Kirow_KRC_1600", model: "Kirow KRC 1600", type: "Railway Crane", image: img.crane, confidence: 0.92, trainingProgress: 45, units: CRANE_UNITS },
-    { id: "Kirow_KRC_400", model: "Kirow KRC 400", type: "Railway Crane", image: img.crane, confidence: 0.84, trainingProgress: 15, units: CRANE_UNITS },
-    { id: "Kirow_KRC_810", model: "Kirow KRC 810", type: "Railway Crane", image: img.crane, confidence: 0.88, trainingProgress: 45, units: CRANE_UNITS },
-    { id: "Kirow_KRC_910", model: "Kirow KRC 910", type: "Railway Crane", image: img.crane, confidence: 0.87, trainingProgress: 35, units: CRANE_UNITS },
-
-    // ── Rail Grinding Machines ─────────────────────────────────────────────────
-    { id: "HSG-city", model: "HSG-city Rail Grinder", type: "Rail Grinding Machine", image: img.grind, confidence: 0.83, trainingProgress: 20, units: GRINDING_UNITS },
-    { id: "MG_31_Rail_Grinding_Machine", model: "MG 31 Rail Grinding Machine", type: "Rail Grinding Machine", image: img.grind, confidence: 0.87, trainingProgress: 30, units: GRINDING_UNITS },
-    { id: "SF_03_Rail_Milling_Machine", model: "SF 03 Rail Milling Machine", type: "Rail Milling Machine", image: img.grind, confidence: 0.85, trainingProgress: 25, units: GRINDING_UNITS },
-    { id: "Speno_RR_48", model: "Speno RR-48", type: "Rail Grinding Machine", image: img.grind, confidence: 0.82, trainingProgress: 35, units: GRINDING_UNITS },
-
-    // ── Track Renewal & Maintenance ────────────────────────────────────────────
-    { id: "BDS_2000", model: "BDS 2000 Ballast Distribution", type: "Ballast Distribution System", image: img.rail, confidence: 0.80, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "DGS_62_N", model: "DGS 62 N Dynamic Stabilizer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.83, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "MFS_100", model: "MFS 100 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.81, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "MFS_40", model: "MFS 40 Material Feeder", type: "Material Feeder / Storage", image: img.rail, confidence: 0.79, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "Multi_Tasker_100", model: "Multi Tasker 100", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "Multi_Tasker_160", model: "Multi Tasker 160", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "Plasser_StabilizingTrailer", model: "Plasser Stabilizing Trailer", type: "Dynamic Track Stabilizer", image: img.rail, confidence: 0.80, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "Plasser_TMT", model: "Plasser TMT", type: "Track Maintenance Train", image: img.rail, confidence: 0.85, trainingProgress: 25, units: RENEWAL_UNITS },
-    { id: "PM_1000", model: "PM 1000 Production Tamper", type: "Track Tamping Machine", image: img.rail, confidence: 0.87, trainingProgress: 30, units: RENEWAL_UNITS },
-    { id: "RM_800", model: "RM 800 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.86, trainingProgress: 20, units: RENEWAL_UNITS },
-    { id: "RM_95-800_W", model: "RM 95-800 W Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.84, trainingProgress: 25, units: RENEWAL_UNITS },
-    { id: "RPM_900", model: "RPM 900 Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.82, trainingProgress: 15, units: RENEWAL_UNITS },
-    { id: "RU_800_S", model: "RU 800 S Renewal Machine", type: "Track Renewal Machine", image: img.rail, confidence: 0.80, trainingProgress: 10, units: RENEWAL_UNITS },
-    { id: "SSP_110_SW", model: "SSP 110 SW Switch Renewal", type: "Switch & Crossing Renewal", image: img.rail, confidence: 0.83, trainingProgress: 20, units: RENEWAL_UNITS },
-
-    // ── Locomotives & Multi-Purpose Vehicles ───────────────────────────────────
-    { id: "Alstom_Prima_H3", model: "Alstom Prima H3", type: "Hybrid Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 40, units: LOCO_UNITS },
-    { id: "Bombardier_TRAXX", model: "Bombardier TRAXX", type: "Electric Locomotive", image: img.loco, confidence: 0.90, trainingProgress: 50, units: LOCO_UNITS },
-    { id: "BR_711.1", model: "DB BR 711.1", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.85, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "BR_714", model: "DB BR 714", type: "Track Inspection Vehicle", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "CatenaryCrafter_15.4_E\u00c2\u00b3", model: "Catenary Crafter 15.4 E\u00b3", type: "Catenary Maintenance Vehicle", image: img.loco, confidence: 0.81, trainingProgress: 20, units: LOCO_UNITS },
-    { id: "Class_218", model: "DB Class 218", type: "Diesel Locomotive", image: img.loco, confidence: 0.87, trainingProgress: 35, units: LOCO_UNITS },
-    { id: "Class_232", model: "DB Class 232", type: "Diesel Locomotive", image: img.loco, confidence: 0.85, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "Class_290_V_90", model: "DB Class 290 V90", type: "Shunting Locomotive", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "Class_333_335", model: "Class 333 / 335", type: "Diesel Locomotive", image: img.loco, confidence: 0.82, trainingProgress: 20, units: LOCO_UNITS },
-    { id: "G_1206", model: "G 1206", type: "Diesel-Electric Locomotive", image: img.loco, confidence: 0.84, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "ROBEL_Mobile_Maintenance_Unit", model: "ROBEL Mobile Maintenance Unit", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.80, trainingProgress: 15, units: LOCO_UNITS },
-    { id: "Siemens_Vectron", model: "Siemens Vectron", type: "Electric Locomotive", image: img.loco, confidence: 0.92, trainingProgress: 55, units: LOCO_UNITS },
-    { id: "Vossloh_DM_20-BDD", model: "Vossloh DM 20 BDD", type: "Diesel-Hydraulic Shunter", image: img.loco, confidence: 0.83, trainingProgress: 25, units: LOCO_UNITS },
-    { id: "Vossloh_Gravita", model: "Vossloh Gravita", type: "Diesel Locomotive", image: img.loco, confidence: 0.86, trainingProgress: 35, units: LOCO_UNITS },
-    { id: "Windhoff_MPV", model: "Windhoff MPV", type: "Multi-Purpose Vehicle", image: img.loco, confidence: 0.84, trainingProgress: 30, units: LOCO_UNITS },
-    { id: "ZPW_4.5", model: "ZPW 4.5 Track Circuit", type: "Track Circuit Equipment", image: img.loco, confidence: 0.79, trainingProgress: 10, units: LOCO_UNITS },
+    { id: "wheel_loader", model: "Volvo L70H / L90H", type: "Wheel Loader", image: img.loader, confidence: 0.94, trainingProgress: 45, units: EXCAVATION_UNITS },
+    { id: "crawler_excavator", model: "Caterpillar 323 MST", type: "Crawler Excavator", image: img.excavator, confidence: 0.88, trainingProgress: 60, units: EXCAVATION_UNITS },
+    { id: "asphalt_paver", model: "Vögele SUPER 1800-3i", type: "Asphalt Paver", image: img.paver, confidence: 0.91, trainingProgress: 30, units: PAVING_UNITS },
+    { id: "piling_rig", model: "Junttan PM20LC / PM25", type: "Piling Rig", image: img.piling, confidence: 0.85, trainingProgress: 15, units: LIFTING_UNITS },
+    { id: "crawler_crane", model: "Liebherr HS 855 HD", type: "Crawler Crane", image: img.crane, confidence: 0.92, trainingProgress: 50, units: LIFTING_UNITS },
+    { id: "tower_crane", model: "Potain MDT 389 / MDT 489", type: "Tower Crane", image: img.crane, confidence: 0.89, trainingProgress: 25, units: LIFTING_UNITS },
+    { id: "three_wheel_roller", model: "Hamm HW 90", type: "Three-Wheel Roller", image: img.roller, confidence: 0.87, trainingProgress: 20, units: PAVING_UNITS },
+    { id: "mobile_excavator", model: "Hitachi ZX140W", type: "Mobile Excavator", image: img.excavator, confidence: 0.84, trainingProgress: 40, units: EXCAVATION_UNITS },
+    { id: "electric_paver", model: "Dynapac SD25 80C e", type: "Electric Paver", image: img.paver, confidence: 0.90, trainingProgress: 10, units: PAVING_UNITS },
+    { id: "heavy_lift_vessel", model: "Svanen", type: "Heavy Lift Vessel", image: img.vessel, confidence: 0.95, trainingProgress: 75, units: MARITIME_UNITS },
 ];
+
+export const checklistDB = {
+    "Wheel Loader": [
+        { id: 'c1', label: 'Hydraulic steering response verified', critical: true },
+        { id: 'c2', label: 'Bucket locking pins secured', critical: true },
+        { id: 'c3', label: 'Brake test (service and parking) passed', critical: true },
+        { id: 'c4', label: 'Tire inflation and tread depth OK', critical: false },
+        { id: 'c5', label: 'Reverse alarm and beacon verified', critical: true },
+    ],
+    "Crawler Excavator": [
+        { id: 'c1', label: 'Track tension within spec', critical: false },
+        { id: 'c2', label: 'Hydraulic fluid level verified', critical: true },
+        { id: 'c3', label: 'Swing lock mechanism functional', critical: true },
+        { id: 'c4', label: 'Attachment quick-hitch locked', critical: true },
+        { id: 'c5', label: 'Fire extinguisher present/charged', critical: true },
+    ],
+    "Asphalt Paver": [
+        { id: 'c1', label: 'Screed heating system operational', critical: true },
+        { id: 'c2', label: 'Conveyor chains and slats inspected', critical: true },
+        { id: 'c3', label: 'Auger protection guards in place', critical: true },
+        { id: 'c4', label: 'Hopper wing locks functional', critical: false },
+        { id: 'c5', label: 'Grade and slope sensors calibrated', critical: true },
+    ],
+    "Piling Rig": [
+        { id: 'c1', label: 'Mast hoist cables/chains inspected', critical: true },
+        { id: 'c2', label: 'Hammer/drill head oil levels OK', critical: true },
+        { id: 'c3', label: 'Outrigger pads seated on solid ground', critical: true },
+        { id: 'c4', label: 'Winch limit switches tested', critical: true },
+        { id: 'c5', label: 'Drill verticality sensor functional', critical: false },
+    ],
+    "Crawler Crane": [
+        { id: 'c1', label: 'Load Moment Indicator (LMI) zeroed', critical: true },
+        { id: 'c2', label: 'Boom hoist wire rope condition OK', critical: true },
+        { id: 'c3', label: 'Counterweight locking bolts secured', critical: true },
+        { id: 'c4', label: 'Anti-two-block sensor operational', critical: true },
+        { id: 'c5', label: 'Anemometer (wind gauge) functional', critical: true },
+    ],
+    "Tower Crane": [
+        { id: 'c1', label: 'Trolley and hoist limit switches tested', critical: true },
+        { id: 'c2', label: 'Brake torque for hoist motor verified', critical: true },
+        { id: 'c3', label: 'Wind/Aviation lights operational', critical: false },
+        { id: 'c4', label: 'Sling/shackle inventory inspected', critical: true },
+        { id: 'c5', label: 'Radio communication link tested', critical: true },
+    ],
+    "Three-Wheel Roller": [
+        { id: 'c1', label: 'Water spray system nozzle check', critical: false },
+        { id: 'c2', label: 'Scraper bars adjusted to drum', critical: false },
+        { id: 'c3', label: 'Drum drive hydraulic test', critical: true },
+        { id: 'c4', label: 'Neutral-safety-start functional', critical: true },
+        { id: 'c5', label: 'Articulated joint locking pin removed', critical: true },
+    ],
+    "Mobile Excavator": [
+        { id: 'c1', label: 'Stabilizer leg deployment check', critical: true },
+        { id: 'c2', label: 'Brake/Transmission lock functional', critical: true },
+        { id: 'c3', label: 'Steering axle oscillation lock tested', critical: true },
+        { id: 'c4', label: 'Road light and indicator test', critical: false },
+        { id: 'c5', label: 'Mirror/Camera visibility verified', critical: true },
+    ],
+    "Electric Paver": [
+        { id: 'c1', label: 'Battery charge level > 80%', critical: true },
+        { id: 'c2', label: 'Electric motor cooling system check', critical: true },
+        { id: 'c3', label: 'High-voltage cable integrity check', critical: true },
+        { id: 'c4', label: 'Charge port cover locked', critical: false },
+        { id: 'c5', label: 'Silent-operation beacon functional', critical: true },
+    ],
+    "Heavy Lift Vessel": [
+        { id: 'c1', label: 'Ballast pump / Valve sequence test', critical: true },
+        { id: 'c2', label: 'Main hoist winch hydraulic pressure', critical: true },
+        { id: 'c3', label: 'Marine VHF radio check confirmed', critical: true },
+        { id: 'c4', label: 'Life-saving appliances inspected', critical: true },
+        { id: 'c5', label: 'Dynamic Positioning (DP) zeroing', critical: true },
+    ],
+};
+
 export const translations = {
     en: { welcome: "Welcome to Site Marshall", identify_machine: "Identify Machine", push_to_speak: "Push To Speak", enter_academy: "Enter the Academy" },
     tr: { welcome: "Site Marshall'a HoÅŸ Geldiniz", identify_machine: "Makineyi TanÄ±mla", push_to_speak: "KonuÅŸmak Ä°Ã§in BasÄ±n", enter_academy: "Akademiye Gir" },
@@ -284,9 +268,9 @@ export const workerRegistry = [
         id: "W-4821",
         name: "Mehmet Yilmaz",
         language: "tr",
-        assignedMachines: ["m-1", "m-2"],
-        preShiftCompleted: { "m-1": true, "m-2": false },
-        completedSections: ["m-1:1.1", "m-1:1.2", "m-1:2.1", "m-2:1.1"],
+        assignedMachines: ["wheel_loader", "crawler_excavator"],
+        preShiftCompleted: { "wheel_loader": true, "crawler_excavator": false },
+        completedSections: ["wheel_loader:1.1", "wheel_loader:1.2", "crawler_excavator:1.1"],
         totalSections: 12,
         lastActive: "14:32"
     },
@@ -294,9 +278,9 @@ export const workerRegistry = [
         id: "W-1105",
         name: "Piotr Kowalski",
         language: "pl",
-        assignedMachines: ["m-3", "m-4"],
-        preShiftCompleted: { "m-3": true, "m-4": false },
-        completedSections: ["m-3:1.1", "m-4:1.1"],
+        assignedMachines: ["asphalt_paver", "three_wheel_roller"],
+        preShiftCompleted: { "asphalt_paver": true, "three_wheel_roller": false },
+        completedSections: ["asphalt_paver:1.1", "three_wheel_roller:1.1"],
         totalSections: 8,
         lastActive: "14:18"
     },
@@ -304,40 +288,10 @@ export const workerRegistry = [
         id: "W-3390",
         name: "Ahmed Al-Farsi",
         language: "ar",
-        assignedMachines: ["m-2", "m-5"],
-        preShiftCompleted: { "m-2": true, "m-5": false },
-        completedSections: ["m-2:1.1", "m-2:1.2", "m-5:1.1"],
+        assignedMachines: ["crawler_excavator", "heavy_lift_vessel"],
+        preShiftCompleted: { "crawler_excavator": true, "heavy_lift_vessel": false },
+        completedSections: ["crawler_excavator:1.1", "crawler_excavator:1.2", "heavy_lift_vessel:1.1"],
         totalSections: 10,
         lastActive: "13:41"
-    },
-    {
-        id: "W-7742",
-        name: "Dmytro Koval",
-        language: "uk",
-        assignedMachines: ["m-1"],
-        preShiftCompleted: { "m-1": true },
-        completedSections: ["m-1:1.1", "m-1:1.2", "m-1:2.1", "m-1:2.2"],
-        totalSections: 8,
-        lastActive: "12:58"
-    },
-    {
-        id: "W-5501",
-        name: "Rudi Hartono",
-        language: "id",
-        assignedMachines: ["m-4", "m-5"],
-        preShiftCompleted: { "m-4": false, "m-5": false },
-        completedSections: ["m-4:1.1"],
-        totalSections: 12,
-        lastActive: "11:45"
-    },
-    {
-        id: "W-6629",
-        name: "Carlos Silva",
-        language: "pt",
-        assignedMachines: ["m-3", "m-5"],
-        preShiftCompleted: { "m-3": true, "m-5": false },
-        completedSections: ["m-3:1.1", "m-3:1.2", "m-5:1.1", "m-5:1.2"],
-        totalSections: 12,
-        lastActive: "10:30"
     }
 ];

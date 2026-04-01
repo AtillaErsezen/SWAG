@@ -208,6 +208,8 @@ __marimo__/
 
 swag_db/
 swag_models/
+dataset/
 ./output/
 /static
-__MACOSX/
+#added to avoid macos files(Cagan's computer)
+__MACOSX/ 

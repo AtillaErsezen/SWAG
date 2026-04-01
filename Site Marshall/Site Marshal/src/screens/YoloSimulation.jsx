@@ -285,10 +285,7 @@ const YoloSimulation = () => {
     // ─── Background ───────────────────────────────────────────────────────────
     const bgStyle = previewUrl
         ? { backgroundImage: `url('${previewUrl}')`, filter: 'brightness(0.85) saturate(0.9)' }
-        : {
-            backgroundImage: `url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1200')`,
-            filter: 'brightness(0.5) saturate(0.6)',
-        };
+        : { backgroundColor: '#000' };
 
     return (
         <div className="flex flex-col h-full bg-[#111] absolute inset-0 overflow-hidden">
@@ -314,10 +311,9 @@ const YoloSimulation = () => {
 
             {/* Model Info */}
             <div className="absolute bottom-4 left-4 z-20 text-[9px] font-mono text-white/40 leading-relaxed tracking-wider">
-                <div>model: yolov8x-construction</div>
-                <div>conf_threshold: 0.50</div>
-                <div>nms_iou: 0.45</div>
-                <div>classes: 12</div>
+                <div>model: yolo26n-cls</div>
+                <div>conf_threshold: 0.40</div>
+                <div>classes: 10</div>
             </div>
 
             {/* Bounding Boxes Layer */}
