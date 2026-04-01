@@ -57,10 +57,10 @@ from langchain_community.llms import Ollama
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-SWAG_MATRIX_PATH = "/Users/pc/polderr/output/classified/all_classified.json"
-SWAG_ARCHIVES_PATH = "/Users/pc/polderr/output/markdown"
+SWAG_MATRIX_PATH = "./output/classified/all_classified.json"
+SWAG_ARCHIVES_PATH = "./output/markdown"
 SWAG_BRAIN_PATH = "./swag_db"
-SWAG_MODELS_PATH = "./swag_models"
+SWAG_MODELS_PATH = "./swag_models" #nllb models
 TRAINING_DB_PATH = "./training_audit.db"
 OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
@@ -77,14 +77,14 @@ SUPPORTED_LANGUAGES: Dict[str, Dict] = {
     "por_Latn": {"name": "Portuguese", "flag": "PT", "tts": "pt"},
     "spa_Latn": {"name": "Spanish", "flag": "ES", "tts": "es"},
 }
-
+#label mapping
 WHISPER_TO_NLLB = {
     "en": "eng_Latn", "nl": "nld_Latn", "fr": "fra_Latn", "de": "deu_Latn",
     "pl": "pol_Latn", "tr": "tur_Latn", "ro": "ron_Latn", "pt": "por_Latn",
     "es": "spa_Latn",
 }
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend communication
+CORS(app)  # Enable CORS for frontend communication TODO change to localhost only one day
 # Global model cache
 models_cache = {}
 _yolo_lock = threading.Lock()
@@ -169,7 +169,7 @@ def load_whisper():
     if 'whisper' not in models_cache:
         # Using 'tiny' model for speed - can be changed to 'base', 'small', 'medium', 'large-v3'
         print(f"Loading Whisper model: tiny (fast startup)...")
-        models_cache['whisper'] = WhisperModel("tiny", device="cpu", compute_type="int8")
+        models_cache['whisper'] = WhisperModel("tiny", device="cpu", compute_type="int8") # TODO: more quantization?
     return models_cache['whisper']
 
 
@@ -190,8 +190,9 @@ def load_vectorstore():
         print("Loading vector store...")
         embeddings = load_embeddings()
         db_path = Path(SWAG_BRAIN_PATH)
+        assert db_path.exists(), f"Vector store not found in {SWAG_BRAIN_PATH}, run python init_rag_db.py first"
         
-        if db_path.exists() and any(db_path.iterdir()):
+        if any(db_path.iterdir()):
             models_cache['vectorstore'] = Chroma(
                 persist_directory=SWAG_BRAIN_PATH, 
                 embedding_function=embeddings
@@ -199,7 +200,6 @@ def load_vectorstore():
         else:
             # Build from documents
             documents = []
-            
             # Load matrix
             if Path(SWAG_MATRIX_PATH).exists():
                 with open(SWAG_MATRIX_PATH, "r", encoding="utf-8") as f:
@@ -262,9 +262,10 @@ def load_translator():
     """Load NLLB translator (cached)."""
     if 'translator' not in models_cache:
         print("Loading translator...")
-        model_path = Path(SWAG_MODELS_PATH) / "nllb-200-ct2"
+        model_path = Path(SWAG_MODELS_PATH)
         
         if not model_path.exists():
+            print(f"Translation model not found in {SWAG_MODELS_PATH}")
             print("Downloading translation model (first run only)...")
             hf_model_path = snapshot_download(
                 repo_id="facebook/nllb-200-distilled-600M",
@@ -275,11 +276,10 @@ def load_translator():
         translator = ctranslate2.Translator(str(model_path), device="cpu", compute_type="int8")
         
         tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
+        tokenizer = None
         if tokenizer_path.exists():
             tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-        else:
-            tokenizer = None
-        
+        assert tokenizer is not None, "Tokenizer not found"
         models_cache['translator'] = (translator, tokenizer)
     
     return models_cache['translator']
