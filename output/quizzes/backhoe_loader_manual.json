@@ -1,0 +1,103 @@
+{
+  "document": "backhoe_loader_manual",
+  "source_file": "output\\markdown\\backhoe_loader_manual.md",
+  "quiz": [
+    {
+      "question": "What is the maximum towing speed for a disabled BHL under ideal ground conditions?",
+      "options": {
+        "A": "10 miles per hour (16 km/h)",
+        "B": "7 miles per hour (11 km/h)",
+        "C": "5 miles per hour (8 km/h)",
+        "D": "3 miles per hour (5 km/h)"
+      },
+      "correct_answer": "C",
+      "explanation": "The manual states: 'Do not exceed towing speed of 5 miles per hour (8 km/h) under ideal ground conditions. Adverse ground condition requires slower speed.'"
+    },
+    {
+      "question": "What is the maximum water depth the BHL may enter during fording operations, including wave height?",
+      "options": {
+        "A": "30 inches (76 cm)",
+        "B": "20 inches (51 cm)",
+        "C": "12 inches (30 cm)",
+        "D": "36 inches (91 cm)"
+      },
+      "correct_answer": "B",
+      "explanation": "The manual warns: 'Do not enter water deeper than 20 inches (51 cm), including wave height.' This is also the BHL's maximum fording depth listed in equipment data."
+    },
+    {
+      "question": "What must the operator do before turning the seat to the backhoe operating position?",
+      "options": {
+        "A": "Raise the FEL bucket to maximum height and shut off the engine",
+        "B": "Engage parking brake and shift direction control lever to neutral position",
+        "C": "Lower stabilizers fully and activate the pilot control switch",
+        "D": "Set the hand throttle to maximum and lock service brake pedals together"
+      },
+      "correct_answer": "B",
+      "explanation": "The manual warns that the operator must engage the parking brake and shift the direction control lever to neutral position before turning the seat around to the backhoe operating position. An alarm will sound if the direction control lever is in forward or reverse."
+    },
+    {
+      "question": "What is the maximum front, aft, or side slope percentage the BHL should operate on when on hard firm ground?",
+      "options": {
+        "A": "25%",
+        "B": "20%",
+        "C": "10%",
+        "D": "15%"
+      },
+      "correct_answer": "D",
+      "explanation": "The manual states: 'Do not exceed front, aft, or side slopes in excess of 15% on hard firm ground. On ground which is not solid, maximum slopes are less than 15%.'"
+    },
+    {
+      "question": "If a rollover is imminent, what should the operator do?",
+      "options": {
+        "A": "Jump as far from the BHL as possible with feet together",
+        "B": "Attempt to exit the BHL immediately on the uphill side",
+        "C": "Stay inside the ROPS with seat belt fastened",
+        "D": "Shut off the engine and release the seat belt"
+      },
+      "correct_answer": "C",
+      "explanation": "The manual warns: 'Do not attempt to exit the BHL if rollover is imminent. Stay inside the ROPS with seat belt fastened for maximum safety.'"
+    }
+  ],
+  "flashcards": [
+    {
+      "term": "ROPS/FOPS",
+      "definition": "Rollover Protective Structure / Falling Object Protective Structure. The cab structure that protects the operator from rollover, falling objects, debris, dust, and rain. It must not be modified (no welding, drilling, cutting, or adding attachments) and must be replaced, not repaired, if subjected to rollover or damage."
+    },
+    {
+      "term": "Neutral-Start System",
+      "definition": "A safety system that prevents the BHL engine from starting unless the direction control lever is in the neutral position. This system must never be bypassed and must be repaired if it malfunctions."
+    },
+    {
+      "term": "FEL (Front End Loader)",
+      "definition": "The front-mounted hydraulic loader on the BHL, equipped with a 4-in-1 bucket that has four configurations: dozer, scraper, loader (standard bucket), and clamshell. Maximum lifting capacity is 7,800 lb (3,538 kg)."
+    },
+    {
+      "term": "Stabilizers",
+      "definition": "One on each side of the BHL, these hydraulic legs provide stability when the backhoe is in operation. They must be lowered to operating position before lowering the backhoe boom and extending the dipper. Flipover pads allow rubber side down for solid surfaces and metal side down for soft surfaces."
+    },
+    {
+      "term": "Three Points of Contact",
+      "definition": "A safety rule requiring the operator to always face the BHL, use handrails and steps, and maintain three points of contact (hands and feet) when getting on or off the BHL. Jumping on or off is prohibited."
+    },
+    {
+      "term": "Clutch Cutout Switch",
+      "definition": "A switch on the FEL control lever that, when pushed and held, disengages the transmission from the drive wheels, allowing engine speed to increase and supply more hydraulic fluid for greater power and faster control reaction time. The BHL can move freely when engaged, so brakes must be used to stop."
+    },
+    {
+      "term": "NATO Slave Receptacle",
+      "definition": "A 24 Vdc receptacle located behind the battery box, used for slave starting the BHL from or to another vehicle. It is electrically live at all times and unfused; batteries must be fully disconnected before performing maintenance on it. Only NATO slave cables may be used—jumper cables are prohibited."
+    },
+    {
+      "term": "Pilot Control Switch (3-Position)",
+      "definition": "A switch on the right backhoe control tower used to activate or deactivate backhoe controls. Enable (momentary) activates all backhoe functions; On allows only stabilizers to operate; Off shuts off all backhoe controls."
+    },
+    {
+      "term": "PMCS (Preventive Maintenance Checks and Services)",
+      "definition": "Systematic checks performed at specified intervals (Before, During, and After operation, plus Weekly/50 hours) to keep the BHL in operating condition. Defects found are corrected by the operator or reported to field level maintenance on DA Form 5988-E."
+    },
+    {
+      "term": "Class III Fluid Leakage",
+      "definition": "Leakage of fluid great enough to form drops that fall from the item being checked or inspected. Class III leaks must be reported immediately to a supervisor. No fuel leakage of any class is permitted during BHL operation."
+    }
+  ]
+}

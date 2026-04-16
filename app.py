@@ -63,6 +63,9 @@ SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models" #nllb models
 TRAINING_DB_PATH = "./training_audit.db"
 OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
+# OLLAMA_HOST may be set to 0.0.0.0 (server bind address) which is not a valid
+# client connection target. Always connect to localhost explicitly.
+OLLAMA_BASE_URL = "http://localhost:11434"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
@@ -243,7 +246,7 @@ def load_llm():
     """Load Ollama LLM (cached)."""
     if 'llm' not in models_cache:
         print(f"Loading LLM: {OLLAMA_MODEL}...")
-        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1)
+        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1, base_url=OLLAMA_BASE_URL)
     return models_cache['llm']
 
 
@@ -286,15 +289,17 @@ def load_translator():
 
 #FIXME no more api, local model
 #TODO may not require another model for translation, whisper can do it
-def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
+def transcribe_audio(audio_bytes: bytes, filename: str = "audio.webm") -> Tuple[str, str]:
     """Transcribe audio using local Whisper model (tiny for speed)."""
     temp_path = None
     try:
         # Use cached Whisper model instead of creating new one each time
         model = load_whisper()
-        
-        # Save to temp file - Whisper needs file path
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+
+        # Preserve the original file extension so ffmpeg picks the right decoder.
+        # The browser records as webm/ogg/mp4 — never raw WAV — so the suffix matters.
+        ext = Path(filename).suffix or ".webm"
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as f:
             f.write(audio_bytes)
             temp_path = f.name
         # File is now closed and can be accessed by Whisper
@@ -405,8 +410,10 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
           f"(~{len(prompt.split())} words / ~{len(prompt)} chars)")
 
     # ── Call Ollama and measure generation ───────────────────────────────────
+    # Use an explicit client to avoid OLLAMA_HOST=0.0.0.0 env-var misdirection.
     t_gen = time.time()
-    response = _ollama.chat(
+    _client = _ollama.Client(host=OLLAMA_BASE_URL)
+    response = _client.chat(
         model=OLLAMA_MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -558,6 +565,27 @@ Please consult your physical safety manual or contact your Site Safety Superviso
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/transcribe', methods=['POST'])
+def transcribe_only():
+    """Transcribe audio to text only — no RAG, no LLM."""
+    if 'audio' not in request.files:
+        return jsonify({"error": "Audio file required"}), 400
+
+    audio_file = request.files['audio']
+    try:
+        audio_bytes = audio_file.read()
+        raw_text, detected_lang = transcribe_audio(
+            audio_bytes,
+            filename=audio_file.filename or "audio.webm"
+        )
+        if not raw_text.strip():
+            return jsonify({"error": "Could not understand audio"}), 400
+        return jsonify({"success": True, "transcription": raw_text, "detected_language": detected_lang})
+    except Exception as e:
+        print(f"[TRANSCRIBE] error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/query/voice', methods=['POST'])
 def query_voice():
     """Process voice query."""
@@ -572,10 +600,14 @@ def query_voice():
     try:
         # Read audio bytes
         audio_bytes = audio_file.read()
-        
-        # Transcribe
+
+        # Transcribe — pass the original filename so the temp file gets the right
+        # extension (webm/ogg/mp4) and ffmpeg can decode it correctly.
         t0 = time.time()
-        raw_text, detected_lang = transcribe_audio(audio_bytes)
+        raw_text, detected_lang = transcribe_audio(
+            audio_bytes,
+            filename=audio_file.filename or "audio.webm"
+        )
         print(f"[VOICE] Transcription (Whisper): {time.time() - t0:.2f}s")
         
         if not raw_text.strip():

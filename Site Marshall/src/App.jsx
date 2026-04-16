@@ -6,6 +6,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Screen Imports
 import LoginHub from './screens/LoginHub';
+import SiteSelector from './screens/SiteSelector';
+import MediaPermissions from './screens/MediaPermissions';
+import ScannerPage from './screens/ScannerPage';
 import CommandDashboard from './screens/CommandDashboard';
 import YoloSimulation from './screens/YoloSimulation';
 import MachineHub from './screens/MachineHub';
@@ -21,6 +24,9 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<LoginHub />} />
+            <Route path="site-selector" element={<ProtectedRoute><SiteSelector /></ProtectedRoute>} />
+            <Route path="permissions" element={<ProtectedRoute><MediaPermissions /></ProtectedRoute>} />
+            <Route path="scanner" element={<ProtectedRoute><ScannerPage /></ProtectedRoute>} />
             <Route path="dashboard" element={<ProtectedRoute><CommandDashboard /></ProtectedRoute>} />
             <Route path="identify" element={<ProtectedRoute><YoloSimulation /></ProtectedRoute>} />
             <Route path="machine/:id/checklist" element={<ProtectedRoute><PreShiftChecklist /></ProtectedRoute>} />

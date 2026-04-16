@@ -263,6 +263,12 @@ export const translations = {
     ur: { welcome: "Site Marshall Ù…ÛŒÚº Ø®ÙˆØ´ Ø¢Ù…Ø¯ÛŒØ¯", identify_machine: "Ù…Ø´ÛŒÙ† Ú©ÛŒ Ø´Ù†Ø§Ø®Øª Ú©Ø±ÛŒÚº", push_to_speak: "Ø¨ÙˆÙ„Ù†Û’ Ú©Û’ Ù„ÛŒÛ’ Ø¯Ø¨Ø§Ø¦ÛŒÚº", enter_academy: "Ø§Ú©ÛŒÚˆÙ…ÛŒ Ù…ÛŒÚº Ø¯Ø§Ø®Ù„ ÛÙˆÚº" },
     id: { welcome: "Selamat Datang di Site Marshall", identify_machine: "Identifikasi Mesin", push_to_speak: "Tekan untuk Berbicara", enter_academy: "Masuk ke Akademi" },
 };
+export const constructionSites = [
+    { id: 'site-1', name: 'Zuidas Tower Project', location: 'Amsterdam Zuid', activeWorkers: 14, alerts: 1, machines: ['tower_crane', 'crawler_excavator', 'piling_rig'] },
+    { id: 'site-2', name: 'A10 Ring Road Extension', location: 'Diemen', activeWorkers: 9, alerts: 0, machines: ['wheel_loader', 'three_wheel_roller'] },
+    { id: 'site-3', name: 'Port Expansion Block 7', location: 'IJmuiden', activeWorkers: 21, alerts: 2, machines: ['heavy_lift_vessel', 'crawler_crane', 'mobile_excavator'] },
+];
+
 export const workerRegistry = [
     {
         id: "W-4821",

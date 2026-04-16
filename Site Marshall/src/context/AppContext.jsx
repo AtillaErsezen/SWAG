@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { translations, languages } from '../data/mockData';
+import { constructionSites } from '../data/mockData';
 
 const AppContext = createContext();
 
@@ -8,6 +9,7 @@ export const AppProvider = ({ children }) => {
     const [trainingCount, setTrainingCount] = useState(0);
     const [currentLang, setCurrentLang] = useState('en');
     const [activeMachineId, setActiveMachineId] = useState(null);
+    const [activeSite, setActiveSite] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const t = (key) => {
@@ -23,6 +25,7 @@ export const AppProvider = ({ children }) => {
     const logout = () => {
         setWorkerId(null);
         setTrainingCount(0);
+        setActiveSite(null);
     };
 
     const changeLanguage = (code) => setCurrentLang(code);
@@ -41,6 +44,9 @@ export const AppProvider = ({ children }) => {
             t,
             activeMachineId,
             setActiveMachineId,
+            activeSite,
+            setActiveSite,
+            sites: constructionSites,
             sidebarOpen,
             setSidebarOpen,
             toggleSidebar
