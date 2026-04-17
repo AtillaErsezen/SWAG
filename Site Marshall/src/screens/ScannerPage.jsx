@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, Send, CameraOff, X, Wrench, Plus } from 'lucide-react';
+import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, Award, AlertTriangle, Settings } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
@@ -276,6 +276,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
 const ScannerPage = () => {
     const { workerId, currentLang, trainingCount } = useAppContext();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const [question, setQuestion]       = useState('');
     const [answer, setAnswer]           = useState(null);
@@ -608,6 +609,27 @@ const ScannerPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* ── Bottom Nav ── */}
+            <div className="shrink-0 flex items-center justify-around px-2 py-2 border-t"
+                style={{ backgroundColor: '#0D1B2A', borderColor: 'rgba(255,255,255,0.07)' }}>
+                {[
+                    { icon: Home,          label: 'Home',     path: '/scanner'  },
+                    { icon: Award,         label: 'My Certs', path: '/'         },
+                    { icon: AlertTriangle, label: 'Incident', path: '/incident' },
+                    { icon: Settings,      label: 'Settings', path: '/settings' },
+                ].map(({ icon: Icon, label, path }) => {
+                    const active = pathname === path;
+                    return (
+                        <button key={label} onClick={() => navigate(path)}
+                            className="flex flex-col items-center gap-1 px-4 py-1 transition-colors"
+                            style={{ color: active ? '#E67E22' : 'rgba(255,255,255,0.35)' }}>
+                            <Icon size={22} strokeWidth={active ? 2.2 : 1.6} />
+                            <span className="text-[10px] font-bold tracking-wide">{label}</span>
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 };
