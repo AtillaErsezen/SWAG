@@ -380,12 +380,23 @@ const ChatOverlay = ({
                             <motion.form
                                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
                                 onSubmit={handleTextSubmit}
-                                className="absolute bottom-24 left-0 w-full bg-white p-2 rounded-full shadow-2xl border border-slate-gray/30 flex items-center pr-2"
+                                className="absolute bottom-24 left-0 w-full bg-white shadow-2xl border border-slate-gray/30 flex items-center pr-2 rounded-2xl overflow-hidden"
                             >
-                                <input type="text" autoFocus value={textInput} onChange={e => setTextInput(e.target.value)}
-                                    placeholder="Ask Marshall AI..." className="w-full bg-transparent px-4 py-2 text-base font-medium focus:outline-none" />
+                                {/* Locked machine tag */}
+                                <span className="shrink-0 ml-3 px-2.5 py-1 rounded-full text-xs font-black text-white select-none"
+                                    style={{ backgroundColor: '#E67E22' }}>
+                                    @{machineName.split('/').pop().trim()}
+                                </span>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={textInput}
+                                    onChange={e => setTextInput(e.target.value)}
+                                    placeholder="Ask a question…"
+                                    className="flex-1 bg-transparent px-3 py-3 text-base font-medium focus:outline-none"
+                                />
                                 <button type="submit" disabled={!textInput.trim() || isLoading}
-                                    className="p-3 bg-matte-indigo text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50">
+                                    className="p-3 bg-matte-indigo text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 shrink-0 mr-1">
                                     <Send size={18} />
                                 </button>
                             </motion.form>
@@ -625,26 +636,18 @@ const MachineHub = () => {
                         </div>
                     </motion.div>
 
-                    {/* Training + Ask AI buttons */}
+                    {/* Training button */}
                     <motion.div
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.22 }}
-                        className="flex gap-3"
                     >
                         <button
                             onClick={() => navigate(`/machine/${id}/academy`)}
-                            className="flex-1 h-14 bg-safety-orange text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all"
+                            className="w-full h-14 bg-safety-orange text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all"
                         >
                             <GraduationCap size={20} />
                             Training
-                        </button>
-                        <button
-                            onClick={handleOpenChat}
-                            className="flex-1 h-14 bg-matte-indigo text-app-bg rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:bg-opacity-90 active:scale-95 transition-all"
-                        >
-                            <Mic size={20} />
-                            Ask AI
                         </button>
                     </motion.div>
 

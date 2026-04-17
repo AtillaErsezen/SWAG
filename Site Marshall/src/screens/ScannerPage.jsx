@@ -5,6 +5,7 @@ import { Camera, Mic, Send, CameraOff, X, Wrench, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
+import MentionInput from '../components/MentionInput';
 
 // ─── Recording Timer ──────────────────────────────────────────────────────────
 const useRecordingTimer = (active) => {
@@ -570,13 +571,12 @@ const ScannerPage = () => {
                                 Ask anything about this machine
                             </p>
                             <div className="flex items-center gap-2 rounded-full px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
-                                <input
-                                    type="text"
+                                <MentionInput
                                     value={question}
-                                    onChange={e => setQuestion(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleSend()}
+                                    onChange={setQuestion}
+                                    onSubmit={handleSend}
                                     placeholder="Type a question…"
-                                    className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-400 text-base"
+                                    disabled={isTranscribing || isQuerying}
                                 />
                                 <button onClick={() => setShowCamera(true)}
                                     className="p-1 text-gray-400 hover:text-safety-orange transition-colors">
