@@ -504,7 +504,7 @@ const MachineHub = () => {
         try {
             let res;
             if (mode === 'text') {
-                res = await queryText(queryOrBlob, workerId ?? 'anonymous', currentLang);
+                res = await queryText(queryOrBlob, workerId ?? 'anonymous', currentLang, machine.model);
             } else {
                 res = await queryVoice(queryOrBlob, workerId ?? 'anonymous', currentLang);
             }

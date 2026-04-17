@@ -351,26 +351,42 @@ def translate_text(text: str, source_lang: str, target_lang: str) -> str:
         return text
 
 
-def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], float, str]:
-    """Search vectorstore with confidence scoring."""
+def search_with_confidence(query: str, k: int = 5, machine_filter: str = None) -> Tuple[List[Document], float, str]:
+    """Search vectorstore with confidence scoring, optionally filtered by machine name."""
     vectorstore = load_vectorstore()
-    
+
     if vectorstore is None:
         return [], 0.0, "UNKNOWN"
-    
-    results = vectorstore.similarity_search_with_score(query, k=k)
-    
+
+    # Try filtered search first when a machine is specified
+    if machine_filter:
+        try:
+            filtered_results = vectorstore.similarity_search_with_score(
+                query, k=k, filter={"machine": machine_filter}
+            )
+        except Exception:
+            filtered_results = []
+
+        # Fall back to unfiltered if the filter yields no results
+        # (e.g. the machine name doesn't match any stored metadata)
+        results = filtered_results if filtered_results else vectorstore.similarity_search_with_score(query, k=k)
+        if filtered_results:
+            print(f"[RAG] Machine filter applied: '{machine_filter}' → {len(filtered_results)} docs")
+        else:
+            print(f"[RAG] Machine filter '{machine_filter}' returned 0 docs, falling back to global search")
+    else:
+        results = vectorstore.similarity_search_with_score(query, k=k)
+
     if not results:
         return [], 0.0, "UNKNOWN"
-    
+
     docs = [r[0] for r in results]
     scores = [r[1] for r in results]
     best_score = min(scores)
     similarity = 1 / (1 + best_score)
-    
-    # Determine category from top result
+
     category = docs[0].metadata.get("category", "OPERATIONAL_PROCEDURE") if docs else "UNKNOWN"
-    
+
     return docs, similarity, category
 
 
@@ -498,10 +514,11 @@ def query_text():
     text = data.get('text', '').strip()
     user_id = data.get('user_id', 'unknown')
     lang = data.get('language', 'eng_Latn')
-    
+    machine_filter = data.get('machine', None)  # optional @mention machine name
+
     if not text:
         return jsonify({"error": "Text query required"}), 400
-    
+
     try:
         # Translate to English if needed
         t0 = time.time()
@@ -510,10 +527,10 @@ def query_text():
         else:
             english_query = text
         print(f"[TEXT] Translation to English: {time.time() - t0:.2f}s")
-        
+
         # Search with confidence check
         t0 = time.time()
-        docs, confidence, category = search_with_confidence(english_query)
+        docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
         print(f"[TEXT] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check
@@ -596,6 +613,7 @@ def query_voice():
     audio_file = request.files['audio']
     user_id = request.form.get('user_id', 'unknown')
     target_lang = request.form.get('language', 'eng_Latn')
+    machine_filter = request.form.get('machine', None)
     
     try:
         # Read audio bytes
@@ -623,7 +641,7 @@ def query_voice():
         
         # Search with confidence check
         t0 = time.time()
-        docs, confidence, category = search_with_confidence(english_query)
+        docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
         print(f"[VOICE] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check

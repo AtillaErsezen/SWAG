@@ -63,11 +63,12 @@ export const login = (workerId) =>
  * Send a text query through the RAG pipeline.
  * @returns {{ success, question, answer, category, confidence, log_id, audio }}
  */
-export const queryText = (text, userId, langCode) =>
+export const queryText = (text, userId, langCode, machine = null) =>
     POST('/api/query/text', {
         text,
         user_id: userId,
         language: toLang(langCode),
+        ...(machine ? { machine } : {}),
     });
 
 /**
@@ -91,7 +92,7 @@ export const transcribeAudio = (audioBlob) => {
  * @param {Blob} audioBlob
  * @returns {{ success, transcription, answer, category, confidence, log_id, audio }}
  */
-export const queryVoice = (audioBlob, userId, langCode) => {
+export const queryVoice = (audioBlob, userId, langCode, machine = null) => {
     // Derive a proper extension so the backend saves the file with the correct
     // container — Whisper relies on the extension to pick the right ffmpeg decoder.
     const mime = audioBlob.type.split(';')[0]; // strip codecs param
@@ -103,6 +104,7 @@ export const queryVoice = (audioBlob, userId, langCode) => {
     return MULTIPART('/api/query/voice', audioBlob, 'audio', {
         user_id: userId,
         language: toLang(langCode),
+        ...(machine ? { machine } : {}),
     }, `audio.${ext}`);
 };
 

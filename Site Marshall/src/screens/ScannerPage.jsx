@@ -347,7 +347,11 @@ const ScannerPage = () => {
         if (!question.trim()) return;
         setIsQuerying(true);
         try {
-            const res = await queryText(question.trim(), workerId ?? 'anonymous', currentLang);
+            const mentionMatch = question.match(/@([\w\s\/]+?)(?:\s|$)/);
+            const mentionedMachine = mentionMatch
+                ? machineDB.find(m => m.model.toLowerCase().includes(mentionMatch[1].toLowerCase().trim()))
+                : null;
+            const res = await queryText(question.trim(), workerId ?? 'anonymous', currentLang, mentionedMachine?.model ?? null);
             if (res.answer) setAnswer(res.answer);
             if (res.audio)  playAudio(res.audio);
         } catch (err) {
