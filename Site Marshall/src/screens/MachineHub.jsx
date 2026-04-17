@@ -165,7 +165,7 @@ const MachineHub = () => {
             <div className="flex-none bg-matte-indigo shadow-md z-30">
                 <div className="p-4 flex items-center justify-between relative">
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/scanner')}
                         className="text-app-bg p-2 rounded-full hover:bg-slate-gray/20 transition-colors active:scale-95"
                     >
                         <ChevronLeft size={28} />
