@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Mic, Camera, Clock, MapPin, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Mic, Camera, Clock, MapPin, CheckCircle, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio } from '../services/api';
@@ -68,141 +68,159 @@ const IncidentReport = () => {
 
     if (submitted) {
         return (
-            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white">
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>
-                    <CheckCircle size={72} className="text-sage-green" />
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/60 backdrop-blur-sm">
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                    className="bg-white p-8 rounded-3xl flex flex-col items-center shadow-2xl">
+                    <CheckCircle size={72} className="text-green-500 mb-4" />
+                    <p className="text-2xl font-black text-gray-800">Report Submitted</p>
+                    <p className="text-sm text-gray-500 mt-2">Visible to your KAM coordinator only.</p>
                 </motion.div>
-                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                    className="text-xl font-black text-charcoal">Report Submitted</motion.p>
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-                    className="text-sm text-slate-gray">Visible to your KAM coordinator only.</motion.p>
             </div>
         );
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center gap-3 px-4 pt-6 pb-4 shrink-0">
-                <button onClick={() => navigate('/scanner')}
-                    className="p-2 rounded-full hover:bg-gray-100 active:scale-95 transition-all">
-                    <ChevronLeft size={24} className="text-charcoal" />
-                </button>
-                <h1 className="text-2xl font-black text-charcoal">Report Issue</h1>
-            </div>
-
-            <div className="px-4 pb-32 space-y-6">
-
-                {/* Report Type */}
-                <div>
-                    <p className="text-[11px] font-black tracking-widest uppercase text-safety-orange mb-2">Report Type</p>
-                    <div className="flex gap-2">
-                        {REPORT_TYPES.map(type => (
-                            <button key={type} onClick={() => setReportType(type)}
-                                className="flex-1 py-3 rounded-2xl text-sm font-bold border-2 transition-all active:scale-95"
-                                style={{
-                                    backgroundColor: reportType === type ? '#E67E22' : 'white',
-                                    borderColor: reportType === type ? '#E67E22' : '#e5e7eb',
-                                    color: reportType === type ? 'white' : '#374151',
-                                }}>
-                                {type}
-                            </button>
-                        ))}
-                    </div>
+        <div className="fixed inset-0 z-50 flex flex-col justify-center items-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+                initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                className="bg-white w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col relative shadow-2xl"
+                style={{ maxHeight: '90vh' }}
+            >
+                {/* Drag Handle */}
+                <div className="flex justify-center pt-3 pb-2 shrink-0">
+                    <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: '#E2E8F0' }} />
                 </div>
 
-                {/* Machine / Equipment */}
-                <div>
-                    <p className="text-[11px] font-black tracking-widest uppercase text-safety-orange mb-2">
-                        Machine / Equipment <span className="text-slate-gray normal-case font-semibold">(Optional)</span>
-                    </p>
-                    <div className="relative">
-                        <select
-                            value={machineId}
-                            onChange={e => setMachineId(e.target.value)}
-                            className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-base text-gray-600 focus:outline-none focus:border-safety-orange"
+                <div className="px-6 pb-6 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+                    {/* Header */}
+                    <div className="pb-4 pt-1 flex items-center justify-between">
+                        <h1 className="text-2xl font-black text-slate-800">Report Issue</h1>
+                        <button 
+                            onClick={() => navigate('/scanner')}
+                            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all"
                         >
-                            <option value="">Select machine</option>
-                            {machineDB.map(m => (
-                                <option key={m.id} value={m.id}>{m.model}</option>
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    {/* Report Type */}
+                    <div className="mb-6">
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>Report Type</p>
+                        <div className="flex gap-2">
+                            {REPORT_TYPES.map(type => (
+                                <button key={type} onClick={() => setReportType(type)}
+                                    className="flex-1 py-3 font-bold text-xs transition-all active:scale-[0.98]"
+                                    style={{
+                                        borderRadius: '14px',
+                                        backgroundColor: reportType === type ? '#E67E22' : '#F8FAFC',
+                                        color: reportType === type ? 'white' : '#64748B',
+                                        border: reportType === type ? '1px solid #E67E22' : '1px solid #E2E8F0',
+                                    }}>
+                                    {type}
+                                </button>
                             ))}
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</div>
+                        </div>
                     </div>
-                </div>
 
-                {/* Description */}
-                <div>
-                    <p className="text-[11px] font-black tracking-widest uppercase text-safety-orange mb-2">Description</p>
-                    <div className="flex gap-2 items-start">
-                        <textarea
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            placeholder="Describe exactly what happened..."
-                            rows={4}
-                            className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-base text-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:border-safety-orange"
-                        />
-                        <motion.button
-                            onPointerDown={handleMicDown}
-                            onPointerUp={handleMicUp}
-                            onPointerLeave={handleMicUp}
-                            whileTap={{ scale: 0.9 }}
-                            disabled={isTranscribing}
-                            className="w-14 h-14 rounded-2xl border-2 flex items-center justify-center shrink-0 transition-all"
-                            style={{
-                                borderColor: isRecording ? '#E67E22' : '#e5e7eb',
-                                backgroundColor: isRecording ? '#FFF5EC' : 'white',
-                            }}>
-                            {isTranscribing
-                                ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                                    className="w-5 h-5 rounded-full border-2 border-gray-200 border-t-safety-orange" />
-                                : <Mic size={22} className={isRecording ? 'text-safety-orange' : 'text-gray-400'} />
+                    {/* Machine / Equipment */}
+                    <div className="mb-6">
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>
+                            Machine / Equipment <span className="text-gray-400 normal-case font-semibold">(Optional)</span>
+                        </p>
+                        <div className="relative">
+                            <select
+                                value={machineId}
+                                onChange={e => setMachineId(e.target.value)}
+                                className="w-full appearance-none px-4 py-3.5 text-sm font-medium focus:outline-none"
+                                style={{ backgroundColor: '#EEF2F7', color: machineId ? '#333' : '#9ca3af', border: 'none', borderRadius: '14px' }}
+                            >
+                                <option value="" disabled className="text-gray-400">Select machine</option>
+                                <option value="none">None</option>
+                                {machineDB.map(m => (
+                                    <option key={m.id} value={m.id} className="text-gray-800">{m.model}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="mb-6">
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>Description</p>
+                        <div className="flex gap-2 items-stretch">
+                            <textarea
+                                value={description}
+                                onChange={e => setDescription(e.target.value)}
+                                placeholder="Describe exactly what happened..."
+                                className="flex-1 px-4 py-3.5 text-sm font-medium placeholder-gray-400 resize-none focus:outline-none"
+                                style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }}
+                            />
+                            <motion.button
+                                onPointerDown={handleMicDown}
+                                onPointerUp={handleMicUp}
+                                onPointerLeave={handleMicUp}
+                                whileTap={{ scale: 0.9 }}
+                                disabled={isTranscribing}
+                                className="w-14 flex flex-col items-center justify-center shrink-0 transition-all border-2"
+                                style={{
+                                    borderRadius: '14px',
+                                    borderColor: '#E67E22',
+                                    backgroundColor: isRecording ? '#FFF5EC' : 'white',
+                                }}>
+                                {isTranscribing
+                                    ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                                        className="w-5 h-5 rounded-full border-2 border-safety-orange/30 border-t-safety-orange" />
+                                    : <Mic size={20} style={{ color: '#E67E22' }} />
+                                }
+                            </motion.button>
+                        </div>
+                        
+                        {/* Timestamp + Site */}
+                        <div className="flex items-center gap-5 mt-3 text-[10px] font-semibold text-gray-500">
+                            <div className="flex items-center gap-1.5 pl-1">
+                                <Clock size={12} className="text-gray-400" />
+                                <span>{now()}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <MapPin size={12} className="text-gray-400" />
+                                <span>{activeSite?.name ?? 'Unknown Site'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Photo */}
+                    <div className="mb-6">
+                        <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+                            className="hidden" onChange={handlePhoto} />
+                        <button onClick={() => fileInputRef.current?.click()}
+                            className="w-full border-2 border-dashed py-8 flex flex-col items-center gap-2 transition-all active:scale-[0.98]"
+                            style={{ borderRadius: '14px', borderColor: '#E67E22', backgroundColor: 'white' }}>
+                            {photo
+                                ? <img src={photo} alt="attached" className="w-full h-32 object-cover rounded-xl mt-[-20px] mb-[-20px]" />
+                                : <>
+                                    <Camera size={26} style={{ color: '#E67E22' }} />
+                                    <span className="text-xs font-bold" style={{ color: '#E67E22' }}>Tap to attach a photo</span>
+                                  </>
                             }
-                        </motion.button>
+                        </button>
+                    </div>
+
+                    {/* Submit */}
+                    <div className="pt-1">
+                        <button onClick={handleSubmit} disabled={!description.trim()}
+                            className="w-full py-3.5 rounded-full text-white font-black text-sm transition-all active:scale-[0.98] disabled:opacity-40"
+                            style={{ backgroundColor: '#E67E22' }}>
+                            Submit Report
+                        </button>
+                        <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case hidden sm:block">
+                            Submitted reports are visible to your KAM coordinator only.
+                        </p>
+                        <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case sm:hidden">
+                            Submitted reports are visible to your KAM coordinator only.
+                        </p>
                     </div>
                 </div>
-
-                {/* Timestamp + Site */}
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                    <div className="flex items-center gap-1.5">
-                        <Clock size={14} />
-                        <span>{now()}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <MapPin size={14} />
-                        <span>{activeSite?.name ?? 'Unknown Site'}</span>
-                    </div>
-                </div>
-
-                {/* Photo */}
-                <div>
-                    <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
-                        className="hidden" onChange={handlePhoto} />
-                    <button onClick={() => fileInputRef.current?.click()}
-                        className="w-full rounded-2xl border-2 border-dashed py-6 flex flex-col items-center gap-2 transition-all active:scale-[0.98]"
-                        style={{ borderColor: '#E67E22' }}>
-                        {photo
-                            ? <img src={photo} alt="attached" className="w-full h-40 object-cover rounded-xl" />
-                            : <>
-                                <Camera size={28} className="text-safety-orange" />
-                                <span className="text-sm font-bold text-safety-orange">Tap to attach a photo</span>
-                              </>
-                        }
-                    </button>
-                </div>
-            </div>
-
-            {/* Submit */}
-            <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-white/90 backdrop-blur-sm">
-                <button onClick={handleSubmit} disabled={!description.trim()}
-                    className="w-full py-4 rounded-full text-white font-black text-base transition-all active:scale-[0.98] disabled:opacity-40"
-                    style={{ backgroundColor: '#E67E22' }}>
-                    Submit Report
-                </button>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                    Submitted reports are visible to your KAM coordinator only.
-                </p>
-            </div>
+            </motion.div>
         </div>
     );
 };
