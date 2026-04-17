@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Mic, Send, CameraOff, X, Wrench, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
-import { startRecording, transcribeAudio, queryText, playAudio } from '../services/api';
+import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
 
 // ─── Recording Timer ──────────────────────────────────────────────────────────
 const useRecordingTimer = (active) => {
@@ -72,8 +72,19 @@ const CameraViewfinder = ({ onClose }) => {
         if (!videoRef.current || !ready) return;
         setFlash(true);
         setTimeout(() => setFlash(false), 180);
+
+        // Capture current frame to a canvas, then blob
+        const video = videoRef.current;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
         streamRef.current?.getTracks().forEach(t => t.stop());
-        onClose();
+
+        canvas.toBlob((blob) => {
+            onClose(blob);
+        }, 'image/jpeg', 0.9);
     }, [ready, onClose]);
 
     return (
@@ -142,6 +153,31 @@ const ProgressRing = ({ value }) => {
                 <span className="text-white font-bold" style={{ fontSize: 10 }}>{value}%</span>
             </div>
         </div>
+    );
+};
+
+// ─── Machine matching (module-level, stable reference) ───────────────────────
+
+const CONFIDENCE_THRESHOLD = 0.75;
+
+const normalize = (s) =>
+    (s ?? '').toLowerCase().replace(/[_\-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+const findMachine = (detectedClass) => {
+    const cls = normalize(detectedClass);
+    if (!cls) return null;
+    const clsTokens = cls.split(' ');
+    return (
+        // 1. exact type match
+        machineDB.find(m => normalize(m.type) === cls) ??
+        // 2. type contains all detected tokens
+        machineDB.find(m => clsTokens.every(t => normalize(m.type).includes(t))) ??
+        // 3. detected class contains all type tokens
+        machineDB.find(m => normalize(m.type).split(' ').every(t => cls.includes(t))) ??
+        // 4. any single token overlap
+        machineDB.find(m => clsTokens.some(t => t.length > 3 && normalize(m.type).includes(t))) ??
+        // 5. model name match
+        machineDB.find(m => normalize(m.model).includes(cls) || cls.includes(normalize(m.model).split(' ')[0]))
     );
 };
 
@@ -247,8 +283,30 @@ const ScannerPage = () => {
     const [isQuerying, setIsQuerying]   = useState(false);
     const [showCamera, setShowCamera]   = useState(false);
     const [drawerOpen, setDrawerOpen]   = useState(false);
+    const [detections, setDetections]   = useState(null);
+    const [isDetecting, setIsDetecting] = useState(false);
     const recorderRef = useRef(null);
     const timer = useRecordingTimer(isListening);
+
+    const handleCameraClose = useCallback(async (imageBlob) => {
+        setShowCamera(false);
+        if (!imageBlob) return;
+        setIsDetecting(true);
+        try {
+            const res = await detectImage(imageBlob, workerId ?? 'anonymous');
+            const top = res.detections?.[0];
+            if (top && (top.confidence ?? 0) >= CONFIDENCE_THRESHOLD) {
+                const match = findMachine(top.class);
+                if (match) { navigate(`/machine/${match.id}`); return; }
+            }
+            setDetections(res);
+        } catch (err) {
+            console.error('Detection error:', err);
+            setDetections({ error: err.message });
+        } finally {
+            setIsDetecting(false);
+        }
+    }, [workerId, navigate]);
 
     const handleRecordingStop = useCallback(async () => {
         if (!recorderRef.current) { setIsListening(false); return; }
@@ -314,7 +372,7 @@ const ScannerPage = () => {
 
             {/* Camera viewfinder */}
             <AnimatePresence>
-                {showCamera && <CameraViewfinder onClose={() => setShowCamera(false)} />}
+                {showCamera && <CameraViewfinder onClose={handleCameraClose} />}
             </AnimatePresence>
 
             {/* Answer modal */}
@@ -354,6 +412,79 @@ const ScannerPage = () => {
                 )}
             </AnimatePresence>
 
+            {/* Detections modal */}
+            <AnimatePresence>
+                {detections && (
+                    <>
+                        <motion.div key="det-scrim"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="absolute inset-0 z-30 bg-black/70"
+                            onClick={() => setDetections(null)}
+                        />
+                        <motion.div key="det-card"
+                            initial={{ opacity: 0, y: 40, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 30, scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                            className="absolute inset-x-5 top-[12%] z-40 bg-white rounded-3xl shadow-2xl overflow-hidden"
+                        >
+                            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                                <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase">
+                                    Machine Detected
+                                </p>
+                                <button onClick={() => setDetections(null)}
+                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                    <X size={16} className="text-gray-500" />
+                                </button>
+                            </div>
+                            <div className="h-px bg-gray-100 mx-5" />
+                            <div className="px-5 py-4 space-y-2">
+                                {detections.error ? (
+                                    <p className="text-red-500 text-sm">{detections.error}</p>
+                                ) : detections.detections?.length > 0 ? (
+                                    <>
+                                        <p className="text-xs text-gray-400 mb-3">Select the correct machine:</p>
+                                        {detections.detections.slice(0, 3).map((d, i) => {
+                                            const match = findMachine(d.class);
+                                            const pct = Math.round((d.confidence ?? 0) * 100);
+                                            const isTop = i === 0;
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => {
+                                                        setDetections(null);
+                                                        if (match) navigate(`/machine/${match.id}`);
+                                                    }}
+                                                    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border transition-all active:scale-[0.98]"
+                                                    style={{
+                                                        borderColor: isTop ? '#E67E22' : '#e5e7eb',
+                                                        backgroundColor: isTop ? '#FFF5EC' : '#f9fafb',
+                                                    }}
+                                                >
+                                                    <div className="text-left min-w-0">
+                                                        <p className="font-bold text-gray-800 text-sm truncate">{d.class}</p>
+                                                        <p className="text-xs text-gray-400 truncate">
+                                                            {match ? match.model : 'Unknown machine'}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-sm font-black shrink-0"
+                                                        style={{ color: isTop ? '#E67E22' : '#9ca3af' }}>
+                                                        {pct}%
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </>
+                                ) : (
+                                    <p className="text-gray-500 text-sm">No machines detected. Try again with better lighting.</p>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
             {/* ── Hamburger ── */}
             <div className="px-4 pt-5 pb-2 shrink-0">
                 <button
@@ -369,12 +500,12 @@ const ScannerPage = () => {
 
             {/* ── Camera placeholder / spinner ── */}
             <div className="flex-1 flex items-center justify-center">
-                {isTranscribing || isQuerying ? (
+                {isTranscribing || isQuerying || isDetecting ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                             className="w-12 h-12 rounded-full border-2 border-white/10 border-t-safety-orange" />
                         <p className="text-white/40 text-sm font-mono tracking-widest">
-                            {isTranscribing ? 'TRANSCRIBING…' : 'PROCESSING…'}
+                            {isTranscribing ? 'TRANSCRIBING…' : isDetecting ? 'DETECTING…' : 'PROCESSING…'}
                         </p>
                     </motion.div>
                 ) : (
