@@ -1,12 +1,18 @@
 import React from 'react';
 import { Home, Menu, UserCircle } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import OfflineIndicator from '../OfflineIndicator';
+
+// Routes that manage their own full-screen layout — hide the shared header.
+const HEADERLESS_ROUTES = ['/scanner'];
 
 const Header = () => {
     const { workerId, toggleSidebar } = useAppContext();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+
+    if (HEADERLESS_ROUTES.includes(pathname)) return null;
 
     return (
         <header className="h-16 bg-matte-indigo text-app-bg flex items-center justify-between px-4 shadow-md sticky top-0 z-40">

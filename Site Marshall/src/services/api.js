@@ -35,9 +35,9 @@ async function POST(path, body) {
     return res.json();
 }
 
-async function MULTIPART(path, blob, fileFieldName, fields = {}) {
+async function MULTIPART(path, blob, fileFieldName, fields = {}, filename = null) {
     const form = new FormData();
-    form.append(fileFieldName, blob);
+    form.append(fileFieldName, blob, filename ?? undefined);
     for (const [key, val] of Object.entries(fields)) {
         form.append(key, val);
     }
@@ -63,23 +63,50 @@ export const login = (workerId) =>
  * Send a text query through the RAG pipeline.
  * @returns {{ success, question, answer, category, confidence, log_id, audio }}
  */
-export const queryText = (text, userId, langCode) =>
+export const queryText = (text, userId, langCode, machine = null) =>
     POST('/api/query/text', {
         text,
         user_id: userId,
         language: toLang(langCode),
+        ...(machine ? { machine } : {}),
     });
+
+/**
+ * Transcribe audio to text only — no RAG, no LLM.
+ * Use this to populate the text input before the user reviews and sends.
+ * @param {Blob} audioBlob
+ * @returns {{ success, transcription, detected_language }}
+ */
+export const transcribeAudio = (audioBlob) => {
+    const mime = audioBlob.type.split(';')[0];
+    const ext = mime.includes('webm') ? 'webm'
+              : mime.includes('ogg')  ? 'ogg'
+              : mime.includes('mp4')  ? 'mp4'
+              : mime.includes('wav')  ? 'wav'
+              : 'webm';
+    return MULTIPART('/api/transcribe', audioBlob, 'audio', {}, `audio.${ext}`);
+};
 
 /**
  * Send a voice recording through the STT → RAG pipeline.
  * @param {Blob} audioBlob
  * @returns {{ success, transcription, answer, category, confidence, log_id, audio }}
  */
-export const queryVoice = (audioBlob, userId, langCode) =>
-    MULTIPART('/api/query/voice', audioBlob, 'audio', {
+export const queryVoice = (audioBlob, userId, langCode, machine = null) => {
+    // Derive a proper extension so the backend saves the file with the correct
+    // container — Whisper relies on the extension to pick the right ffmpeg decoder.
+    const mime = audioBlob.type.split(';')[0]; // strip codecs param
+    const ext = mime.includes('webm') ? 'webm'
+              : mime.includes('ogg')  ? 'ogg'
+              : mime.includes('mp4')  ? 'mp4'
+              : mime.includes('wav')  ? 'wav'
+              : 'webm'; // safe default — Chrome/Edge always record webm
+    return MULTIPART('/api/query/voice', audioBlob, 'audio', {
         user_id: userId,
         language: toLang(langCode),
-    });
+        ...(machine ? { machine } : {}),
+    }, `audio.${ext}`);
+};
 
 /**
  * Mark a training log entry as verified by the worker.

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronDown, BookOpen, BrainCircuit, FileText, CheckCircle, XCircle, Send, Play, Layers, Trophy, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, FileText, CheckCircle, XCircle, Send, Play, Layers, Trophy, RotateCcw } from 'lucide-react';
 import { machineDB } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 
@@ -392,7 +392,6 @@ const Academy = () => {
                             <div className="flex bg-white shadow-sm border-b border-slate-gray/20 px-2 py-3 gap-2 overflow-x-auto hide-scrollbar sticky top-0 z-10">
                                 {[
                                     { id: 'summary', icon: FileText, label: 'Summary' },
-                                    { id: 'qchat', icon: BrainCircuit, label: 'Marshall AI' },
                                     { id: 'learn', icon: BookOpen, label: 'Learn' },
                                     { id: 'test', icon: Play, label: 'Test' }
                                 ].map(tab => (
@@ -426,40 +425,7 @@ const Academy = () => {
                                     </motion.div>
                                 )}
 
-                                {studyMode === 'qchat' && (
-                                    <div className="w-full max-w-md h-full flex flex-col relative pb-20">
-                                        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                                            {chatLog.map((chat, idx) => (
-                                                <motion.div
-                                                    key={idx}
-                                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                                    className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                                                >
-                                                    <div className={`max-w-[85%] p-4 rounded-3xl ${chat.type === 'user' ? 'bg-matte-indigo text-white rounded-br-sm' : 'bg-white shadow-sm border border-slate-gray/20 rounded-tl-sm text-charcoal'
-                                                        }`}>
-                                                        {chat.text}
-                                                    </div>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                        <form onSubmit={handleChatSubmit} className="absolute bottom-0 inset-x-0 bg-app-bg pt-2">
-                                            <div className="relative flex items-center">
-                                                <input
-                                                    type="text"
-                                                    value={chatInput}
-                                                    onChange={e => setChatInput(e.target.value)}
-                                                    placeholder="Reply to Marshall AI..."
-                                                    className="w-full bg-white border border-slate-gray/30 rounded-full px-6 py-4 pr-16 shadow-sm focus:outline-none focus:border-matte-indigo font-medium"
-                                                />
-                                                <button type="submit" className="absolute right-2 p-3 bg-safety-orange text-white rounded-full hover:bg-orange-600 transition-colors">
-                                                    <Send size={18} />
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                )}
-
-                                {studyMode === 'learn' && activeSection.learnCards && activeSection.learnCards.length > 0 && (
+{studyMode === 'learn' && activeSection.learnCards && activeSection.learnCards.length > 0 && (
                                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm flex flex-col items-center h-full justify-center pb-20">
                                         <div className="text-sm font-bold text-slate-gray mb-8 uppercase tracking-widest">
                                             Card {curCard + 1} of {activeSection.learnCards.length}

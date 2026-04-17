@@ -263,6 +263,364 @@ export const translations = {
     ur: { welcome: "Site Marshall Ù…ÛŒÚº Ø®ÙˆØ´ Ø¢Ù…Ø¯ÛŒØ¯", identify_machine: "Ù…Ø´ÛŒÙ† Ú©ÛŒ Ø´Ù†Ø§Ø®Øª Ú©Ø±ÛŒÚº", push_to_speak: "Ø¨ÙˆÙ„Ù†Û’ Ú©Û’ Ù„ÛŒÛ’ Ø¯Ø¨Ø§Ø¦ÛŒÚº", enter_academy: "Ø§Ú©ÛŒÚˆÙ…ÛŒ Ù…ÛŒÚº Ø¯Ø§Ø®Ù„ ÛÙˆÚº" },
     id: { welcome: "Selamat Datang di Site Marshall", identify_machine: "Identifikasi Mesin", push_to_speak: "Tekan untuk Berbicara", enter_academy: "Masuk ke Akademi" },
 };
+export const constructionSites = [
+    { id: 'site-1', name: 'Zuidas Tower Project', location: 'Amsterdam Zuid', activeWorkers: 14, alerts: 1, machines: ['tower_crane', 'crawler_excavator', 'piling_rig'] },
+    { id: 'site-2', name: 'A10 Ring Road Extension', location: 'Diemen', activeWorkers: 9, alerts: 0, machines: ['wheel_loader', 'three_wheel_roller'] },
+    { id: 'site-3', name: 'Port Expansion Block 7', location: 'IJmuiden', activeWorkers: 21, alerts: 2, machines: ['heavy_lift_vessel', 'crawler_crane', 'mobile_excavator'] },
+];
+
+export const detailedChecklistDB = {
+    "Wheel Loader": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'wl-s1', label: 'Bucket locking pins secured', critical: true },
+                { id: 'wl-s2', label: 'Loader arms & linkage inspected for cracks', critical: true },
+                { id: 'wl-s3', label: 'Quick-coupler safety lock engaged', critical: true },
+            ]
+        },
+        {
+            category: "HYDRAULIC",
+            items: [
+                { id: 'wl-h1', label: 'Hydraulic fluid level within range', critical: true },
+                { id: 'wl-h2', label: 'Hydraulic hoses — no leaks or chafing', critical: true },
+                { id: 'wl-h3', label: 'Steering response verified (full lock both ways)', critical: true },
+            ]
+        },
+        {
+            category: "DRIVETRAIN",
+            items: [
+                { id: 'wl-d1', label: 'Tyre inflation and tread depth OK', critical: false },
+                { id: 'wl-d2', label: 'Service brake test passed', critical: true },
+                { id: 'wl-d3', label: 'Parking brake holds on grade', critical: true },
+                { id: 'wl-d4', label: 'Transmission fluid level OK', critical: false },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'wl-ss1', label: 'Reverse alarm and beacon operational', critical: true },
+                { id: 'wl-ss2', label: 'Fire extinguisher present and charged', critical: true },
+                { id: 'wl-ss3', label: 'ROPS/FOPS structure undamaged', critical: true },
+            ]
+        },
+    ],
+    "Crawler Excavator": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'ce-s1', label: 'Track tension within spec', critical: false },
+                { id: 'ce-s2', label: 'Track shoes and sprockets inspected', critical: false },
+                { id: 'ce-s3', label: 'Swing lock mechanism functional', critical: true },
+                { id: 'ce-s4', label: 'Attachment quick-hitch safety-locked', critical: true },
+            ]
+        },
+        {
+            category: "HYDRAULIC",
+            items: [
+                { id: 'ce-h1', label: 'Hydraulic fluid level checked', critical: true },
+                { id: 'ce-h2', label: 'Hydraulic hoses — no leaks or swelling', critical: true },
+                { id: 'ce-h3', label: 'Boom, stick and bucket cylinder seals OK', critical: true },
+            ]
+        },
+        {
+            category: "ENGINE",
+            items: [
+                { id: 'ce-e1', label: 'Engine oil level and coolant checked', critical: true },
+                { id: 'ce-e2', label: 'Air filter indicator in green zone', critical: false },
+                { id: 'ce-e3', label: 'No abnormal engine noise on startup', critical: true },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'ce-ss1', label: 'Fire extinguisher present and charged', critical: true },
+                { id: 'ce-ss2', label: 'Camera/proximity warning operational', critical: true },
+                { id: 'ce-ss3', label: 'Operator restraint bar functional', critical: true },
+            ]
+        },
+    ],
+    "Asphalt Paver": [
+        {
+            category: "SCREED & HEATING",
+            items: [
+                { id: 'ap-sh1', label: 'Screed heating system operational', critical: true },
+                { id: 'ap-sh2', label: 'Screed plates undamaged and flush', critical: true },
+                { id: 'ap-sh3', label: 'Screed extensions locked in position', critical: false },
+            ]
+        },
+        {
+            category: "MATERIAL HANDLING",
+            items: [
+                { id: 'ap-mh1', label: 'Conveyor chains and slats inspected', critical: true },
+                { id: 'ap-mh2', label: 'Auger protection guards in place', critical: true },
+                { id: 'ap-mh3', label: 'Hopper wing locks functional', critical: false },
+                { id: 'ap-mh4', label: 'Push-roller bolts torqued', critical: false },
+            ]
+        },
+        {
+            category: "CONTROL SYSTEMS",
+            items: [
+                { id: 'ap-cs1', label: 'Grade and slope sensors calibrated', critical: true },
+                { id: 'ap-cs2', label: 'Automatic screed levelling tested', critical: true },
+                { id: 'ap-cs3', label: 'Emergency stop buttons functional', critical: true },
+            ]
+        },
+        {
+            category: "SAFETY",
+            items: [
+                { id: 'ap-ss1', label: 'Crew hot-surface PPE briefed', critical: true },
+                { id: 'ap-ss2', label: 'Reverse alarm operational', critical: true },
+                { id: 'ap-ss3', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Piling Rig": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'pr-s1', label: 'Mast hoist cables/chains inspected', critical: true },
+                { id: 'pr-s2', label: 'Mast base pin locks secured', critical: true },
+                { id: 'pr-s3', label: 'Leader guide frame alignment verified', critical: false },
+            ]
+        },
+        {
+            category: "HYDRAULIC & DRIVE",
+            items: [
+                { id: 'pr-hd1', label: 'Hammer/drill head oil levels OK', critical: true },
+                { id: 'pr-hd2', label: 'Hydraulic lines — no leaks', critical: true },
+                { id: 'pr-hd3', label: 'Winch limit switches tested', critical: true },
+            ]
+        },
+        {
+            category: "GROUND STABILITY",
+            items: [
+                { id: 'pr-gs1', label: 'Outrigger pads seated on solid ground', critical: true },
+                { id: 'pr-gs2', label: 'Ground bearing capacity confirmed', critical: true },
+                { id: 'pr-gs3', label: 'Level indicator within tolerance', critical: true },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'pr-ss1', label: 'Drill verticality sensor functional', critical: false },
+                { id: 'pr-ss2', label: 'Exclusion zone marked and enforced', critical: true },
+                { id: 'pr-ss3', label: 'Emergency stop accessible and tested', critical: true },
+                { id: 'pr-ss4', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Crawler Crane": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'cc-s1', label: 'Check boom assembly for cracks', critical: true },
+                { id: 'cc-s2', label: 'Inspect lattice sections — no bent members', critical: true },
+                { id: 'cc-s3', label: 'Counterweight locking bolts secured', critical: true },
+            ]
+        },
+        {
+            category: "HYDRAULIC & RIGGING",
+            items: [
+                { id: 'cc-h1', label: 'Hydraulic fluid level checked', critical: true },
+                { id: 'cc-h2', label: 'Boom hoist wire rope condition OK', critical: true },
+                { id: 'cc-h3', label: 'All slings, chains and D-shackles inspected', critical: true },
+                { id: 'cc-h4', label: 'Hook block swivel moves freely', critical: false },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'cc-ss1', label: 'Load Moment Indicator (LMI) zeroed', critical: true },
+                { id: 'cc-ss2', label: 'Anti-two-block sensor operational', critical: true },
+                { id: 'cc-ss3', label: 'Anemometer (wind gauge) functional', critical: true },
+            ]
+        },
+        {
+            category: "GROUND & OPERATIONAL",
+            items: [
+                { id: 'cc-o1', label: 'Outrigger pads seated on rated surfaces', critical: true },
+                { id: 'cc-o2', label: 'Swing lock released before operation', critical: true },
+                { id: 'cc-o3', label: 'Communication radio tested', critical: true },
+                { id: 'cc-o4', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Tower Crane": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'tc-s1', label: 'Mast section bolts torqued', critical: true },
+                { id: 'tc-s2', label: 'Jib and counter-jib connections secure', critical: true },
+                { id: 'tc-s3', label: 'Tie-in anchors to building verified', critical: true },
+            ]
+        },
+        {
+            category: "HOISTING",
+            items: [
+                { id: 'tc-h1', label: 'Trolley and hoist limit switches tested', critical: true },
+                { id: 'tc-h2', label: 'Brake torque for hoist motor verified', critical: true },
+                { id: 'tc-h3', label: 'Hoist rope reeving and condition OK', critical: true },
+                { id: 'tc-h4', label: 'Hook block latch operational', critical: false },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'tc-ss1', label: 'Anemometer and wind alarm functional', critical: true },
+                { id: 'tc-ss2', label: 'Aviation/obstruction lights operational', critical: false },
+                { id: 'tc-ss3', label: 'Slew brake confirmed operational', critical: true },
+            ]
+        },
+        {
+            category: "OPERATIONAL",
+            items: [
+                { id: 'tc-o1', label: 'Sling/shackle inventory inspected', critical: true },
+                { id: 'tc-o2', label: 'Radio communication link tested', critical: true },
+                { id: 'tc-o3', label: 'Load chart posted in cab', critical: false },
+            ]
+        },
+    ],
+    "Three-Wheel Roller": [
+        {
+            category: "DRUM & DRIVE",
+            items: [
+                { id: 'wr-d1', label: 'Drum drive hydraulic test passed', critical: true },
+                { id: 'wr-d2', label: 'Scraper bars adjusted to drum surface', critical: false },
+                { id: 'wr-d3', label: 'Articulated joint locking pin removed', critical: true },
+            ]
+        },
+        {
+            category: "WATER SYSTEM",
+            items: [
+                { id: 'wr-w1', label: 'Water tank level sufficient', critical: false },
+                { id: 'wr-w2', label: 'Water spray nozzles cleared and tested', critical: false },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'wr-ss1', label: 'Neutral-safety-start system functional', critical: true },
+                { id: 'wr-ss2', label: 'Reverse alarm and beacon operational', critical: true },
+                { id: 'wr-ss3', label: 'Backup camera view unobstructed', critical: true },
+                { id: 'wr-ss4', label: 'ROPS structure undamaged', critical: true },
+            ]
+        },
+        {
+            category: "ENGINE",
+            items: [
+                { id: 'wr-e1', label: 'Engine oil and coolant levels OK', critical: true },
+                { id: 'wr-e2', label: 'No fluid leaks on ground under machine', critical: false },
+                { id: 'wr-e3', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Mobile Excavator": [
+        {
+            category: "STRUCTURAL",
+            items: [
+                { id: 'me-s1', label: 'Stabiliser leg deployment checked', critical: true },
+                { id: 'me-s2', label: 'Attachment quick-hitch safety-locked', critical: true },
+                { id: 'me-s3', label: 'Boom and stick pins/bushings inspected', critical: false },
+            ]
+        },
+        {
+            category: "DRIVETRAIN",
+            items: [
+                { id: 'me-d1', label: 'Brake and transmission lock functional', critical: true },
+                { id: 'me-d2', label: 'Steering axle oscillation lock tested', critical: true },
+                { id: 'me-d3', label: 'Tyre pressure and condition checked', critical: false },
+            ]
+        },
+        {
+            category: "HYDRAULIC",
+            items: [
+                { id: 'me-h1', label: 'Hydraulic fluid level verified', critical: true },
+                { id: 'me-h2', label: 'No hydraulic leaks on hoses or cylinders', critical: true },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'me-ss1', label: 'Road lights and indicators tested', critical: false },
+                { id: 'me-ss2', label: 'Mirror and camera visibility verified', critical: true },
+                { id: 'me-ss3', label: 'Reverse alarm operational', critical: true },
+                { id: 'me-ss4', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Electric Paver": [
+        {
+            category: "ELECTRICAL",
+            items: [
+                { id: 'ep-e1', label: 'Battery charge level > 80%', critical: true },
+                { id: 'ep-e2', label: 'High-voltage cable integrity checked', critical: true },
+                { id: 'ep-e3', label: 'Charge port cover locked', critical: false },
+                { id: 'ep-e4', label: 'BMS fault codes — none present', critical: true },
+            ]
+        },
+        {
+            category: "COOLING & DRIVE",
+            items: [
+                { id: 'ep-cd1', label: 'Electric motor cooling system operational', critical: true },
+                { id: 'ep-cd2', label: 'Inverter cooling fans functional', critical: true },
+                { id: 'ep-cd3', label: 'Conveyor and auger drive test passed', critical: true },
+            ]
+        },
+        {
+            category: "SCREED",
+            items: [
+                { id: 'ep-sc1', label: 'Electric screed heating elements active', critical: true },
+                { id: 'ep-sc2', label: 'Screed plates flush and undamaged', critical: false },
+                { id: 'ep-sc3', label: 'Grade sensor calibrated', critical: true },
+            ]
+        },
+        {
+            category: "SAFETY SYSTEMS",
+            items: [
+                { id: 'ep-ss1', label: 'Silent-mode proximity beacon functional', critical: true },
+                { id: 'ep-ss2', label: 'Emergency stop tested', critical: true },
+                { id: 'ep-ss3', label: 'Fire extinguisher present and charged', critical: true },
+            ]
+        },
+    ],
+    "Heavy Lift Vessel": [
+        {
+            category: "BALLAST & STABILITY",
+            items: [
+                { id: 'hlv-b1', label: 'Ballast pump and valve sequence tested', critical: true },
+                { id: 'hlv-b2', label: 'Ballast tank levels verified pre-lift', critical: true },
+                { id: 'hlv-b3', label: 'Draft readings recorded and within limits', critical: true },
+            ]
+        },
+        {
+            category: "CRANE & RIGGING",
+            items: [
+                { id: 'hlv-c1', label: 'Main hoist winch hydraulic pressure OK', critical: true },
+                { id: 'hlv-c2', label: 'Wire rope and sheave condition inspected', critical: true },
+                { id: 'hlv-c3', label: 'All rigging gear load-tested and certified', critical: true },
+                { id: 'hlv-c4', label: 'Hook block swivel and latch operational', critical: false },
+            ]
+        },
+        {
+            category: "NAVIGATION & COMMS",
+            items: [
+                { id: 'hlv-n1', label: 'Dynamic Positioning (DP) zeroing confirmed', critical: true },
+                { id: 'hlv-n2', label: 'Marine VHF radio check confirmed', critical: true },
+                { id: 'hlv-n3', label: 'AIS and radar operational', critical: false },
+            ]
+        },
+        {
+            category: "SAFETY & MARINE",
+            items: [
+                { id: 'hlv-ss1', label: 'Life-saving appliances inspected', critical: true },
+                { id: 'hlv-ss2', label: 'Swell and wind within operational limits', critical: true },
+                { id: 'hlv-ss3', label: 'Fire suppression system armed', critical: true },
+            ]
+        },
+    ],
+};
+
 export const workerRegistry = [
     {
         id: "W-4821",

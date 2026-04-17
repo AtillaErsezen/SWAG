@@ -63,6 +63,9 @@ SWAG_BRAIN_PATH = "./swag_db"
 SWAG_MODELS_PATH = "./swag_models" #nllb models
 TRAINING_DB_PATH = "./training_audit.db"
 OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
+# OLLAMA_HOST may be set to 0.0.0.0 (server bind address) which is not a valid
+# client connection target. Always connect to localhost explicitly.
+OLLAMA_BASE_URL = "http://localhost:11434"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
 CONFIDENCE_THRESHOLD = 0.4
@@ -243,7 +246,7 @@ def load_llm():
     """Load Ollama LLM (cached)."""
     if 'llm' not in models_cache:
         print(f"Loading LLM: {OLLAMA_MODEL}...")
-        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1)
+        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1, base_url=OLLAMA_BASE_URL)
     return models_cache['llm']
 
 
@@ -286,15 +289,17 @@ def load_translator():
 
 #FIXME no more api, local model
 #TODO may not require another model for translation, whisper can do it
-def transcribe_audio(audio_bytes: bytes) -> Tuple[str, str]:
+def transcribe_audio(audio_bytes: bytes, filename: str = "audio.webm") -> Tuple[str, str]:
     """Transcribe audio using local Whisper model (tiny for speed)."""
     temp_path = None
     try:
         # Use cached Whisper model instead of creating new one each time
         model = load_whisper()
-        
-        # Save to temp file - Whisper needs file path
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+
+        # Preserve the original file extension so ffmpeg picks the right decoder.
+        # The browser records as webm/ogg/mp4 — never raw WAV — so the suffix matters.
+        ext = Path(filename).suffix or ".webm"
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as f:
             f.write(audio_bytes)
             temp_path = f.name
         # File is now closed and can be accessed by Whisper
@@ -346,26 +351,42 @@ def translate_text(text: str, source_lang: str, target_lang: str) -> str:
         return text
 
 
-def search_with_confidence(query: str, k: int = 5) -> Tuple[List[Document], float, str]:
-    """Search vectorstore with confidence scoring."""
+def search_with_confidence(query: str, k: int = 5, machine_filter: str = None) -> Tuple[List[Document], float, str]:
+    """Search vectorstore with confidence scoring, optionally filtered by machine name."""
     vectorstore = load_vectorstore()
-    
+
     if vectorstore is None:
         return [], 0.0, "UNKNOWN"
-    
-    results = vectorstore.similarity_search_with_score(query, k=k)
-    
+
+    # Try filtered search first when a machine is specified
+    if machine_filter:
+        try:
+            filtered_results = vectorstore.similarity_search_with_score(
+                query, k=k, filter={"machine": machine_filter}
+            )
+        except Exception:
+            filtered_results = []
+
+        # Fall back to unfiltered if the filter yields no results
+        # (e.g. the machine name doesn't match any stored metadata)
+        results = filtered_results if filtered_results else vectorstore.similarity_search_with_score(query, k=k)
+        if filtered_results:
+            print(f"[RAG] Machine filter applied: '{machine_filter}' → {len(filtered_results)} docs")
+        else:
+            print(f"[RAG] Machine filter '{machine_filter}' returned 0 docs, falling back to global search")
+    else:
+        results = vectorstore.similarity_search_with_score(query, k=k)
+
     if not results:
         return [], 0.0, "UNKNOWN"
-    
+
     docs = [r[0] for r in results]
     scores = [r[1] for r in results]
     best_score = min(scores)
     similarity = 1 / (1 + best_score)
-    
-    # Determine category from top result
+
     category = docs[0].metadata.get("category", "OPERATIONAL_PROCEDURE") if docs else "UNKNOWN"
-    
+
     return docs, similarity, category
 
 
@@ -405,8 +426,10 @@ def generate_answer(query: str, context_docs: List[Document]) -> str:
           f"(~{len(prompt.split())} words / ~{len(prompt)} chars)")
 
     # ── Call Ollama and measure generation ───────────────────────────────────
+    # Use an explicit client to avoid OLLAMA_HOST=0.0.0.0 env-var misdirection.
     t_gen = time.time()
-    response = _ollama.chat(
+    _client = _ollama.Client(host=OLLAMA_BASE_URL)
+    response = _client.chat(
         model=OLLAMA_MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -491,10 +514,11 @@ def query_text():
     text = data.get('text', '').strip()
     user_id = data.get('user_id', 'unknown')
     lang = data.get('language', 'eng_Latn')
-    
+    machine_filter = data.get('machine', None)  # optional @mention machine name
+
     if not text:
         return jsonify({"error": "Text query required"}), 400
-    
+
     try:
         # Translate to English if needed
         t0 = time.time()
@@ -503,10 +527,10 @@ def query_text():
         else:
             english_query = text
         print(f"[TEXT] Translation to English: {time.time() - t0:.2f}s")
-        
+
         # Search with confidence check
         t0 = time.time()
-        docs, confidence, category = search_with_confidence(english_query)
+        docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
         print(f"[TEXT] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check
@@ -558,6 +582,27 @@ Please consult your physical safety manual or contact your Site Safety Superviso
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/transcribe', methods=['POST'])
+def transcribe_only():
+    """Transcribe audio to text only — no RAG, no LLM."""
+    if 'audio' not in request.files:
+        return jsonify({"error": "Audio file required"}), 400
+
+    audio_file = request.files['audio']
+    try:
+        audio_bytes = audio_file.read()
+        raw_text, detected_lang = transcribe_audio(
+            audio_bytes,
+            filename=audio_file.filename or "audio.webm"
+        )
+        if not raw_text.strip():
+            return jsonify({"error": "Could not understand audio"}), 400
+        return jsonify({"success": True, "transcription": raw_text, "detected_language": detected_lang})
+    except Exception as e:
+        print(f"[TRANSCRIBE] error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/query/voice', methods=['POST'])
 def query_voice():
     """Process voice query."""
@@ -568,14 +613,19 @@ def query_voice():
     audio_file = request.files['audio']
     user_id = request.form.get('user_id', 'unknown')
     target_lang = request.form.get('language', 'eng_Latn')
+    machine_filter = request.form.get('machine', None)
     
     try:
         # Read audio bytes
         audio_bytes = audio_file.read()
-        
-        # Transcribe
+
+        # Transcribe — pass the original filename so the temp file gets the right
+        # extension (webm/ogg/mp4) and ffmpeg can decode it correctly.
         t0 = time.time()
-        raw_text, detected_lang = transcribe_audio(audio_bytes)
+        raw_text, detected_lang = transcribe_audio(
+            audio_bytes,
+            filename=audio_file.filename or "audio.webm"
+        )
         print(f"[VOICE] Transcription (Whisper): {time.time() - t0:.2f}s")
         
         if not raw_text.strip():
@@ -591,7 +641,7 @@ def query_voice():
         
         # Search with confidence check
         t0 = time.time()
-        docs, confidence, category = search_with_confidence(english_query)
+        docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
         print(f"[VOICE] Vector search: {time.time() - t0:.2f}s")
         
         # Confidence check

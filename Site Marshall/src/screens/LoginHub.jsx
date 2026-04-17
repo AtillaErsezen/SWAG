@@ -2,192 +2,187 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Globe, AlertCircle } from 'lucide-react';
-import * as Flags from 'country-flag-icons/react/3x2';
-import Keypad from '../components/UI/Keypad';
+import { Globe, AlertCircle, IdCard } from 'lucide-react';
 import { login as apiLogin } from '../services/api';
 
-// Custom React-Bits style BlurText Animation
-const BlurText = ({ text, delay = 0, className = "" }) => {
-    const words = text.split(" ");
-    return (
-        <div className={`flex flex-wrap items-center justify-center gap-2 ${className}`}>
-            {words.map((word, i) => (
-                <motion.span
-                    key={i}
-                    initial={{ filter: "blur(10px)", opacity: 0, y: 10 }}
-                    animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: delay + i * 0.1, ease: 'easeOut' }}
-                >
-                    {word}
-                </motion.span>
-            ))}
-        </div>
-    );
-};
+const SiteMarshallLogo = () => (
+    <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Hexagon */}
+        <polygon
+            points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5"
+            stroke="#E67E22"
+            strokeWidth="3"
+            fill="none"
+        />
+        {/* Central dot */}
+        <circle cx="32" cy="32" r="3.5" fill="#E67E22" />
+        {/* Inner arcs */}
+        <path d="M24.5,24.5 A10.5,10.5 0 0,1 39.5,24.5" stroke="#E67E22" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <path d="M24.5,39.5 A10.5,10.5 0 0,0 39.5,39.5" stroke="#E67E22" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        {/* Outer arcs */}
+        <path d="M20,20 A17,17 0 0,1 44,20" stroke="#E67E22" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        <path d="M20,44 A17,17 0 0,0 44,44" stroke="#E67E22" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    </svg>
+);
 
 const LoginHub = () => {
-    const { login, t, currentLang, changeLanguage, availableLanguages } = useAppContext();
+    const { login, currentLang, changeLanguage, availableLanguages } = useAppContext();
     const navigate = useNavigate();
-    const [workerInput, setWorkerInput] = useState("");
-    const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+    const [operatorId, setOperatorId] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [langOpen, setLangOpen] = useState(false);
 
     const currentLangData = availableLanguages.find(l => l.code === currentLang);
 
-    const handleKeyPress = (val) => {
-        if (workerInput.length < 6) {
-            setWorkerInput(prev => prev + val);
-        }
-        setError(null);
-    };
-
-    const handleDelete = () => {
-        setWorkerInput(prev => prev.slice(0, -1));
-        setError(null);
-    };
-
     const handleLogin = async () => {
-        if (workerInput.length < 3) {
-            setError('Enter at least 3 digits');
+        if (operatorId.trim().length < 3) {
+            setError('Enter at least 3 characters');
             return;
         }
         setLoading(true);
         setError(null);
         try {
-            const res = await apiLogin(workerInput);
+            const res = await apiLogin(operatorId.trim());
             if (res.success) {
-                login(workerInput, res.training_count ?? 0);
-                navigate('/dashboard');
+                login(operatorId.trim(), res.training_count ?? 0);
+                navigate('/site-selector');
             } else {
                 setError('Login failed. Try again.');
             }
         } catch (err) {
-            // If the backend is unreachable, still allow login (offline-first)
             console.warn('Backend unreachable, logging in offline:', err.message);
-            login(workerInput, 0);
-            navigate('/dashboard');
+            login(operatorId.trim(), 0);
+            navigate('/site-selector');
         } finally {
             setLoading(false);
         }
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleLogin();
+    };
+
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="p-4 sm:p-8 flex flex-col h-full items-center justify-center space-y-8 safe-area-pb"
+        <div
+            className="fixed inset-0 z-50 flex flex-col"
+            style={{ backgroundColor: '#0D1B2A' }}
+            onClick={() => setLangOpen(false)}
         >
-            <div className="text-center space-y-2 mt-8">
-                <BlurText text={t('welcome')} className="text-3xl font-bold text-matte-indigo" />
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8, duration: 0.5 }}
-                    className="text-slate-gray"
-                >
-                    {t('enter_id')}
-                </motion.p>
-            </div>
-
-            {/* Login Card */}
-            <motion.div
-                initial={{ y: 50, opacity: 0, scale: 0.95 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 100, damping: 20 }}
-                className="w-full max-w-sm bg-app-bg rounded-2xl p-6 shadow-2xl border border-slate-gray/30 relative overflow-hidden"
-            >
-                <div className="absolute inset-x-0 -top-10 h-20 bg-gradient-to-b from-white to-transparent opacity-50 pointer-events-none" />
-                <div className="w-full h-16 bg-white rounded-lg flex items-center justify-center text-3xl font-mono tracking-widest text-matte-indigo mb-4 border-b-2 border-slate-gray shadow-inner">
-                    {workerInput || "---"}
-                </div>
-
-                {/* Error message */}
-                <AnimatePresence>
-                    {error && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center gap-2 text-rust-red text-sm font-bold mb-3"
-                        >
-                            <AlertCircle size={16} />
-                            {error}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <Keypad
-                    onKeyPress={handleKeyPress}
-                    onDelete={handleDelete}
-                    onSubmit={handleLogin}
-                    submitLabel={loading ? '...' : t('login')}
-                    disabled={loading}
-                />
-            </motion.div>
-
-            {/* Language Hub Dropdown */}
-            <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="w-full max-w-sm px-2 mt-auto pb-4 relative"
-            >
+            {/* Language button — top right */}
+            <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
                 <div className="relative">
                     <button
-                        onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                        className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-gray/30 shadow-sm transition-colors hover:border-matte-indigo"
+                        onClick={() => setLangOpen(v => !v)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-white/20 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
                     >
-                        <div className="flex items-center gap-3">
-                            {currentLangData ? React.createElement(Flags[currentLangData.flag], { title: currentLangData.name, className: "w-6 h-6 rounded-sm shadow-sm" }) : <Globe size={24} className="text-matte-indigo" />}
-                            <span className="font-bold text-lg text-charcoal tracking-wide">
-                                {currentLangData ? currentLangData.name : "Select Language"}
-                            </span>
-                        </div>
-                        <motion.div animate={{ rotate: langDropdownOpen ? 180 : 0 }}>
-                            <ChevronDown size={20} className="text-slate-gray" />
-                        </motion.div>
+                        <Globe size={15} />
+                        <span>{currentLang.toUpperCase()}</span>
                     </button>
 
                     <AnimatePresence>
-                        {langDropdownOpen && (
+                        {langOpen && (
                             <motion.div
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                initial={{ opacity: 0, y: 6, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                transition={{ duration: 0.2 }}
-                                className="absolute bottom-full left-0 w-full mb-2 bg-white rounded-2xl shadow-2xl border border-slate-gray/20 overflow-hidden z-50 max-h-64 overflow-y-auto"
+                                exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-w-36 z-50"
                             >
-                                {availableLanguages.map((lang) => {
-                                    const Flag = Flags[lang.flag];
-                                    const isActive = currentLang === lang.code;
-                                    return (
-                                        <button
-                                            key={lang.code}
-                                            onClick={() => {
-                                                changeLanguage(lang.code);
-                                                setLangDropdownOpen(false);
-                                            }}
-                                            className={`w-full flex items-center justify-between p-4 hover:bg-slate-gray/10 transition-colors border-b border-slate-gray/10 last:border-0 ${isActive ? 'bg-deep-concrete/5 border-l-4 border-l-matte-indigo' : ''
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                {Flag && <Flag title={lang.name} className="w-8 h-8 rounded-md shadow-sm border border-slate-gray/10" />}
-                                                <span className={`font-bold text-lg ${isActive ? 'text-matte-indigo' : 'text-charcoal'}`}>
-                                                    {lang.name}
-                                                </span>
-                                            </div>
-                                            <span className="text-xs font-black text-slate-gray uppercase tracking-widest">{lang.flag}</span>
-                                        </button>
-                                    );
-                                })}
+                                {availableLanguages.map(lang => (
+                                    <button
+                                        key={lang.code}
+                                        onClick={() => { changeLanguage(lang.code); setLangOpen(false); }}
+                                        className={`w-full text-left px-4 py-3 text-sm font-semibold hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 ${currentLang === lang.code ? 'text-safety-orange' : 'text-gray-700'}`}
+                                    >
+                                        {lang.name}
+                                    </button>
+                                ))}
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+
+            {/* Centered content */}
+            <div className="flex-1 flex flex-col items-center justify-center px-5 gap-5">
+
+                {/* Logo card */}
+                <motion.div
+                    initial={{ y: -16, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="bg-white rounded-2xl px-10 py-7 flex flex-col items-center gap-3 shadow-2xl"
+                >
+                    <SiteMarshallLogo />
+                    <p className="text-base text-gray-700 tracking-wide">
+                        Site <strong className="text-gray-900">Marshall</strong>
+                    </p>
+                </motion.div>
+
+                {/* Login card */}
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.12, duration: 0.4 }}
+                    className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl"
+                >
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Clock In</h1>
+                    <p className="text-gray-400 text-sm mb-7">Enter your Operator ID to begin</p>
+
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                        Operator ID
+                    </label>
+                    <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 mb-2" style={{ backgroundColor: '#EEF2F7' }}>
+                        <IdCard size={20} className="text-gray-400 shrink-0" />
+                        <input
+                            type="text"
+                            value={operatorId}
+                            onChange={e => { setOperatorId(e.target.value); setError(null); }}
+                            onKeyDown={handleKeyDown}
+                            placeholder="e.g. OP-1234"
+                            autoFocus
+                            className="bg-transparent outline-none text-gray-700 placeholder-gray-400 w-full text-base"
+                        />
+                    </div>
+
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="flex items-center gap-2 text-red-500 text-sm mb-3 mt-1"
+                            >
+                                <AlertCircle size={15} />
+                                {error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <button
+                        onClick={handleLogin}
+                        disabled={loading}
+                        className="w-full mt-4 text-white font-bold text-base py-4 rounded-full flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{ backgroundColor: '#E67E22' }}
+                    >
+                        <span>👷</span>
+                        <span>{loading ? 'Logging in…' : 'Clock In'}</span>
+                    </button>
+                </motion.div>
+
+                {/* Footer hint */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-sm text-center"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                >
+                    First time? Contact your site supervisor to get access.
+                </motion.p>
+            </div>
+        </div>
     );
 };
 
