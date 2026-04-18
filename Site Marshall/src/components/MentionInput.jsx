@@ -23,10 +23,17 @@ const MentionInput = ({
         m.type.toLowerCase().includes(filter.toLowerCase())
     ).slice(0, 6);
 
-    // Sync clear from parent (e.g. after submit)
+    // Sync value from parent into the contenteditable div.
+    // This covers both clearing after submit (value='') and
+    // populating from voice transcription (value=transcribedText).
     useEffect(() => {
-        if (value === '' && editorRef.current) {
-            editorRef.current.innerHTML = '';
+        const el = editorRef.current;
+        if (!el) return;
+        if (value === '') {
+            el.innerHTML = '';
+        } else if (el.innerText !== value) {
+            // Only overwrite if the DOM is out of sync (avoids cursor jumps during typing)
+            el.innerText = value;
         }
     }, [value]);
 
