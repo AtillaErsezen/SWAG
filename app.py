@@ -34,6 +34,8 @@ import anthropic
 from openai import OpenAI
 from google import genai
 from google.genai import types as genai_types
+import smtplib
+from email.message import EmailMessage
 
 # ── Vector store (local, lightweight) ─────────────────────────────────────────
 from langchain_core.documents import Document
@@ -49,7 +51,7 @@ SWAG_ARCHIVES_PATH = "./output/markdown"
 SWAG_BRAIN_PATH    = "./swag_db"
 TRAINING_DB_PATH   = "./training_audit.db"
 
-CLAUDE_MODEL    = "claude-haiku-4-5-20251001"   # swap to claude-sonnet-4-6 for higher quality
+CLAUDE_MODEL    = "claude-opus-4-7"
 GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts"
 EMBEDDING_MODEL  = "all-MiniLM-L6-v2"
 CONFIDENCE_THRESHOLD = 0.4
@@ -57,6 +59,9 @@ CONFIDENCE_THRESHOLD = 0.4
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY    = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY    = os.getenv("GOOGLE_API_KEY")
+GMAIL_USER        = os.getenv("GMAIL_USER")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
+BUG_REPORT_TO     = os.getenv("BUG_REPORT_TO", "ersezenatilla@gmail.com")
 
 SUPPORTED_LANGUAGES: Dict[str, Dict] = {
     "eng_Latn": {"name": "English",    "flag": "EN"},
@@ -577,6 +582,44 @@ def training_count(user_id):
     try:
         return jsonify({"user_id": user_id, "count": get_user_training_count(user_id)})
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/bug-report', methods=['POST'])
+def bug_report():
+    data        = request.json
+    description = data.get('description', '').strip()
+    steps       = data.get('steps', '').strip()
+    user_id     = data.get('user_id', 'unknown')
+    user_email  = data.get('user_email', '').strip()
+
+    if not description:
+        return jsonify({"error": "Description required"}), 400
+
+    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
+        print(f"[BUG] No Gmail creds — report from {user_id}: {description[:80]}")
+        return jsonify({"success": True, "note": "logged_only"})
+
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = f"[Bug] {description[:60]}"
+        msg["From"]    = GMAIL_USER
+        msg["To"]      = BUG_REPORT_TO
+        if user_email:
+            msg["Reply-To"] = user_email
+        body = f"User: {user_id}\nEmail: {user_email or 'not provided'}\n\nDescription:\n{description}"
+        if steps:
+            body += f"\n\nSteps to reproduce:\n{steps}"
+        msg.set_content(body)
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+            smtp.send_message(msg)
+
+        print(f"[BUG] Email sent — user={user_id}")
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"[BUG] Email failed: {e}")
         return jsonify({"error": str(e)}), 500
 
 

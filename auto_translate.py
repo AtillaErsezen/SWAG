@@ -24,7 +24,7 @@ for i in range(0, len(strings), chunk_size):
     prompt += json.dumps(chunk)
     
     msg = client.messages.create(
-        model="claude-3-5-sonnet-20241022",
+        model="claude-opus-4-7",
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}]
     )

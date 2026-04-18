@@ -214,3 +214,6 @@ dataset/
 #added to avoid macos files(Cagan's computer)
 __MACOSX/ 
 Flutter/
+Desktop
+SWAG
+training_audit.db

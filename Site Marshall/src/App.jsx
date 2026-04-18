@@ -16,6 +16,7 @@ import Academy from './screens/Academy';
 import PreShiftChecklist from './screens/PreShiftChecklist';
 import SupervisorDashboard from './screens/SupervisorDashboard';
 import IncidentReport from './screens/IncidentReport';
+import BugReport from './screens/BugReport';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="machine/:id/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
             <Route path="supervisor" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
             <Route path="incident" element={<ProtectedRoute><IncidentReport /></ProtectedRoute>} />
+            <Route path="bug-report" element={<ProtectedRoute><BugReport /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

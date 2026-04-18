@@ -117,6 +117,13 @@ export const verifyLog = (logId) =>
     POST(`/api/verify/${logId}`, {});
 
 /**
+ * Submit a bug report — emailed via Resend.
+ * @param {{ description: string, steps: string, userId: string }} params
+ */
+export const submitBugReport = ({ description, steps, userId, userEmail }) =>
+    POST('/api/bug-report', { description, steps, user_id: userId, user_email: userEmail });
+
+/**
  * Classify an image using the YOLO model.
  * @param {Blob|File} imageBlob
  * @returns {{ success, detections: [{class, confidence}], ambiguous, count }}

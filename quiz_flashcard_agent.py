@@ -20,7 +20,7 @@ load_dotenv()
 
 MARKDOWN_DIR = Path("output/markdown")
 QUIZZES_DIR = Path("output/quizzes")
-MODEL = "claude-opus-4-6"
+MODEL = "claude-opus-4-7"
 
 SYSTEM_PROMPT = """You are an expert instructional designer who creates high-quality educational materials from technical documents.
 
