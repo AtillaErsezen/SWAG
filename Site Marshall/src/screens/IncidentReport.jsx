@@ -6,7 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio } from '../services/api';
 
-const REPORT_TYPES = ['Near-Miss', 'Incident', 'Unsafe Condition'];
+const REPORT_TYPES = ['near_miss', 'incident', 'unsafe_condition'];
 
 const now = () => {
     const d = new Date();
@@ -16,9 +16,9 @@ const now = () => {
 
 const IncidentReport = () => {
     const navigate = useNavigate();
-    const { workerId, activeSite } = useAppContext();
+    const { workerId, activeSite, t } = useAppContext();
 
-    const [reportType, setReportType] = useState('Incident');
+    const [reportType, setReportType] = useState('incident');
     const [machineId, setMachineId] = useState('');
     const [description, setDescription] = useState('');
     const [photo, setPhoto] = useState(null);
@@ -72,8 +72,8 @@ const IncidentReport = () => {
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}
                     className="bg-white p-8 rounded-3xl flex flex-col items-center shadow-2xl">
                     <CheckCircle size={72} className="text-green-500 mb-4" />
-                    <p className="text-2xl font-black text-gray-800">Report Submitted</p>
-                    <p className="text-sm text-gray-500 mt-2">Visible to your KAM coordinator only.</p>
+                    <p className="text-2xl font-black text-gray-800">{t('report_submitted')}</p>
+                    <p className="text-sm text-gray-500 mt-2">{t('visible_to_kam')}</p>
                 </motion.div>
             </div>
         );
@@ -94,7 +94,7 @@ const IncidentReport = () => {
                 <div className="px-6 pb-6 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
                     {/* Header */}
                     <div className="pb-4 pt-1 flex items-center justify-between">
-                        <h1 className="text-2xl font-black text-slate-800">Report Issue</h1>
+                        <h1 className="text-2xl font-black text-slate-800">{t('report_issue')}</h1>
                         <button 
                             onClick={() => navigate('/scanner')}
                             className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all"
@@ -105,7 +105,7 @@ const IncidentReport = () => {
 
                     {/* Report Type */}
                     <div className="mb-6">
-                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>Report Type</p>
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>{t('report_type')}</p>
                         <div className="flex gap-2">
                             {REPORT_TYPES.map(type => (
                                 <button key={type} onClick={() => setReportType(type)}
@@ -116,7 +116,7 @@ const IncidentReport = () => {
                                         color: reportType === type ? 'white' : '#64748B',
                                         border: reportType === type ? '1px solid #E67E22' : '1px solid #E2E8F0',
                                     }}>
-                                    {type}
+                                    {t(type)}
                                 </button>
                             ))}
                         </div>
@@ -125,7 +125,7 @@ const IncidentReport = () => {
                     {/* Machine / Equipment */}
                     <div className="mb-6">
                         <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>
-                            Machine / Equipment <span className="text-gray-400 normal-case font-semibold">(Optional)</span>
+                            {t('report_machine')} <span className="text-gray-400 normal-case font-semibold">({t('report_optional')})</span>
                         </p>
                         <div className="relative">
                             <select
@@ -134,8 +134,8 @@ const IncidentReport = () => {
                                 className="w-full appearance-none px-4 py-3.5 text-sm font-medium focus:outline-none"
                                 style={{ backgroundColor: '#EEF2F7', color: machineId ? '#333' : '#9ca3af', border: 'none', borderRadius: '14px' }}
                             >
-                                <option value="" disabled className="text-gray-400">Select machine</option>
-                                <option value="none">None</option>
+                                <option value="" disabled className="text-gray-400">{t('report_select_machine')}</option>
+                                <option value="none">{t('report_none')}</option>
                                 {machineDB.map(m => (
                                     <option key={m.id} value={m.id} className="text-gray-800">{m.model}</option>
                                 ))}
@@ -146,12 +146,12 @@ const IncidentReport = () => {
 
                     {/* Description */}
                     <div className="mb-6">
-                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>Description</p>
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>{t('report_desc')}</p>
                         <div className="flex gap-2 items-stretch">
                             <textarea
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
-                                placeholder="Describe exactly what happened..."
+                                placeholder={t('report_desc_placeholder')}
                                 className="flex-1 px-4 py-3.5 text-sm font-medium placeholder-gray-400 resize-none focus:outline-none"
                                 style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }}
                             />
@@ -183,7 +183,7 @@ const IncidentReport = () => {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <MapPin size={12} className="text-gray-400" />
-                                <span>{activeSite?.name ?? 'Unknown Site'}</span>
+                                <span>{activeSite?.name ?? t('report_unknown_site')}</span>
                             </div>
                         </div>
                     </div>
@@ -199,7 +199,7 @@ const IncidentReport = () => {
                                 ? <img src={photo} alt="attached" className="w-full h-32 object-cover rounded-xl mt-[-20px] mb-[-20px]" />
                                 : <>
                                     <Camera size={26} style={{ color: '#E67E22' }} />
-                                    <span className="text-xs font-bold" style={{ color: '#E67E22' }}>Tap to attach a photo</span>
+                                    <span className="text-xs font-bold" style={{ color: '#E67E22' }}>{t('report_tap_photo')}</span>
                                   </>
                             }
                         </button>
@@ -210,13 +210,13 @@ const IncidentReport = () => {
                         <button onClick={handleSubmit} disabled={!description.trim()}
                             className="w-full py-3.5 rounded-full text-white font-black text-sm transition-all active:scale-[0.98] disabled:opacity-40"
                             style={{ backgroundColor: '#E67E22' }}>
-                            Submit Report
+                            {t('submit_report')}
                         </button>
                         <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case hidden sm:block">
-                            Submitted reports are visible to your KAM coordinator only.
+                            {t('submitted_visible_kam')}
                         </p>
                         <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case sm:hidden">
-                            Submitted reports are visible to your KAM coordinator only.
+                            {t('submitted_visible_kam')}
                         </p>
                     </div>
                 </div>

@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { machineDB } from '../data/mockData';
 
-const getGreeting = () => {
+const getGreeting = (t) => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return t('good_morning');
+    if (h < 17) return t('good_afternoon');
+    return t('good_evening');
 };
 
 const formatDate = () =>
@@ -27,7 +27,7 @@ const shortName = (model) => {
 };
 
 const SiteSelector = () => {
-    const { workerId, sites, setActiveSite } = useAppContext();
+    const { workerId, sites, setActiveSite, t } = useAppContext();
     const navigate = useNavigate();
     const [selectedSite, setSelectedSite] = useState(null);
 
@@ -52,7 +52,7 @@ const SiteSelector = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-2xl font-bold text-white"
                     >
-                        {getGreeting()}, {workerId}
+                        {getGreeting(t)}, {workerId}
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0 }}
@@ -79,7 +79,7 @@ const SiteSelector = () => {
             {/* Content */}
             <div className="flex-1 px-4 pt-6 pb-32">
                 <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-4 border border-safety-orange/30 rounded-full py-1 px-3 inline-block bg-orange-50">
-                    Select Today's Site
+                    {t('select_site')}
                 </p>
 
                 {/* Site list */}
@@ -133,7 +133,7 @@ const SiteSelector = () => {
                             className="mt-6"
                         >
                             <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-3">
-                                Machines Today
+                                {t('machines_today')}
                             </p>
                             <div className="flex flex-wrap gap-2">
                                 {siteMachines.map(machine => (
@@ -165,7 +165,7 @@ const SiteSelector = () => {
                             className="w-full text-white font-bold text-lg py-4 rounded-full hover:opacity-90 transition-opacity"
                             style={{ backgroundColor: '#E67E22' }}
                         >
-                            Start Shift
+                            {t('start_shift')}
                         </button>
                     </motion.div>
                 )}

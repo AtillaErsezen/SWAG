@@ -19,6 +19,7 @@ const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
 // ─── Multiple-Choice Quiz Component ──────────────────────────────────────────
 const MultipleChoiceQuiz = ({ cards }) => {
+    const { t } = useAppContext();
     const [qIndex, setQIndex] = useState(0);
     const [selected, setSelected] = useState(null);   // index of chosen option
     const [revealed, setRevealed] = useState(false);  // answer revealed?
@@ -74,10 +75,10 @@ const MultipleChoiceQuiz = ({ cards }) => {
 
                 <div className="text-center">
                     <h3 className="text-2xl font-black text-matte-indigo mb-1">
-                        {passed ? 'Well done!' : 'Keep studying'}
+                        {passed ? t('well_done') : t('keep_studying')}
                     </h3>
                     <p className="text-slate-gray font-medium">
-                        {score} of {total} correct
+                        {score} {t('of')} {total} {t('correct')}
                     </p>
                 </div>
 
@@ -89,10 +90,10 @@ const MultipleChoiceQuiz = ({ cards }) => {
                                 {c._userAnswer === c.correct ? '✓' : '✗'}
                             </span>
                             <div className="min-w-0">
-                                <p className="text-sm font-bold text-charcoal leading-snug">{c.q}</p>
+                                <p className="text-sm font-bold text-charcoal leading-snug">{t(c.q)}</p>
                                 {c._userAnswer !== c.correct && (
                                     <p className="text-xs text-rust-red mt-1 font-medium">
-                                        Correct: {c.options[c.correct]}
+                                        {t('correct_label')} {c.options[c.correct]}
                                     </p>
                                 )}
                             </div>
@@ -105,7 +106,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
                     className="w-full py-5 bg-matte-indigo text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform flex items-center justify-center gap-3"
                 >
                     <RotateCcw size={22} />
-                    RETAKE QUIZ
+                    {t('retake_quiz')}
                 </button>
             </motion.div>
         );
@@ -140,10 +141,10 @@ const MultipleChoiceQuiz = ({ cards }) => {
             {/* Question card */}
             <div className="bg-white rounded-[2rem] p-7 shadow-sm border border-slate-gray/20">
                 <span className="text-safety-orange font-black text-xs uppercase tracking-widest mb-3 block">
-                    Question {qIndex + 1}
+                    {t('question')} {qIndex + 1}
                 </span>
                 <h3 className="text-xl font-black text-matte-indigo leading-snug">
-                    {card.q}
+                    {t(card.q)}
                 </h3>
             </div>
 
@@ -183,7 +184,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
                             >
                                 {OPTION_LABELS[i]}
                             </span>
-                            <span className="flex-1 leading-snug">{opt}</span>
+                            <span className="flex-1 leading-snug">{t(opt)}</span>
                             {revealed && isCorrect && <CheckCircle size={22} className="flex-shrink-0 text-sage-green" />}
                             {revealed && isSelected && !isCorrect && <XCircle size={22} className="flex-shrink-0 text-rust-red" />}
                         </motion.button>
@@ -203,7 +204,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
                         disabled={selected === null}
                         className="w-full py-5 bg-matte-indigo text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        CONFIRM ANSWER
+                        {t('confirm_answer')}
                     </motion.button>
                 ) : (
                     <motion.button
@@ -214,14 +215,14 @@ const MultipleChoiceQuiz = ({ cards }) => {
                         onClick={handleNext}
                         className="w-full py-5 bg-safety-orange text-white font-black text-lg rounded-2xl shadow-md active:scale-95 transition-transform"
                     >
-                        {qIndex < total - 1 ? 'NEXT QUESTION →' : 'SEE RESULTS'}
+                        {qIndex < total - 1 ? t('next_question') : t('see_results')}
                     </motion.button>
                 )}
             </AnimatePresence>
 
             {/* Live score chip */}
             <div className="flex items-center justify-center gap-2">
-                <span className="text-xs text-slate-gray font-medium">Score so far:</span>
+                <span className="text-xs text-slate-gray font-medium">{t('score_so_far')}</span>
                 <span className="text-sm font-black text-matte-indigo">
                     {score} / {qIndex + (revealed ? 1 : 0)}
                 </span>
@@ -264,7 +265,7 @@ const Academy = () => {
         setView('study');
         setCurCard(0);
         setIsFlipped(false);
-        setChatLog([{ type: 'ai', text: `Marshall AI: Welcome to your training session on "${section.title}". What aspect of this topic would you like to explore first?` }]);
+        setChatLog([{ type: 'ai', text: `Marshall AI: Welcome to your training session on "${t(section.title)}". What aspect of this topic would you like to explore first?` }]);
     };
 
     const handleChatSubmit = (e) => {
@@ -274,7 +275,7 @@ const Academy = () => {
         setChatLog(newLog);
         setChatInput('');
         setTimeout(() => {
-            setChatLog([...newLog, { type: 'ai', text: `Marshall AI: That's an insightful question about ${activeSection.title}. ${activeSection.qChatContext} How does this affect your approach to safe machine operation?` }]);
+            setChatLog([...newLog, { type: 'ai', text: `Marshall AI: That's an insightful question about ${t(activeSection.title)}. ${t(activeSection.qChatContext)} How does this affect your approach to safe machine operation?` }]);
         }, 1000);
     };
 
@@ -288,7 +289,7 @@ const Academy = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">The Academy</h2>
+                    <h2 className="text-xl font-bold tracking-tight">{t('the_academy')}</h2>
                     <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{machine.model}</p>
                 </div>
             </div>
@@ -303,7 +304,7 @@ const Academy = () => {
                             exit={{ opacity: 0, x: -20 }}
                             className="p-4 sm:p-6 pb-32 space-y-4"
                         >
-                            {units.length === 0 && <p className="text-slate-gray text-center mt-10">No training modules available for this machine.</p>}
+                            {units.length === 0 && <p className="text-slate-gray text-center mt-10">{t('no_training_modules')}</p>}
                             {units.map((unit) => {
                                 const isExpanded = expandedUnits[unit.id] || false;
                                 return (
@@ -315,7 +316,7 @@ const Academy = () => {
                                             <div className="flex items-center gap-3">
                                                 {unit.completed ? <CheckCircle size={22} className="text-sage-green flex-shrink-0" /> : <Layers size={22} className="text-safety-orange flex-shrink-0" />}
                                                 <div className="text-left">
-                                                    <h3 className="text-lg font-black text-matte-indigo leading-tight">{unit.title}</h3>
+                                                    <h3 className="text-lg font-black text-matte-indigo leading-tight">{t(unit.title)}</h3>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <div className="w-24 h-1.5 bg-slate-gray/10 rounded-full overflow-hidden">
                                                             <div
@@ -355,7 +356,7 @@ const Academy = () => {
                                                                 <div className="flex justify-between items-center w-full">
                                                                     <div className="flex items-center gap-2 pr-3 min-w-0">
                                                                         {section.completed && <CheckCircle size={16} className="text-sage-green flex-shrink-0" />}
-                                                                        <span className={`font-bold text-base leading-snug truncate ${section.completed ? 'opacity-50' : ''}`}>{section.id} {section.title}</span>
+                                                                        <span className={`font-bold text-base leading-snug truncate ${section.completed ? 'opacity-50' : ''}`}>{section.id} {t(section.title)}</span>
                                                                     </div>
                                                                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                                                                         <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${style.bg} ${style.text}`}>
@@ -367,7 +368,7 @@ const Academy = () => {
                                                                 <div className="w-full h-1 bg-slate-gray/10 rounded-full overflow-hidden">
                                                                     <div className="h-full bg-matte-indigo/30" style={{ width: `${section.progress}%` }} />
                                                                 </div>
-                                                                <p className="text-slate-gray text-xs line-clamp-2 leading-relaxed">{section.content}</p>
+                                                                <p className="text-slate-gray text-xs line-clamp-2 leading-relaxed">{t(section.content)}</p>
                                                             </motion.button>
                                                         );
                                                     })}
@@ -391,9 +392,9 @@ const Academy = () => {
                             {/* Study Mode Tabs */}
                             <div className="flex bg-white shadow-sm border-b border-slate-gray/20 px-2 py-3 gap-2 overflow-x-auto hide-scrollbar sticky top-0 z-10">
                                 {[
-                                    { id: 'summary', icon: FileText, label: 'Summary' },
-                                    { id: 'learn', icon: BookOpen, label: 'Learn' },
-                                    { id: 'test', icon: Play, label: 'Test' }
+                                    { id: 'summary', icon: FileText, label: t('summary') },
+                                    { id: 'learn', icon: BookOpen, label: t('learn') },
+                                    { id: 'test', icon: Play, label: t('test') }
                                 ].map(tab => (
                                     <button
                                         key={tab.id}
@@ -415,12 +416,12 @@ const Academy = () => {
                                 {studyMode === 'summary' && (
                                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-6">
                                         <div className={`p-6 bg-white rounded-[2rem] shadow-sm border-2 ${getCriticalityStyle(activeSection.criticality).border}`}>
-                                            <h4 className="font-black text-2xl mb-4 text-matte-indigo">Quick Summary</h4>
-                                            <p className="text-charcoal font-medium text-lg leading-relaxed">{activeSection.summary}</p>
+                                            <h4 className="font-black text-2xl mb-4 text-matte-indigo">{t('quick_summary')}</h4>
+                                            <p className="text-charcoal font-medium text-lg leading-relaxed">{t(activeSection.summary)}</p>
                                         </div>
                                         <div className="p-6 bg-deep-concrete/5 rounded-[2rem]">
-                                            <h4 className="font-bold text-slate-gray mb-2 uppercase tracking-widest text-xs">Full Manual Excerpt</h4>
-                                            <p className="text-charcoal leading-relaxed">{activeSection.content}</p>
+                                            <h4 className="font-bold text-slate-gray mb-2 uppercase tracking-widest text-xs">{t('full_manual_excerpt')}</h4>
+                                            <p className="text-charcoal leading-relaxed">{t(activeSection.content)}</p>
                                         </div>
                                     </motion.div>
                                 )}
@@ -428,7 +429,7 @@ const Academy = () => {
 {studyMode === 'learn' && activeSection.learnCards && activeSection.learnCards.length > 0 && (
                                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm flex flex-col items-center h-full justify-center pb-20">
                                         <div className="text-sm font-bold text-slate-gray mb-8 uppercase tracking-widest">
-                                            Card {curCard + 1} of {activeSection.learnCards.length}
+                                            {t('card')} {curCard + 1} {t('of')} {activeSection.learnCards.length}
                                         </div>
 
                                         {/* Flashcard Container */}
@@ -447,7 +448,7 @@ const Academy = () => {
                                                     className="w-full h-full absolute inset-0 backface-hidden bg-white text-matte-indigo rounded-[2rem] p-8 flex items-center justify-center text-center border-2 border-slate-gray/10"
                                                     style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}
                                                 >
-                                                    <h3 className="text-3xl font-black leading-tight">{activeSection.learnCards[curCard].q}</h3>
+                                                    <h3 className="text-3xl font-black leading-tight">{t(activeSection.learnCards[curCard].q)}</h3>
                                                 </div>
 
                                                 {/* Back Side */}
@@ -460,7 +461,7 @@ const Academy = () => {
                                                     }}
                                                 >
                                                     <p className="text-2xl font-medium leading-relaxed">
-                                                        {activeSection.learnCards[curCard].a}
+                                                        {t(activeSection.learnCards[curCard].a)}
                                                     </p>
                                                 </div>
                                             </motion.div>
@@ -484,7 +485,7 @@ const Academy = () => {
                                                         }}
                                                         className="w-full py-5 bg-safety-orange text-white font-black text-xl rounded-2xl shadow-md active:scale-95 transition-transform"
                                                     >
-                                                        {curCard < activeSection.learnCards.length - 1 ? 'NEXT CARD' : 'RESTART DECK'}
+                                                        {curCard < activeSection.learnCards.length - 1 ? t('next_card') : t('restart_deck')}
                                                     </motion.button>
                                                 )}
                                             </AnimatePresence>
@@ -507,9 +508,9 @@ const Academy = () => {
                                                         <Trophy size={24} className="text-matte-indigo" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-black text-matte-indigo text-base leading-tight">Knowledge Check</h4>
+                                                        <h4 className="font-black text-matte-indigo text-base leading-tight">{t('knowledge_check')}</h4>
                                                         <p className="text-slate-gray text-xs mt-0.5">
-                                                            {activeSection.learnCards.length} multiple-choice questions · pass at 70%
+                                                            {activeSection.learnCards.length} {t('mcq_pass_70')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -522,7 +523,7 @@ const Academy = () => {
                                             </>
                                         ) : (
                                             <div className="text-center text-slate-gray mt-10 font-medium">
-                                                No quiz questions available for this section yet.
+                                                {t('no_quiz_questions')}
                                             </div>
                                         )}
                                     </motion.div>

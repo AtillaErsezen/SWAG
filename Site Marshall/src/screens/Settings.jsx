@@ -31,7 +31,7 @@ const Toggle = ({ label, icon: Icon, defaultChecked = false }) => {
 
 const Settings = () => {
     const navigate = useNavigate();
-    const { logout } = useAppContext();
+    const { logout, t } = useAppContext();
 
     const handleLogout = () => {
         logout();
@@ -48,23 +48,23 @@ const Settings = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">System Settings</h2>
+                    <h2 className="text-xl font-bold tracking-tight">{t('settings_system')}</h2>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-20">
 
                 <div className="space-y-4">
-                    <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest pl-2">Preferences</h3>
-                    <Toggle label="Text-To-Speech Audio" icon={Volume2} defaultChecked={true} />
-                    <Toggle label="Offline Mode Cache" icon={WifiOff} defaultChecked={false} />
-                    <Toggle label="High Contrast Layout" icon={Layout} defaultChecked={false} />
+                    <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest pl-2">{t('settings_prefs')}</h3>
+                    <Toggle label={t('settings_tts')} icon={Volume2} defaultChecked={true} />
+                    <Toggle label={t('settings_offline_cache')} icon={WifiOff} defaultChecked={false} />
+                    <Toggle label={t('settings_high_contrast')} icon={Layout} defaultChecked={false} />
                 </div>
 
                 <div className="space-y-4 pt-4">
-                    <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest pl-2">Notifications</h3>
-                    <Toggle label="Push Alerts" icon={Bell} defaultChecked={true} />
-                    <Toggle label="Safety Digests" icon={Shield} defaultChecked={true} />
+                    <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest pl-2">{t('settings_notifications')}</h3>
+                    <Toggle label={t('settings_push_alerts')} icon={Bell} defaultChecked={true} />
+                    <Toggle label={t('settings_safety_digests')} icon={Shield} defaultChecked={true} />
                 </div>
 
                 <div className="pt-8 w-full max-w-sm mx-auto">
@@ -73,7 +73,7 @@ const Settings = () => {
                         className="w-full py-5 bg-rust-red/10 text-rust-red border-2 border-rust-red/30 rounded-3xl font-black text-xl flex items-center justify-center gap-3 shadow-sm hover:bg-rust-red hover:text-white transition-colors active:scale-95"
                     >
                         <LogOut size={24} />
-                        LOG OUT WORKER
+                        {t('settings_logout')}
                     </button>
                 </div>
 

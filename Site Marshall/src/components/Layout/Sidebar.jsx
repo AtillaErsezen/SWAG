@@ -39,7 +39,7 @@ const Sidebar = () => {
                         <div className="p-4 flex items-center justify-between border-b border-deep-concrete">
                             <div className="flex items-center gap-2">
                                 <ShieldAlert className="text-safety-orange" />
-                                <h2 className="text-xl font-bold">Fleet Drawer</h2>
+                                <h2 className="text-xl font-bold">{t('fleet_drawer')}</h2>
                             </div>
                             <button
                                 onClick={toggleSidebar}
@@ -53,7 +53,7 @@ const Sidebar = () => {
                         {workerId ? (
                             <div className="flex-1 overflow-y-auto py-4">
                                 <div className="px-4 text-xs font-semibold text-slate-gray uppercase tracking-wider mb-2">
-                                    My Active Machines
+                                    {t('my_active_machines')}
                                 </div>
                                 <ul className="space-y-1">
                                     {machineDB.map((machine) => (
@@ -87,7 +87,7 @@ const Sidebar = () => {
                                 {/* Gamification Badges */}
                                 <div className="px-4 py-4 mt-2 border-t border-deep-concrete">
                                     <div className="text-xs font-semibold text-slate-gray uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        <Award size={14} /> Earned Certifications
+                                        <Award size={14} /> {t('earned_certs')}
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {machineDB.flatMap(m =>
@@ -99,14 +99,14 @@ const Sidebar = () => {
                                             ))
                                         )}
                                         {machineDB.flatMap(m => (m.units || []).filter(u => u.completed)).length === 0 && (
-                                            <p className="text-[10px] text-slate-gray italic">Complete all sections in a unit to earn a certification badge.</p>
+                                            <p className="text-[10px] text-slate-gray italic">{t('earn_cert_msg')}</p>
                                         )}
                                     </div>
                                 </div>
                             </div>
                         ) : (
                             <div className="p-8 text-center text-slate-gray">
-                                Please log in to view your assigned fleet.
+                                {t('please_login_fleet')}
                             </div>
                         )}
 
@@ -119,7 +119,7 @@ const Sidebar = () => {
                                 className="w-full flex items-center gap-3 p-3 hover:bg-deep-concrete rounded-md transition-colors text-left"
                             >
                                 <Settings size={20} className="text-slate-gray" />
-                                <span>Settings & Profile</span>
+                                <span>{t('settings_profile')}</span>
                             </button>
                         </div>
                     </motion.div>

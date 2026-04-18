@@ -1,105 +1,120 @@
 #!/usr/bin/env python3
 """
-SWAG FLASK API v1.0
-Safe Walk Augmented Generation - Flask Backend
+SWAG FLASK API v2.0
+Safe Walk Augmented Generation - Flask Backend (API Edition)
 
-Features:
-- RESTful API for safety queries
-- Audio processing (Whisper STT)
-- Multi-language translation (NLLB)
-- RAG pipeline (ChromaDB + Llama3 int8/Q8_0)
-- Training audit logging (SQLite)
-- Text-to-Speech (gTTS)
-
-- image classification display probs only when not so sure
-- optimize llama3.2:1b answer generation
-- make llama3 always output exactly 3 items, 1 for each category?
-- better ui
-- test with real life images
-
-Run:
-    python app.py
-    or
-    flask run --host=0.0.0.0 --port=5000
+AI Stack:
+- STT  : OpenAI Whisper API (whisper-1)
+- LLM  : Anthropic Claude  (answers + translation)
+- TTS  : Google Gemini Flash TTS
+- RAG  : ChromaDB + all-MiniLM-L6-v2 embeddings (local, lightweight)
+- YOLO : local classification model (unchanged)
 """
 import os
 from dotenv import load_dotenv
-
-# Load environment variables from .env
 load_dotenv()
 
 import io
+import wave
 import json
 import base64
 import tempfile
-import hashlib
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, List, Tuple
-from flask import Flask, request, jsonify, send_from_directory, render_template_string
+from typing import Dict, List, Tuple
+
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sqlite3
-# text to speech
-from gtts import gTTS
-# speech to text
-from faster_whisper import WhisperModel
-# Translation
-import ctranslate2
-import sentencepiece as spm
-from huggingface_hub import snapshot_download
+
+# ── API clients ───────────────────────────────────────────────────────────────
+import anthropic
+from openai import OpenAI
+from google import genai
+from google.genai import types as genai_types
+
+# ── Vector store (local, lightweight) ─────────────────────────────────────────
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_community.llms import Ollama
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-SWAG_MATRIX_PATH = "./output/classified/all_classified.json"
+SWAG_MATRIX_PATH   = "./output/classified/all_classified.json"
 SWAG_ARCHIVES_PATH = "./output/markdown"
-SWAG_BRAIN_PATH = "./swag_db"
-SWAG_MODELS_PATH = "./swag_models" #nllb models
-TRAINING_DB_PATH = "./training_audit.db"
-OLLAMA_MODEL = "llama3.2:1b-instruct-q4_K_M"  # int4 / Q4_K_M quantization
-# OLLAMA_HOST may be set to 0.0.0.0 (server bind address) which is not a valid
-# client connection target. Always connect to localhost explicitly.
-OLLAMA_BASE_URL = "http://localhost:11434"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-WHISPER_MODEL = "large-v3"#FIXME faster-whisper?
+SWAG_BRAIN_PATH    = "./swag_db"
+TRAINING_DB_PATH   = "./training_audit.db"
+
+CLAUDE_MODEL    = "claude-haiku-4-5-20251001"   # swap to claude-sonnet-4-6 for higher quality
+GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts"
+EMBEDDING_MODEL  = "all-MiniLM-L6-v2"
 CONFIDENCE_THRESHOLD = 0.4
+
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+OPENAI_API_KEY    = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY    = os.getenv("GOOGLE_API_KEY")
+
 SUPPORTED_LANGUAGES: Dict[str, Dict] = {
-    "eng_Latn": {"name": "English", "flag": "EN", "tts": "en"},
-    "nld_Latn": {"name": "Dutch", "flag": "NL", "tts": "nl"},
-    "fra_Latn": {"name": "French", "flag": "FR", "tts": "fr"},
-    "deu_Latn": {"name": "German", "flag": "DE", "tts": "de"},
-    "pol_Latn": {"name": "Polish", "flag": "PL", "tts": "pl"},
-    "tur_Latn": {"name": "Turkish", "flag": "TR", "tts": "tr"},
-    "ron_Latn": {"name": "Romanian", "flag": "RO", "tts": "ro"},
-    "por_Latn": {"name": "Portuguese", "flag": "PT", "tts": "pt"},
-    "spa_Latn": {"name": "Spanish", "flag": "ES", "tts": "es"},
+    "eng_Latn": {"name": "English",    "flag": "EN"},
+    "nld_Latn": {"name": "Dutch",      "flag": "NL"},
+    "fra_Latn": {"name": "French",     "flag": "FR"},
+    "deu_Latn": {"name": "German",     "flag": "DE"},
+    "pol_Latn": {"name": "Polish",     "flag": "PL"},
+    "tur_Latn": {"name": "Turkish",    "flag": "TR"},
+    "ron_Latn": {"name": "Romanian",   "flag": "RO"},
+    "por_Latn": {"name": "Portuguese", "flag": "PT"},
+    "spa_Latn": {"name": "Spanish",    "flag": "ES"},
 }
-#label mapping
+
+NLLB_TO_NAME = {k: v["name"] for k, v in SUPPORTED_LANGUAGES.items()}
+
+# Whisper API returns ISO 639-1 short codes → map to NLLB
 WHISPER_TO_NLLB = {
     "en": "eng_Latn", "nl": "nld_Latn", "fr": "fra_Latn", "de": "deu_Latn",
     "pl": "pol_Latn", "tr": "tur_Latn", "ro": "ron_Latn", "pt": "por_Latn",
     "es": "spa_Latn",
 }
+
 app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend communication TODO change to localhost only one day
-# Global model cache
+CORS(app)
+
 models_cache = {}
-_yolo_lock = threading.Lock()
+_yolo_lock   = threading.Lock()
+
+# ── Lazy API clients ──────────────────────────────────────────────────────────
+_anthropic_client = None
+_openai_client    = None
+_gemini_client    = None
+
+def get_anthropic():
+    global _anthropic_client
+    if _anthropic_client is None:
+        _anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    return _anthropic_client
+
+def get_openai():
+    global _openai_client
+    if _openai_client is None:
+        _openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    return _openai_client
+
+def get_gemini():
+    global _gemini_client
+    if _gemini_client is None:
+        _gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
+    return _gemini_client
+
 # ============================================================================
-# DATABASE FUNCTIONS
+# DATABASE
 # ============================================================================
 
 def init_database():
-    """Initialize training audit database."""
     conn = sqlite3.connect(TRAINING_DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS training_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
@@ -118,24 +133,15 @@ def init_database():
     conn.close()
 
 
-def log_training(user_id: str, language: str, question: str, answer: str, 
-                 category: str, confidence: float) -> int:
-    """Log training interaction and return log ID."""
+def log_training(user_id, language, question, answer, category, confidence) -> int:
     conn = sqlite3.connect(TRAINING_DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO training_logs 
+        INSERT INTO training_logs
         (timestamp, user_id, language, question, answer, category, confidence_score, verified)
         VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-    """, (
-        datetime.now().isoformat(),
-        user_id,
-        language,
-        question[:500],
-        answer[:1000],
-        category,
-        confidence
-    ))
+    """, (datetime.now().isoformat(), user_id, language,
+          question[:500], answer[:1000], category, confidence))
     log_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -143,567 +149,422 @@ def log_training(user_id: str, language: str, question: str, answer: str,
 
 
 def verify_training(log_id: int):
-    """Mark training as verified/confirmed."""
     conn = sqlite3.connect(TRAINING_DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE training_logs 
-        SET verified = 1, verified_at = ?
-        WHERE id = ?
-    """, (datetime.now().isoformat(), log_id))
+    conn.execute("UPDATE training_logs SET verified=1, verified_at=? WHERE id=?",
+                 (datetime.now().isoformat(), log_id))
     conn.commit()
     conn.close()
 
 
 def get_user_training_count(user_id: str) -> int:
-    """Get number of verified trainings for user."""
     conn = sqlite3.connect(TRAINING_DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT COUNT(*) FROM training_logs WHERE user_id = ? AND verified = 1",
-        (user_id,)
-    )
+    cursor.execute("SELECT COUNT(*) FROM training_logs WHERE user_id=? AND verified=1", (user_id,))
     count = cursor.fetchone()[0]
     conn.close()
     return count
 
-def load_whisper():
-    """Load Whisper model (cached)."""
-    if 'whisper' not in models_cache:
-        # Using 'tiny' model for speed - can be changed to 'base', 'small', 'medium', 'large-v3'
-        print(f"Loading Whisper model: tiny (fast startup)...")
-        models_cache['whisper'] = WhisperModel("tiny", device="cpu", compute_type="int8") # TODO: more quantization?
-    return models_cache['whisper']
-
+# ============================================================================
+# LOCAL MODEL LOADERS  (embeddings, vectorstore, YOLO — no LLM/STT/TTS)
+# ============================================================================
 
 def load_embeddings():
-    """Load embedding model (cached)."""
     if 'embeddings' not in models_cache:
-        print(f"Loading embeddings model: {EMBEDDING_MODEL}...")
+        print(f"Loading embeddings: {EMBEDDING_MODEL}...")
         models_cache['embeddings'] = HuggingFaceEmbeddings(
-            model_name=EMBEDDING_MODEL, 
-            model_kwargs={"device": "cpu"}
+            model_name=EMBEDDING_MODEL, model_kwargs={"device": "cpu"}
         )
     return models_cache['embeddings']
 
 
 def load_vectorstore():
-    """Load or create vector store (cached)."""
     if 'vectorstore' not in models_cache:
         print("Loading vector store...")
         embeddings = load_embeddings()
         db_path = Path(SWAG_BRAIN_PATH)
-        assert db_path.exists(), f"Vector store not found in {SWAG_BRAIN_PATH}, run python init_rag_db.py first"
-        
+        assert db_path.exists(), f"Vector store not found at {SWAG_BRAIN_PATH}, run init_rag_db.py first"
+
         if any(db_path.iterdir()):
             models_cache['vectorstore'] = Chroma(
-                persist_directory=SWAG_BRAIN_PATH, 
-                embedding_function=embeddings
+                persist_directory=SWAG_BRAIN_PATH, embedding_function=embeddings
             )
         else:
-            # Build from documents
             documents = []
-            # Load matrix
             if Path(SWAG_MATRIX_PATH).exists():
                 with open(SWAG_MATRIX_PATH, "r", encoding="utf-8") as f:
-                    matrix_data = json.load(f)
-                
-                for entry in matrix_data:
-                    machine = entry.get("machine", "UNKNOWN")
-                    category = entry.get("category", "UNCLASSIFIED")
-                    text = entry.get("original_text", "")
-                    
-                    doc = Document(
-                        page_content=f"MACHINE: {machine}\nLABEL: {category}\nRULE: {text}",
-                        metadata={"source": "SWAG_MATRIX", "category": category, "machine": machine}
-                    )
-                    documents.append(doc)
-            
-            # Load archives
-            archives_path = Path(SWAG_ARCHIVES_PATH)
-            if archives_path.exists():
+                    for entry in json.load(f):
+                        documents.append(Document(
+                            page_content=(f"MACHINE: {entry.get('machine','UNKNOWN')}\n"
+                                          f"LABEL: {entry.get('category','UNCLASSIFIED')}\n"
+                                          f"RULE: {entry.get('original_text','')}"),
+                            metadata={"source": "SWAG_MATRIX",
+                                      "category": entry.get("category", ""),
+                                      "machine":  entry.get("machine", "")}
+                        ))
+            archives = Path(SWAG_ARCHIVES_PATH)
+            if archives.exists():
                 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                for md_file in archives_path.glob("*.md"):
+                for md in archives.glob("*.md"):
                     try:
-                        content = md_file.read_text(encoding="utf-8")
-                        for chunk in splitter.split_text(content):
-                            doc = Document(page_content=chunk, metadata={"source": md_file.name})
-                            documents.append(doc)
-                    except:
+                        for chunk in splitter.split_text(md.read_text(encoding="utf-8")):
+                            documents.append(Document(page_content=chunk, metadata={"source": md.name}))
+                    except Exception:
                         pass
-            
-            if documents:
-                models_cache['vectorstore'] = Chroma.from_documents(
-                    documents, embeddings, persist_directory=SWAG_BRAIN_PATH
-                )
-            else:
-                models_cache['vectorstore'] = None
-    
+            models_cache['vectorstore'] = (
+                Chroma.from_documents(documents, embeddings, persist_directory=SWAG_BRAIN_PATH)
+                if documents else None
+            )
     return models_cache['vectorstore']
 
 
-def load_llm():
-    """Load Ollama LLM (cached)."""
-    if 'llm' not in models_cache:
-        print(f"Loading LLM: {OLLAMA_MODEL}...")
-        models_cache['llm'] = Ollama(model=OLLAMA_MODEL, temperature=0.1, base_url=OLLAMA_BASE_URL)
-    return models_cache['llm']
-
-
 def load_yolo():
-    """Load YOLO26n-cls TFLite classification model (cached, thread-safe)."""
     if 'yolo' not in models_cache:
         with _yolo_lock:
-            if 'yolo' not in models_cache:  # double-check after acquiring lock
+            if 'yolo' not in models_cache:
                 from ultralytics import YOLO
-                print("Loading YOLO26n-cls TFLite model...")
+                print("Loading YOLO model...")
                 models_cache['yolo'] = YOLO("weights/best.pt")
     return models_cache['yolo']
 
+# ============================================================================
+# AI FUNCTIONS — API-BACKED
+# ============================================================================
 
-def load_translator():
-    """Load NLLB translator (cached)."""
-    if 'translator' not in models_cache:
-        print("Loading translator...")
-        model_path = Path(SWAG_MODELS_PATH)
-        
-        if not model_path.exists():
-            print(f"Translation model not found in {SWAG_MODELS_PATH}")
-            print("Downloading translation model (first run only)...")
-            hf_model_path = snapshot_download(
-                repo_id="facebook/nllb-200-distilled-600M",
-                local_dir=str(Path(SWAG_MODELS_PATH) / "nllb-200-hf")
-            )
-            os.system(f"ct2-transformers-converter --model {hf_model_path} --output_dir {model_path} --quantization int8")
-        
-        translator = ctranslate2.Translator(str(model_path), device="cpu", compute_type="int8")
-        
-        tokenizer_path = Path(SWAG_MODELS_PATH) / "nllb-200-hf" / "sentencepiece.bpe.model"
-        tokenizer = None
-        if tokenizer_path.exists():
-            tokenizer = spm.SentencePieceProcessor(str(tokenizer_path))
-        assert tokenizer is not None, "Tokenizer not found"
-        models_cache['translator'] = (translator, tokenizer)
-    
-    return models_cache['translator']
-
-#FIXME no more api, local model
-#TODO may not require another model for translation, whisper can do it
 def transcribe_audio(audio_bytes: bytes, filename: str = "audio.webm") -> Tuple[str, str]:
-    """Transcribe audio using local Whisper model (tiny for speed)."""
+    """STT via OpenAI Whisper API."""
     temp_path = None
     try:
-        # Use cached Whisper model instead of creating new one each time
-        model = load_whisper()
-
-        # Preserve the original file extension so ffmpeg picks the right decoder.
-        # The browser records as webm/ogg/mp4 — never raw WAV — so the suffix matters.
         ext = Path(filename).suffix or ".webm"
         with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as f:
             f.write(audio_bytes)
             temp_path = f.name
-        # File is now closed and can be accessed by Whisper
-        
-        # Transcribe
-        segments, info = model.transcribe(temp_path, beam_size=5)
-        text = " ".join([s.text for s in segments]).strip()
-        lang = WHISPER_TO_NLLB.get(info.language, "eng_Latn")
-        
+
+        with open(temp_path, "rb") as af:
+            transcript = get_openai().audio.transcriptions.create(
+                model="whisper-1",
+                file=af,
+                response_format="verbose_json"
+            )
+
+        text = transcript.text.strip()
+        lang = WHISPER_TO_NLLB.get(transcript.language, "eng_Latn")
         return text, lang
-        
+
     except Exception as e:
-        print(f"Whisper transcription error: {e}")
+        print(f"[WHISPER] Error: {e}")
         return "", ""
     finally:
-        # Clean up temp file (Windows-safe deletion)
         if temp_path and os.path.exists(temp_path):
             try:
                 os.unlink(temp_path)
-            except PermissionError:
-                # Windows sometimes holds file locks briefly
-                import time
-                time.sleep(0.1)  # Wait 100ms
+            except Exception:
+                time.sleep(0.1)
                 try:
                     os.unlink(temp_path)
-                except:
-                    pass  # Give up if still locked
+                except Exception:
+                    pass
+
+
 def translate_text(text: str, source_lang: str, target_lang: str) -> str:
-    """Translate text using NLLB."""
-    if source_lang == target_lang:
+    """Translate via Claude."""
+    if source_lang == target_lang or not text.strip():
         return text
-    
-    translator, tokenizer = load_translator()
-    
-    if translator is None or tokenizer is None:
-        return text
-    
+    src = NLLB_TO_NAME.get(source_lang, "English")
+    tgt = NLLB_TO_NAME.get(target_lang, "English")
     try:
-        tokens = tokenizer.encode(text, out_type=str)
-        results = translator.translate_batch(
-            [[source_lang] + tokens],
-            target_prefix=[[target_lang]],
-            beam_size=4,
-            max_decoding_length=256
+        msg = get_anthropic().messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=512,
+            messages=[{"role": "user", "content":
+                f"Translate the following text from {src} to {tgt}. "
+                f"Output only the translation, nothing else.\n\n{text}"}]
         )
-        output_tokens = results[0].hypotheses[0]
-        return tokenizer.decode(output_tokens).strip()
-    except:
+        result = msg.content[0].text.strip()
+        print(f"[CLAUDE] translate {src}→{tgt} | {msg.usage.input_tokens} in / {msg.usage.output_tokens} out tokens | '{text[:40]}' → '{result[:40]}'")
+        return result
+    except Exception as e:
+        print(f"[CLAUDE] Translation error ({src}→{tgt}): {e}")
         return text
 
 
-def search_with_confidence(query: str, k: int = 5, machine_filter: str = None) -> Tuple[List[Document], float, str]:
-    """Search vectorstore with confidence scoring, optionally filtered by machine name."""
+def search_with_confidence(query: str, k: int = 5,
+                           machine_filter: str = None) -> Tuple[List[Document], float, str]:
+    """RAG search with optional machine scoping and confidence scoring."""
     vectorstore = load_vectorstore()
-
     if vectorstore is None:
         return [], 0.0, "UNKNOWN"
 
-    # Try filtered search first when a machine is specified
     if machine_filter:
         try:
-            filtered_results = vectorstore.similarity_search_with_score(
+            filtered = vectorstore.similarity_search_with_score(
                 query, k=k, filter={"machine": machine_filter}
             )
         except Exception:
-            filtered_results = []
-
-        # Fall back to unfiltered if the filter yields no results
-        # (e.g. the machine name doesn't match any stored metadata)
-        results = filtered_results if filtered_results else vectorstore.similarity_search_with_score(query, k=k)
-        if filtered_results:
-            print(f"[RAG] Machine filter applied: '{machine_filter}' → {len(filtered_results)} docs")
-        else:
-            print(f"[RAG] Machine filter '{machine_filter}' returned 0 docs, falling back to global search")
+            filtered = []
+        results = filtered if filtered else vectorstore.similarity_search_with_score(query, k=k)
+        tag = f"'{machine_filter}' → {len(filtered)} docs" if filtered else f"'{machine_filter}' empty → global"
+        print(f"[RAG] Filter: {tag}")
     else:
         results = vectorstore.similarity_search_with_score(query, k=k)
 
     if not results:
         return [], 0.0, "UNKNOWN"
 
-    docs = [r[0] for r in results]
+    docs   = [r[0] for r in results]
     scores = [r[1] for r in results]
-    best_score = min(scores)
-    similarity = 1 / (1 + best_score)
-
-    category = docs[0].metadata.get("category", "OPERATIONAL_PROCEDURE") if docs else "UNKNOWN"
-
+    similarity = 1 / (1 + min(scores))
+    category   = docs[0].metadata.get("category", "OPERATIONAL_PROCEDURE")
     return docs, similarity, category
 
 
-def generate_answer(query: str, context_docs: List[Document]) -> str:
-    """Generate answer using LLM with timing and token diagnostics."""
-    import ollama as _ollama
-
+def generate_answer(query: str, context_docs: List[Document],
+                    respond_in_lang: str = "eng_Latn") -> str:
+    """Generate safety answer via Claude in the requested language."""
     context = "\n\n".join([d.page_content for d in context_docs[:3]])
+    lang_name = NLLB_TO_NAME.get(respond_in_lang, "English")
+    lang_note = f" Respond in {lang_name}." if respond_in_lang != "eng_Latn" else ""
 
-    # ── Build prompt ─────────────────────────────────────────────────────────
-    t_prompt = time.time()
-    prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.
+    prompt = f"""You are a heavy machinery safety expert. Answer the user's question using the provided context.{lang_note}
 
-    CRITICAL INSTRUCTION:
-    End every step with exactly one of these three emoji labels — nothing else:
-    (✅) for normal operating steps
-    (⚠️) for warnings, cautions, and dangers
-    (⛔) for things that must NOT be done
+CRITICAL INSTRUCTION:
+Begin every step with exactly one of these three emoji labels:
+(✅) for normal operating steps
+(⚠️) for warnings, cautions, and dangers
+(⛔) for things that must NOT be done
 
-    FORMAT: one numbered step per line, emoji label at the beginning of that line.
+FORMAT: one numbered step per line, emoji label at the beginning of that line.
 
-    Example:
-    1. (✅) Buckle your seatbelt before starting.
-    2. (⚠️) Keep hands away from moving parts.
-    3. (⛔) Do not jump from the machine.
+Example:
+1. (✅) Buckle your seatbelt before starting.
+2. (⚠️) Keep hands away from moving parts.
+3. (⛔) Do not jump from the machine.
 
-    If the context doesn't contain the answer, say "Information not found in safety manuals."
+If the context doesn't contain the answer, say "Information not found in safety manuals."
 
-    Context:
-    {context}
+Context:
+{context}
 
-    Question: {query}
+Question: {query}
 
-    Safety Answer:"""
-    t_prompt_built = time.time()
-    print(f"[LLM] Prompt built in {t_prompt_built - t_prompt:.3f}s "
-          f"(~{len(prompt.split())} words / ~{len(prompt)} chars)")
+Safety Answer:"""
 
-    # ── Call Ollama and measure generation ───────────────────────────────────
-    # Use an explicit client to avoid OLLAMA_HOST=0.0.0.0 env-var misdirection.
-    t_gen = time.time()
-    _client = _ollama.Client(host=OLLAMA_BASE_URL)
-    response = _client.chat(
-        model=OLLAMA_MODEL,
-        messages=[{"role": "user", "content": prompt}],
+    t0 = time.time()
+    msg = get_anthropic().messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
     )
-    t_gen_done = time.time()
-
-    answer = response["message"]["content"].strip()
-
-    # ── Token stats from Ollama response metadata ─────────────────────────────
-    prompt_tokens    = response.get("prompt_eval_count", 0)
-    gen_tokens       = response.get("eval_count", 0)
-    total_tokens     = prompt_tokens + gen_tokens
-    gen_duration_s   = response.get("eval_duration", 0) / 1e9   # nanoseconds → seconds
-    tps              = gen_tokens / gen_duration_s if gen_duration_s > 0 else 0.0
-    total_dur_ns     = response.get("total_duration", 0)
-    total_dur_s      = total_dur_ns / 1e9
-
-    print(f"[LLM] ┌── Prompt processing : {response.get('prompt_eval_duration', 0)/1e9:.2f}s  |  {prompt_tokens} prompt tokens")
-    print(f"[LLM] ├── Generation        : {gen_duration_s:.2f}s  |  {gen_tokens} tokens  |  {tps:.1f} tok/s")
-    print(f"[LLM] └── Total (Ollama)    : {total_dur_s:.2f}s  |  {total_tokens} tokens total")
-    print(f"[LLM]     Wall-clock time   : {t_gen_done - t_gen:.2f}s")
-
+    answer = msg.content[0].text.strip()
+    print(f"[CLAUDE] {time.time()-t0:.2f}s | "
+          f"{msg.usage.input_tokens} in / {msg.usage.output_tokens} out tokens")
     return answer
 
 
+def _pcm_to_wav(pcm: bytes, rate: int = 24000, channels: int = 1, width: int = 2) -> bytes:
+    """Wrap raw PCM bytes (Gemini output) in a WAV container."""
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(width)
+        wf.setframerate(rate)
+        wf.writeframes(pcm)
+    return buf.getvalue()
+
+
 def text_to_speech(text: str, lang_code: str) -> bytes:
-    """Convert text to speech audio for vocal feedback."""
-    lang_info = SUPPORTED_LANGUAGES.get(lang_code, SUPPORTED_LANGUAGES["eng_Latn"])
-    tts_lang = lang_info.get("tts", "en")
-    
+    """TTS via Gemini Flash. Returns WAV bytes."""
     try:
-        tts = gTTS(text=text, lang=tts_lang, slow=False)
-        audio_buffer = io.BytesIO()
-        tts.write_to_fp(audio_buffer)
-        audio_buffer.seek(0)
-        return audio_buffer.read()
-    except:
+        response = get_gemini().models.generate_content(
+            model=GEMINI_TTS_MODEL,
+            contents=text,
+            config=genai_types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=genai_types.SpeechConfig(
+                    voice_config=genai_types.VoiceConfig(
+                        prebuilt_voice_config=genai_types.PrebuiltVoiceConfig(voice_name="Aoede")
+                    )
+                ),
+            ),
+        )
+        pcm = response.candidates[0].content.parts[0].inline_data.data
+        return _pcm_to_wav(pcm)
+    except Exception as e:
+        print(f"[GEMINI TTS] Error: {e}")
         return None
+
+# ============================================================================
+# ROUTES
+# ============================================================================
 
 @app.route('/')
 def index():
-    """Serve the main HTML page."""
     html_path = Path(__file__).parent / 'swag_ui.html'
     if html_path.exists():
         return send_from_directory(Path(__file__).parent, 'swag_ui.html')
-    else:
-        return jsonify({"error": "UI file not found"}), 404
+    return jsonify({"error": "UI file not found"}), 404
 
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint."""
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "models_loaded": list(models_cache.keys())
+        "models_loaded": list(models_cache.keys()),
+        "ai_stack": {
+            "stt": "openai/whisper-1",
+            "llm": f"anthropic/{CLAUDE_MODEL}",
+            "tts": f"google/{GEMINI_TTS_MODEL}",
+            "rag": "chromadb + all-MiniLM-L6-v2 (local)",
+        }
     })
 
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    """User login endpoint."""
-    data = request.json
+    data    = request.json
     user_id = data.get('user_id', '').strip()
-    
     if not user_id:
         return jsonify({"error": "User ID required"}), 400
-    
-    training_count = get_user_training_count(user_id)
-    
     return jsonify({
         "success": True,
         "user_id": user_id,
-        "training_count": training_count
+        "training_count": get_user_training_count(user_id)
     })
 
 
 @app.route('/api/query/text', methods=['POST'])
 def query_text():
-    """Process text query."""
     t_total = time.time()
-    data = request.json
-    text = data.get('text', '').strip()
+    data    = request.json
+    text    = data.get('text', '').strip()
     user_id = data.get('user_id', 'unknown')
-    lang = data.get('language', 'eng_Latn')
-    machine_filter = data.get('machine', None)  # optional @mention machine name
+    lang    = data.get('language', 'eng_Latn')
+    machine_filter = data.get('machine', None)
 
     if not text:
         return jsonify({"error": "Text query required"}), 400
 
     try:
-        # Translate to English if needed
+        # Translate query to English for RAG if needed
         t0 = time.time()
-        if lang != "eng_Latn":
-            english_query = translate_text(text, lang, "eng_Latn")
-        else:
-            english_query = text
-        print(f"[TEXT] Translation to English: {time.time() - t0:.2f}s")
+        english_query = translate_text(text, lang, "eng_Latn") if lang != "eng_Latn" else text
+        print(f"[TEXT] Query translation: {time.time()-t0:.2f}s")
 
-        # Search with confidence check
+        # RAG search
         t0 = time.time()
         docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
-        print(f"[TEXT] Vector search: {time.time() - t0:.2f}s")
-        
-        # Confidence check
+        print(f"[TEXT] Vector search: {time.time()-t0:.2f}s | confidence={confidence:.3f}")
+
         if confidence < CONFIDENCE_THRESHOLD:
-            answer = """[STOP] STOP WORK AUTHORITY
-
-**No matching safety procedure found in the manuals.**
-
-Please consult your physical safety manual or contact your Site Safety Supervisor."""
+            answer   = ("⛔ STOP WORK AUTHORITY\n\n"
+                        "No matching safety procedure found in the manuals.\n\n"
+                        "Please consult your physical safety manual or contact your Site Safety Supervisor.")
             category = "HAZARD_WARNING"
         else:
-            # Generate answer
+            # Generate answer — Claude responds directly in the user's language
             t0 = time.time()
-            english_answer = generate_answer(english_query, docs)
-            print(f"[TEXT] LLM answer generation: {time.time() - t0:.2f}s")
-            
-            # Translate answer
-            t0 = time.time()
-            if lang != "eng_Latn":
-                answer = translate_text(english_answer, "eng_Latn", lang)
-            else:
-                answer = english_answer
-            print(f"[TEXT] Translation to target lang: {time.time() - t0:.2f}s")
-        
-        # Log to database
-        t0 = time.time()
+            answer = generate_answer(english_query, docs, respond_in_lang=lang)
+            print(f"[TEXT] Answer generation: {time.time()-t0:.2f}s")
+
         log_id = log_training(user_id, lang, text, answer, category, confidence)
-        print(f"[TEXT] Database logging: {time.time() - t0:.2f}s")
-        
-        # Generate TTS
+
+        # TTS
         t0 = time.time()
-        audio_bytes = text_to_speech(answer, lang)
+        audio_bytes  = text_to_speech(answer, lang)
         audio_base64 = base64.b64encode(audio_bytes).decode() if audio_bytes else None
-        print(f"[TEXT] TTS generation: {time.time() - t0:.2f}s")
-        
-        print(f"[TEXT] === TOTAL query_text: {time.time() - t_total:.2f}s ===")
+        print(f"[TEXT] TTS: {time.time()-t0:.2f}s | total={time.time()-t_total:.2f}s")
+
         return jsonify({
-            "success": True,
-            "question": text,
-            "answer": answer,
-            "category": category,
-            "confidence": confidence,
-            "log_id": log_id,
-            "audio": audio_base64
+            "success": True, "question": text, "answer": answer,
+            "category": category, "confidence": confidence,
+            "log_id": log_id, "audio": audio_base64
         })
-    
+
     except Exception as e:
-        print(f"[TEXT] === FAILED after {time.time() - t_total:.2f}s ===")
+        print(f"[TEXT] FAILED after {time.time()-t_total:.2f}s: {e}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe_only():
-    """Transcribe audio to text only — no RAG, no LLM."""
+    """STT only — no RAG, no LLM."""
     if 'audio' not in request.files:
         return jsonify({"error": "Audio file required"}), 400
-
     audio_file = request.files['audio']
     try:
-        audio_bytes = audio_file.read()
         raw_text, detected_lang = transcribe_audio(
-            audio_bytes,
-            filename=audio_file.filename or "audio.webm"
+            audio_file.read(), filename=audio_file.filename or "audio.webm"
         )
         if not raw_text.strip():
             return jsonify({"error": "Could not understand audio"}), 400
         return jsonify({"success": True, "transcription": raw_text, "detected_language": detected_lang})
     except Exception as e:
-        print(f"[TRANSCRIBE] error: {e}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/query/voice', methods=['POST'])
 def query_voice():
-    """Process voice query."""
     t_total = time.time()
     if 'audio' not in request.files:
         return jsonify({"error": "Audio file required"}), 400
-    
-    audio_file = request.files['audio']
-    user_id = request.form.get('user_id', 'unknown')
-    target_lang = request.form.get('language', 'eng_Latn')
-    machine_filter = request.form.get('machine', None)
-    
-    try:
-        # Read audio bytes
-        audio_bytes = audio_file.read()
 
-        # Transcribe — pass the original filename so the temp file gets the right
-        # extension (webm/ogg/mp4) and ffmpeg can decode it correctly.
+    audio_file    = request.files['audio']
+    user_id       = request.form.get('user_id', 'unknown')
+    target_lang   = request.form.get('language', 'eng_Latn')
+    machine_filter = request.form.get('machine', None)
+
+    try:
+        # STT
         t0 = time.time()
         raw_text, detected_lang = transcribe_audio(
-            audio_bytes,
-            filename=audio_file.filename or "audio.webm"
+            audio_file.read(), filename=audio_file.filename or "audio.webm"
         )
-        print(f"[VOICE] Transcription (Whisper): {time.time() - t0:.2f}s")
-        
+        print(f"[VOICE] STT: {time.time()-t0:.2f}s | lang={detected_lang}")
+
         if not raw_text.strip():
             return jsonify({"error": "Could not understand audio"}), 400
-        
-        # Translate to English
+
+        # Translate query to English for RAG
         t0 = time.time()
-        if detected_lang != "eng_Latn":
-            english_query = translate_text(raw_text, detected_lang, "eng_Latn")
-        else:
-            english_query = raw_text
-        print(f"[VOICE] Translation to English: {time.time() - t0:.2f}s")
-        
-        # Search with confidence check
+        english_query = translate_text(raw_text, detected_lang, "eng_Latn") if detected_lang != "eng_Latn" else raw_text
+        print(f"[VOICE] Query translation: {time.time()-t0:.2f}s")
+
+        # RAG search
         t0 = time.time()
         docs, confidence, category = search_with_confidence(english_query, machine_filter=machine_filter)
-        print(f"[VOICE] Vector search: {time.time() - t0:.2f}s")
-        
-        # Confidence check
+        print(f"[VOICE] Vector search: {time.time()-t0:.2f}s | confidence={confidence:.3f}")
+
         if confidence < CONFIDENCE_THRESHOLD:
-            english_answer = """[STOP] STOP WORK AUTHORITY
-
-**No matching safety procedure found in the manuals.**
-
-This query cannot be answered by the AI system.
-
-**REQUIRED ACTIONS:**
-1. Stop current operation
-2. Consult your physical safety manual
-3. Contact your Site Safety Supervisor
-4. Do NOT proceed without proper guidance"""
+            answer   = ("⛔ STOP WORK AUTHORITY\n\n"
+                        "No matching safety procedure found in the manuals.\n\n"
+                        "Stop current operation and consult your Site Safety Supervisor.")
             category = "HAZARD_WARNING"
         else:
-            # Generate answer
             t0 = time.time()
-            english_answer = generate_answer(english_query, docs)
-            print(f"[VOICE] LLM answer generation: {time.time() - t0:.2f}s")
-        
-        # Translate answer to user's language
+            answer = generate_answer(english_query, docs, respond_in_lang=target_lang)
+            print(f"[VOICE] Answer generation: {time.time()-t0:.2f}s")
+
+        log_id = log_training(user_id, target_lang, raw_text, answer, category, confidence)
+
+        # TTS
         t0 = time.time()
-        if target_lang != "eng_Latn":
-            final_answer = translate_text(english_answer, "eng_Latn", target_lang)
-        else:
-            final_answer = english_answer
-        print(f"[VOICE] Translation to target lang: {time.time() - t0:.2f}s")
-        
-        # Log to database
-        t0 = time.time()
-        log_id = log_training(user_id, target_lang, raw_text, final_answer, category, confidence)
-        print(f"[VOICE] Database logging: {time.time() - t0:.2f}s")
-        
-        # Generate TTS
-        t0 = time.time()
-        audio_bytes = text_to_speech(final_answer, target_lang)
+        audio_bytes  = text_to_speech(answer, target_lang)
         audio_base64 = base64.b64encode(audio_bytes).decode() if audio_bytes else None
-        print(f"[VOICE] TTS generation: {time.time() - t0:.2f}s")
-        
-        print(f"[VOICE] === TOTAL query_voice: {time.time() - t_total:.2f}s ===")
+        print(f"[VOICE] TTS: {time.time()-t0:.2f}s | total={time.time()-t_total:.2f}s")
+
         return jsonify({
-            "success": True,
-            "transcription": raw_text,
-            "detected_language": detected_lang,
-            "question": raw_text,
-            "answer": final_answer,
-            "category": category,
-            "confidence": confidence,
-            "log_id": log_id,
-            "audio": audio_base64
+            "success": True, "transcription": raw_text, "detected_language": detected_lang,
+            "question": raw_text, "answer": answer, "category": category,
+            "confidence": confidence, "log_id": log_id, "audio": audio_base64
         })
-    
+
     except Exception as e:
-        print(f"[VOICE] === FAILED after {time.time() - t_total:.2f}s ===")
+        print(f"[VOICE] FAILED after {time.time()-t_total:.2f}s: {e}")
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/verify/<int:log_id>', methods=['POST'])
 def verify_log(log_id):
-    """Verify training log."""
     try:
         verify_training(log_id)
         return jsonify({"success": True, "log_id": log_id})
@@ -713,145 +574,76 @@ def verify_log(log_id):
 
 @app.route('/api/training/count/<user_id>', methods=['GET'])
 def training_count(user_id):
-    """Get training count for user."""
     try:
-        count = get_user_training_count(user_id)
-        return jsonify({"user_id": user_id, "count": count})
+        return jsonify({"user_id": user_id, "count": get_user_training_count(user_id)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/detect', methods=['POST'])
 def detect_objects():
-    """Image classification endpoint using local YOLO26n-cls TFLite model."""
+    """Image classification — local YOLO (unchanged)."""
     t_total = time.time()
     if 'image' not in request.files:
         return jsonify({"error": "Image file required"}), 400
-    
+
     image_file = request.files['image']
-    user_id = request.form.get('user_id', 'unknown')
-    
     try:
-        # Save image temporarily
-        t0 = time.time()
         with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
             image_file.save(f.name)
             temp_path = f.name
-        print(f"[DETECT] Save temp image: {time.time() - t0:.2f}s")
-        
-        # Run classification using local YOLO26n-cls TFLite
-        t0 = time.time()
-        model = load_yolo()
-        print(f"[DETECT] Load YOLO model: {time.time() - t0:.2f}s")
-        
-        t0 = time.time()
+
+        model   = load_yolo()
         results = model.predict(temp_path, verbose=False)
-        print(f"[DETECT] YOLO prediction: {time.time() - t0:.2f}s")
-        
-        # Process classification results (probs, not boxes)
-        AMBIGUITY_THRESHOLD = 0.25  # gap between #1 and #2 confidence
-        detections = []
-        ambiguous = False
-        probs = results[0].probs
-        if probs is not None:
-            top5_indices = probs.top5
-            top5_confs = probs.top5conf.tolist()
-            names = results[0].names
-            
-            if len(top5_confs) >= 2:
-                gap = top5_confs[0] - top5_confs[1]
-                ambiguous = gap < AMBIGUITY_THRESHOLD
-                print(f"[DETECT] Top-1: {names[top5_indices[0]]} ({top5_confs[0]:.3f}), "
-                      f"Top-2: {names[top5_indices[1]]} ({top5_confs[1]:.3f}), "
-                      f"Gap: {gap:.3f}, Ambiguous: {ambiguous}")
-            
-            if ambiguous:
-                # Show top 3 when model is uncertain
-                for idx, conf in zip(top5_indices[:3], top5_confs[:3]):
-                    detections.append({
-                        "class": names[idx],
-                        "confidence": round(float(conf), 3)
-                    })
-            else:
-                # Show only top 1 when model is confident
-                detections.append({
-                    "class": names[top5_indices[0]],
-                    "confidence": round(float(top5_confs[0]), 3)
-                })
-        
-        # Clean up
         os.unlink(temp_path)
-        
-        print(f"[DETECT] === TOTAL detect_objects: {time.time() - t_total:.2f}s ===")
-        return jsonify({
-            "success": True,
-            "detections": detections,
-            "ambiguous": ambiguous,
-            "count": len(detections)
-        })
-    
+
+        AMBIGUITY_THRESHOLD = 0.25
+        detections = []
+        ambiguous  = False
+        probs = results[0].probs
+
+        if probs is not None:
+            top5_idx   = probs.top5
+            top5_conf  = probs.top5conf.tolist()
+            names      = results[0].names
+
+            if len(top5_conf) >= 2:
+                gap       = top5_conf[0] - top5_conf[1]
+                ambiguous = gap < AMBIGUITY_THRESHOLD
+                print(f"[DETECT] Top-1: {names[top5_idx[0]]} ({top5_conf[0]:.3f}), "
+                      f"Top-2: {names[top5_idx[1]]} ({top5_conf[1]:.3f}), gap={gap:.3f}")
+
+            limit = 3 if ambiguous else 1
+            for idx, conf in zip(top5_idx[:limit], top5_conf[:limit]):
+                detections.append({"class": names[idx], "confidence": round(float(conf), 3)})
+
+        print(f"[DETECT] Total: {time.time()-t_total:.2f}s")
+        return jsonify({"success": True, "detections": detections,
+                        "ambiguous": ambiguous, "count": len(detections)})
+
     except Exception as e:
-        print(f"[DETECT] === FAILED after {time.time() - t_total:.2f}s ===")
+        print(f"[DETECT] FAILED: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+# ============================================================================
+# STARTUP
+# ============================================================================
+
 def preload_models():
-    """Preload all models during startup."""
-    t_total = time.time()
-    print("Preloading SWAG models...")
-    
-    # 1. Load Whisper
-    try:
-        t0 = time.time()
-        load_whisper()
-        print(f"✓ Whisper model loaded ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to load Whisper: {e}")
+    print("Preloading local models (embeddings, vectorstore, YOLO)...")
+    t = time.time()
+    for name, fn in [("Vectorstore", load_vectorstore), ("YOLO", load_yolo)]:
+        try:
+            t0 = time.time()
+            fn()
+            print(f"  ✓ {name} ({time.time()-t0:.2f}s)")
+        except Exception as e:
+            print(f"  ✗ {name}: {e}")
+    print(f"Preload done in {time.time()-t:.2f}s")
 
-    # 2. Load Embeddings and Vectorstore
-    try:
-        t0 = time.time()
-        load_vectorstore()
-        print(f"✓ Vectorstore loaded ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to load Vectorstore: {e}")
-
-    # 3. Load LLM (lightweight connection check)
-    try:
-        t0 = time.time()
-        load_llm()
-        print(f"✓ LLM connection established ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to connect to LLM: {e}")
-
-    # 4. Load YOLO
-    try:
-        t0 = time.time()
-        load_yolo()
-        print(f"✓ YOLO model loaded ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to load YOLO: {e}")
-
-    # 5. Load Translator
-    try:
-        t0 = time.time()
-        load_translator()
-        print(f"✓ Translator loaded ({time.time() - t0:.2f}s)")
-    except Exception as e:
-        print(f"✗ Failed to load Translator: {e}")
-    
-    print(f"=== TOTAL preload_models: {time.time() - t_total:.2f}s ===")
 
 if __name__ == '__main__':
-    # Initialize database
     init_database()
-    
-    # Preload models to prevent timeout on first request
     preload_models()
-    
-    # Run Flask app
-    # use_reloader=False prevents double-startup from watchdog (faster development)
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=True,
-        use_reloader=False  # Disable auto-reload to prevent slow double-startup
-    )
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

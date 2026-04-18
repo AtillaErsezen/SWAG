@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, X, MapPin, Radio } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const EmergencySOS = () => {
+    const { t } = useAppContext();
     const [isHolding, setIsHolding] = useState(false);
     const [holdProgress, setHoldProgress] = useState(0);
     const [triggered, setTriggered] = useState(false);
@@ -70,9 +72,9 @@ const EmergencySOS = () => {
                             <Radio size={80} />
                         </motion.div>
 
-                        <h1 className="text-4xl font-black mt-8 tracking-wider">SOS TRANSMITTED</h1>
+                        <h1 className="text-4xl font-black mt-8 tracking-wider">{t('sos_transmitted')}</h1>
                         <p className="text-lg font-medium mt-4 text-center max-w-sm opacity-80">
-                            Your GPS location, active machine ID, and language preference have been broadcast to Site Control.
+                            {t('sos_desc')}
                         </p>
 
                         <div className="mt-8 bg-white/10 rounded-2xl p-6 w-full max-w-sm space-y-3">
@@ -82,7 +84,7 @@ const EmergencySOS = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <Radio size={18} className="animate-pulse" />
-                                <span className="text-sm font-bold">Signal Status: BROADCASTING</span>
+                                <span className="text-sm font-bold">{t('sos_broadcasting')}</span>
                             </div>
                         </div>
 
@@ -90,7 +92,7 @@ const EmergencySOS = () => {
                             onClick={dismiss}
                             className="mt-12 px-8 py-4 bg-white text-rust-red font-black rounded-2xl text-lg flex items-center gap-2 shadow-lg active:scale-95 transition-transform"
                         >
-                            <X size={20} /> CANCEL ALERT
+                            <X size={20} /> {t('sos_cancel')}
                         </button>
                     </motion.div>
                 )}

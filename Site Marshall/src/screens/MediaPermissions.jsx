@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Mic, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const PermissionRow = ({ icon: Icon, title, description, status, onRequest }) => {
+    const { t } = useAppContext();
     return (
         <div className="flex items-center gap-4 bg-white rounded-2xl px-5 py-4 border-2 border-transparent shadow-sm">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: '#FFF0E6' }}>
@@ -24,7 +26,7 @@ const PermissionRow = ({ icon: Icon, title, description, status, onRequest }) =>
                         className="text-xs font-bold text-white px-3 py-1.5 rounded-full"
                         style={{ backgroundColor: '#E67E22' }}
                     >
-                        Allow
+                        {t('allow')}
                     </button>
                 )}
             </div>
@@ -33,6 +35,7 @@ const PermissionRow = ({ icon: Icon, title, description, status, onRequest }) =>
 };
 
 const MediaPermissions = () => {
+    const { t } = useAppContext();
     const navigate = useNavigate();
     const [camera, setCamera] = useState('idle');
     const [mic, setMic] = useState('idle');
@@ -77,7 +80,7 @@ const MediaPermissions = () => {
                 transition={{ delay: 0.1 }}
                 className="text-2xl font-bold text-white mb-2 text-center"
             >
-                Permissions Needed
+                {t('permissions_needed')}
             </motion.h1>
             <motion.p
                 initial={{ opacity: 0 }}
@@ -86,7 +89,7 @@ const MediaPermissions = () => {
                 className="text-sm text-center mb-8"
                 style={{ color: 'rgba(255,255,255,0.45)' }}
             >
-                Site Marshall uses your camera and microphone to identify machines and enable voice commands.
+                {t('permissions_desc')}
             </motion.p>
 
             <motion.div
@@ -97,15 +100,15 @@ const MediaPermissions = () => {
             >
                 <PermissionRow
                     icon={Camera}
-                    title="Camera"
-                    description="Machine identification & scanning"
+                    title={t('camera_title')}
+                    description={t('camera_desc')}
                     status={camera}
                     onRequest={requestCamera}
                 />
                 <PermissionRow
                     icon={Mic}
-                    title="Microphone"
-                    description="Voice commands & communication"
+                    title={t('mic_title')}
+                    description={t('mic_desc')}
                     status={mic}
                     onRequest={requestMic}
                 />
@@ -121,7 +124,7 @@ const MediaPermissions = () => {
                         className="w-full max-w-md text-white font-bold text-lg py-4 rounded-full hover:opacity-90 transition-opacity"
                         style={{ backgroundColor: '#E67E22' }}
                     >
-                        Continue to Dashboard
+                        {t('continue_to_dashboard')}
                     </motion.button>
                 )}
             </AnimatePresence>
@@ -132,7 +135,7 @@ const MediaPermissions = () => {
                     className="mt-3 text-sm font-semibold"
                     style={{ color: 'rgba(255,255,255,0.3)' }}
                 >
-                    Skip for now
+                    {t('skip_for_now')}
                 </button>
             )}
         </div>

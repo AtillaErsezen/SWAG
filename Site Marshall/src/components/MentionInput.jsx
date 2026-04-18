@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { machineDB } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 
 const shortName = (model) => model.split('/').pop().trim();
 
@@ -11,6 +12,7 @@ const MentionInput = ({
     disabled = false,
     className = '',
 }) => {
+    const { t } = useAppContext();
     const editorRef = useRef(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [filter, setFilter] = useState('');
@@ -113,7 +115,7 @@ const MentionInput = ({
             {/* Placeholder */}
             {isEmpty && (
                 <div className="absolute inset-0 flex items-center pointer-events-none px-0 text-gray-400 text-base select-none">
-                    {placeholder}
+                    {t('type_a_question')}
                 </div>
             )}
 
@@ -133,7 +135,7 @@ const MentionInput = ({
                 <div className="absolute bottom-full left-0 w-72 bg-white rounded-2xl shadow-2xl border border-slate-gray/15 overflow-hidden mb-2 z-50">
                     <div className="px-3 pt-2 pb-1">
                         <span className="text-[10px] font-black tracking-widest uppercase text-slate-gray">
-                            Machines
+                            {t('machines_label')}
                         </span>
                     </div>
                     {filteredMachines.map((machine) => (

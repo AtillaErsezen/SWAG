@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronDown, Users, BarChart3, Globe, AlertTriangle, Clock, Shield, UserCircle, CheckCircle, XCircle, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { machineDB, workerRegistry } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 
 const SupervisorDashboard = () => {
     const navigate = useNavigate();
+    const { t } = useAppContext();
     const [expandedWorker, setExpandedWorker] = useState(null);
 
     const totalMachines = machineDB.length;
@@ -84,8 +86,8 @@ const SupervisorDashboard = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">Supervisor Analytics</h2>
-                    <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">Site Overview</p>
+                    <h2 className="text-xl font-bold tracking-tight">{t('sup_analytics')}</h2>
+                    <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{t('sup_site_overview')}</p>
                 </div>
             </div>
 
@@ -94,9 +96,9 @@ const SupervisorDashboard = () => {
                 {/* KPI Cards */}
                 <div className="grid grid-cols-3 gap-3">
                     {[
-                        { label: 'Workers', value: String(workerRegistry.length), icon: Users, color: 'text-electric-cyan' },
-                        { label: 'Fleet Avg.', value: `${avgProgress}%`, icon: BarChart3, color: 'text-safety-orange' },
-                        { label: 'Languages', value: String(Object.keys(langGroups).length), icon: Globe, color: 'text-ind-yellow' },
+                        { label: t('sup_kpi_workers'), value: String(workerRegistry.length), icon: Users, color: 'text-electric-cyan' },
+                        { label: t('sup_kpi_fleet_avg'), value: `${avgProgress}%`, icon: BarChart3, color: 'text-safety-orange' },
+                        { label: t('sup_kpi_languages'), value: String(Object.keys(langGroups).length), icon: Globe, color: 'text-ind-yellow' },
                     ].map((kpi, idx) => (
                         <motion.div
                             key={kpi.label}
@@ -115,7 +117,7 @@ const SupervisorDashboard = () => {
                 {/* Worker-by-Worker Inspection and Completion */}
                 <div>
                     <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <UserCircle size={16} /> Worker Compliance Tracker
+                        <UserCircle size={16} /> {t('sup_worker_compliance')}
                     </h3>
                     <div className="space-y-3">
                         {workerRegistry.map((worker, idx) => {
@@ -175,7 +177,7 @@ const SupervisorDashboard = () => {
                                                     {/* Pre-Shift Checklist Status */}
                                                     <div>
                                                         <div className="text-[10px] font-black text-slate-gray uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                            <ClipboardCheck size={12} /> Pre-Shift Inspections
+                                                            <ClipboardCheck size={12} /> {t('sup_pre_shift')}
                                                         </div>
                                                         <div className="flex flex-wrap gap-2">
                                                             {Object.entries(worker.preShiftCompleted).map(([machineId, done]) => (
@@ -196,10 +198,10 @@ const SupervisorDashboard = () => {
                                                     {/* Completed Sections */}
                                                     <div>
                                                         <div className="text-[10px] font-black text-slate-gray uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                            <Shield size={12} /> Completed Sections ({worker.completedSections.length})
+                                                            <Shield size={12} /> {t('sup_completed_sections')} ({worker.completedSections.length})
                                                         </div>
                                                         {worker.completedSections.length === 0 ? (
-                                                            <p className="text-[11px] text-slate-gray italic">No sections completed yet.</p>
+                                                            <p className="text-[11px] text-slate-gray italic">{t('sup_no_sections')}</p>
                                                         ) : (
                                                             <div className="space-y-1.5">
                                                                 {worker.completedSections.map(sectionKey => {
@@ -219,7 +221,7 @@ const SupervisorDashboard = () => {
                                                     {/* Last Active */}
                                                     <div className="flex items-center gap-1.5 text-[10px] text-slate-gray pt-1 border-t border-slate-gray/10">
                                                         <Clock size={12} />
-                                                        Last active: {worker.lastActive}
+                                                        {t('sup_last_active')} {worker.lastActive}
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -234,7 +236,7 @@ const SupervisorDashboard = () => {
                 {/* Fleet Completion Heatmap */}
                 <div>
                     <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <BarChart3 size={16} /> Fleet Training Completion
+                        <BarChart3 size={16} /> {t('sup_fleet_training')}
                     </h3>
                     <div className="space-y-3">
                         {machineDB.map(machine => (
@@ -242,7 +244,7 @@ const SupervisorDashboard = () => {
                                 <div className="flex justify-between items-center mb-2">
                                     <div>
                                         <span className="font-bold text-base">{machine.model}</span>
-                                        <span className="text-[10px] text-slate-gray ml-2 uppercase">{machine.type}</span>
+                                        <span className="text-[10px] text-slate-gray ml-2 uppercase">{t(machine.type)}</span>
                                     </div>
                                     <span className={`text-sm font-black ${machine.trainingProgress >= 70 ? 'text-sage-green' : machine.trainingProgress >= 40 ? 'text-safety-orange' : 'text-rust-red'}`}>
                                         {machine.trainingProgress}%
@@ -264,14 +266,14 @@ const SupervisorDashboard = () => {
                 {/* Language Risk Matrix */}
                 <div>
                     <h3 className="text-sm font-black text-slate-gray uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <AlertTriangle size={16} /> Language Risk Matrix
+                        <AlertTriangle size={16} /> {t('sup_lang_risk')}
                     </h3>
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-gray/20 overflow-hidden">
                         <div className="grid grid-cols-4 gap-0 text-[10px] font-black text-slate-gray uppercase tracking-widest p-3 border-b border-slate-gray/10">
-                            <span>Language</span>
-                            <span className="text-center">Workers</span>
-                            <span className="text-center">Avg %</span>
-                            <span className="text-right">Risk</span>
+                            <span>{t('sup_col_lang')}</span>
+                            <span className="text-center">{t('sup_col_workers')}</span>
+                            <span className="text-center">{t('sup_col_avg')}</span>
+                            <span className="text-right">{t('sup_col_risk')}</span>
                         </div>
                         {langRiskData.map(row => (
                             <div key={row.lang} className="grid grid-cols-4 gap-0 p-3 border-b border-slate-gray/5 items-center">

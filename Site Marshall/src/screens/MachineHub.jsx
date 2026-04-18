@@ -174,6 +174,7 @@ const CATEGORY_ICONS = {
 // ─── Inline Pre-Op Checklist ──────────────────────────────────────────────────
 
 const PreOpChecklist = ({ machineType }) => {
+    const { t } = useAppContext();
     const groups = detailedChecklistDB[machineType] ?? [];
     const allItems = groups.flatMap(g => g.items);
     const [checked, setChecked] = useState({});
@@ -199,9 +200,9 @@ const PreOpChecklist = ({ machineType }) => {
                 className="w-full flex items-center justify-between px-4 py-4 text-left"
             >
                 <div>
-                    <div className="font-black text-charcoal text-base">Pre-Op Checklist</div>
+                    <div className="font-black text-charcoal text-base">{t('hub_pre_op_checklist')}</div>
                     <div className="text-xs text-slate-gray mt-0.5">
-                        {totalCount} items, {completedCount} completed
+                        {totalCount} {t('hub_pre_op_items')}, {completedCount} {t('hub_pre_op_completed')}
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -236,7 +237,7 @@ const PreOpChecklist = ({ machineType }) => {
                             {groups.map(group => (
                                 <div key={group.category}>
                                     <div className="text-[10px] font-black tracking-widest uppercase text-safety-orange mb-2">
-                                        {group.category}
+                                        {t(group.category)}
                                     </div>
                                     <div className="space-y-2">
                                         {group.items.map(item => (
@@ -249,7 +250,7 @@ const PreOpChecklist = ({ machineType }) => {
                                                     {checked[item.id] && <CheckCircle size={12} className="text-white" strokeWidth={3} />}
                                                 </div>
                                                 <span className={`text-sm leading-snug ${checked[item.id] ? 'line-through text-slate-gray' : 'text-charcoal'}`}>
-                                                    {item.label}
+                                                    {t(item.label)}
                                                 </span>
                                                 {item.critical && !checked[item.id] && (
                                                     <AlertTriangle size={13} className="text-safety-orange flex-none ml-auto" />
@@ -273,7 +274,9 @@ const ChatOverlay = ({
     onClose, chatHistory, isLoading, isListening, isTyping, textInput,
     setTextInput, setIsTyping, handleTextSubmit, handleTalkStart, handleTalkEnd,
     pendingLogId, handleVerify, chatEndRef, machineName,
-}) => (
+}) => {
+    const { t } = useAppContext();
+    return (
     <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -290,7 +293,7 @@ const ChatOverlay = ({
                 <X size={22} />
             </button>
             <div className="flex-1">
-                <div className="font-bold text-app-bg text-base">Marshall AI</div>
+                <div className="font-bold text-app-bg text-base">{t('hub_ai_title')}</div>
                 <div className="text-xs text-slate-400">{machineName}</div>
             </div>
         </div>
@@ -305,7 +308,7 @@ const ChatOverlay = ({
                 >
                     <Mic size={40} className="opacity-40" />
                     <p className="text-center max-w-xs font-medium text-base leading-snug">
-                        Ask me anything about the {machineName}.
+                        {t('hub_ask_anything_prefix')} {machineName}.
                     </p>
                 </motion.div>
             )}
@@ -336,7 +339,7 @@ const ChatOverlay = ({
                                 {chat.text}
                                 {chat.type === 'ai' && chat.confidence !== undefined && (
                                     <div className="mt-2 text-xs text-slate-gray font-bold">
-                                        Confidence: {Math.round(chat.confidence * 100)}%
+                                        {t('hub_confidence')} {Math.round(chat.confidence * 100)}%
                                     </div>
                                 )}
                             </div>
@@ -367,7 +370,7 @@ const ChatOverlay = ({
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="px-4 pb-2 pointer-events-auto">
                         <button onClick={handleVerify}
                             className="w-full max-w-lg mx-auto flex h-14 items-center justify-center gap-2 bg-sage-green text-white font-black text-base rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                            <CheckCircle size={20} />I CONFIRM UNDERSTANDING
+                            <CheckCircle size={20} />{t('confirm_understanding')}
                         </button>
                     </motion.div>
                 )}
@@ -392,7 +395,7 @@ const ChatOverlay = ({
                                     autoFocus
                                     value={textInput}
                                     onChange={e => setTextInput(e.target.value)}
-                                    placeholder="Ask a question…"
+                                    placeholder={t('type_a_question')}
                                     className="flex-1 bg-transparent px-3 py-3 text-base font-medium focus:outline-none"
                                 />
                                 <button type="submit" disabled={!textInput.trim() || isLoading}
@@ -424,7 +427,8 @@ const ChatOverlay = ({
                 className="absolute top-0 left-0 w-full h-1 bg-safety-orange shadow-[0_0_15px_#E67E22] z-50 animate-pulse" />
         )}
     </motion.div>
-);
+    );
+};
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -449,7 +453,7 @@ const MachineHub = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatHistory, isLoading]);
 
-    if (!machine) return <div className="p-8">Machine Not Found</div>;
+    if (!machine) return <div className="p-8">{t('machine_not_found')}</div>;
 
     const summary = AI_SUMMARIES[machine.type] ?? DEFAULT_SUMMARY;
     const specs = QUICK_SPECS[machine.type] ?? [];
@@ -544,7 +548,7 @@ const MachineHub = () => {
             await verifyLog(pendingLogId);
             setPendingLogId(null);
             setTrainingCount(prev => prev + 1);
-            setChatHistory(prev => [...prev, { type: 'system', text: '✅ Training logged and verified!' }]);
+            setChatHistory(prev => [...prev, { type: 'system', text: `✅ ${t('hub_training_logged')}` }]);
         } catch (err) {
             console.error('Verify error:', err);
         }
@@ -618,10 +622,10 @@ const MachineHub = () => {
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                                 <Sparkles size={16} className="text-safety-orange" />
-                                <span className="font-black text-xs tracking-widest uppercase text-charcoal">AI Summary</span>
+                                <span className="font-black text-xs tracking-widest uppercase text-charcoal">{t('hub_ai_summary')}</span>
                             </div>
                             <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full uppercase tracking-wider">
-                                OEM Manual Only
+                                {t('hub_oem_manual_only')}
                             </span>
                         </div>
                         <p className="text-sm text-charcoal/80 leading-relaxed mb-3">
@@ -647,7 +651,7 @@ const MachineHub = () => {
                             className="w-full h-14 bg-safety-orange text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all"
                         >
                             <GraduationCap size={20} />
-                            Training
+                            {t('hub_training_btn')}
                         </button>
                     </motion.div>
 
@@ -659,13 +663,13 @@ const MachineHub = () => {
                             transition={{ delay: 0.3 }}
                         >
                             <div className="text-xs font-black uppercase tracking-widest text-slate-gray mb-3">
-                                Quick Specs
+                                {t('hub_quick_specs')}
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 {specs.map(spec => (
                                     <div key={spec.label} className="bg-white rounded-xl p-4 border border-slate-gray/10 shadow-sm">
                                         <div className="text-[10px] font-bold text-slate-gray uppercase tracking-wider mb-1">
-                                            {spec.label}
+                                            {t(spec.label)}
                                         </div>
                                         <div className="font-black text-charcoal text-lg">
                                             {spec.value}
@@ -675,7 +679,7 @@ const MachineHub = () => {
                             </div>
 
                             <div className="text-xs font-black uppercase tracking-widest text-slate-gray mb-3 mt-5">
-                                Site Conditions
+                                {t('hub_site_conditions')}
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 {ENV_FIELDS.map(env => (
@@ -687,7 +691,7 @@ const MachineHub = () => {
                                         <env.icon size={18} className={`mt-0.5 flex-none ${env.warn ? 'text-safety-orange' : 'text-slate-gray'}`} />
                                         <div>
                                             <div className="text-[10px] font-bold text-slate-gray uppercase tracking-wider mb-1">
-                                                {env.label}
+                                                {t(env.label)}
                                             </div>
                                             <div className={`font-black text-lg ${env.warn ? 'text-safety-orange' : 'text-charcoal'}`}>
                                                 {env.value}
@@ -712,7 +716,7 @@ const MachineHub = () => {
                     whileTap={{ scale: 0.98 }}
                 >
                     <Mic size={22} />
-                    Ask about {shortModel}
+                    {t('hub_ask_about_prefix')} {shortModel}
                 </motion.button>
             </div>
 

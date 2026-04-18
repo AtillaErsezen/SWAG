@@ -1,90 +1,37 @@
-# SWAG Project Dependencies
-# Consolidated and de-duplicated requirements for all SWAG components
-# Includes Core Logic, Ironclad, Mobile PWA, and Safety Intelligence
-# Install with: pip install -r requirements.txt
+# SWAG Project Dependencies — API Edition
+# Install: pip install -r requirements.txt
 
-# PyTorch Configuration (CPU optimized)
---extra-index-url https://download.pytorch.org/whl/cpu
-torch>=2.2.0
-torchaudio
+# Web framework
+flask>=3.0.0
+flask-cors>=4.0.0
 
-# Audio Processing & IO
-pyaudio
-pynput
-gTTS>=2.5.0
+# AI — APIs
+anthropic>=0.40.0
+openai>=1.0.0
+google-genai>=1.0.0
 
-# AI - Speech-to-Text & Translation
-faster-whisper>=1.0.0
-ctranslate2>=4.0.0
-sentencepiece>=0.1.99
-huggingface-hub>=0.20.0
-transformers>=4.40.0
-
-# AI - LangChain Framework & Extensions
+# AI — RAG (local, lightweight)
 langchain>=0.1.0
 langchain-core>=0.1.0
 langchain-community>=0.0.20
 langchain-text-splitters>=0.0.1
 langchain-huggingface>=0.0.1
-
-# AI - Vector Store & Embeddings
 chromadb>=0.4.22
 sentence-transformers>=2.6.0
 
-# AI - LLM Backend
-ollama>=0.2.0
+# PyTorch (CPU — needed by sentence-transformers)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.2.0
 
-# AI - Specialized (Safety Intelligence / Classification)
-setfit>=1.0.0
+# YOLO classification (local model)
 ultralytics>=8.3.0
 
-# AI - Video Generation (Gemini Veo API)
-google-genai>=1.0.0
-
-# Web Frameworks & UI
-flask>=3.0.0
-flask-cors>=4.0.0
-streamlit>=1.30.0
-streamlit-mic-recorder>=0.0.8
-rich>=13.0.0
-
-# Document Processing
+# Document ingestion (for init_rag_db.py)
 pymupdf4llm>=0.0.17
 pymupdf>=1.24.0
 
-# Anthropic Claude API
-anthropic>=0.40.0
-
-# Utilities & Performance
+# Utilities
 numpy
-rapidfuzz
-tqdm>=4.66.0
-pydantic>=2.7.0
 python-dotenv>=1.0.0
-# Minimal requirements for Railway deployment
-# Core web framework
-flask>=3.0.0
-flask-cors>=4.0.0
-
-# TFLite only (lightweight TensorFlow)
-tflite==2.3.0 # Much smaller than full tensorflow
-
-# Basic dependencies
-numpy>=1.24.0
-Pillow>=10.0.0
-requests>=2.28.1
-
-# Optional: If you need basic TTS
-gtts>=2.3.0
-flask
-flask_cors
-langchain_text_splitters
-langchain_core
-langchain_huggingface
-langchain_community
-sentencepiece
-faster-whisper
-gtts
-diffusers
-tensorflow
-tf-keras
+pydantic>=2.7.0
+tqdm>=4.66.0

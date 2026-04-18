@@ -38,6 +38,7 @@ const WaveformBars = () => (
 
 // ─── Camera Viewfinder ────────────────────────────────────────────────────────
 const CameraViewfinder = ({ onClose }) => {
+    const { t } = useAppContext();
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [ready, setReady] = useState(false);
@@ -61,7 +62,7 @@ const CameraViewfinder = ({ onClose }) => {
             } catch (err) {
                 if (!cancelled) setError(
                     err.name === 'NotAllowedError'
-                        ? 'Camera permission denied.'
+                        ? t('camera_perm_denied')
                         : `Camera unavailable: ${err.message}`
                 );
             }
@@ -113,14 +114,14 @@ const CameraViewfinder = ({ onClose }) => {
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                             className="w-10 h-10 rounded-full border-2 border-white/20 border-t-safety-orange" />
-                        <p className="text-white/50 text-sm font-mono">Starting camera…</p>
+                        <p className="text-white/50 text-sm font-mono">{t('starting_camera_dots')}</p>
                     </div>
                 )}
                 {error && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
                         <CameraOff size={40} className="text-white/30" />
                         <p className="text-white font-semibold">{error}</p>
-                        <button onClick={onClose} className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold">Go Back</button>
+                        <button onClick={onClose} className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold">{t('go_back')}</button>
                     </div>
                 )}
                 <button onClick={onClose} className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white">
@@ -184,6 +185,7 @@ const findMachine = (detectedClass) => {
 
 // ─── Fleet Drawer ─────────────────────────────────────────────────────────────
 const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
+    const { t } = useAppContext();
     const certified = machineDB.filter(m => m.trainingProgress === 100).length;
     return (
         <AnimatePresence>
@@ -211,7 +213,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                                     </div>
                                     <div>
                                         <p className="text-white font-bold text-xl leading-tight">{workerId ?? 'Operator'}</p>
-                                        <p className="text-white/40 text-xs mt-0.5">Operator · Site Marshall</p>
+                                        <p className="text-white/40 text-xs mt-0.5">{t('operator_subtitle')}</p>
                                     </div>
                                 </div>
                                 <button onClick={onClose}
@@ -223,7 +225,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                             <div className="flex justify-center">
                                 <span className="text-xs font-semibold px-4 py-1 rounded-full border"
                                     style={{ borderColor: '#E67E22', color: '#E67E22' }}>
-                                    {certified} machine{certified !== 1 ? 's' : ''} certified
+                                    {certified} {t('machines_certified')}
                                 </span>
                             </div>
                         </div>
@@ -233,7 +235,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                         {/* Machine list */}
                         <div className="flex-1 overflow-y-auto px-5 pt-3">
                             <p className="text-safety-orange text-[11px] font-bold tracking-widest uppercase mb-1">
-                                Your Machines
+                                {t('your_machines')}
                             </p>
                             {machineDB.map((machine, i) => (
                                 <motion.button key={machine.id}
@@ -249,7 +251,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-white font-semibold text-sm leading-tight truncate">{machine.model}</p>
-                                        <p className="text-white/35 text-xs mt-0.5">{machine.type}</p>
+                                        <p className="text-white/35 text-xs mt-0.5">{t(machine.type)}</p>
                                     </div>
                                     <ProgressRing value={machine.trainingProgress} />
                                 </motion.button>
@@ -262,7 +264,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                                 className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
                                 style={{ borderColor: '#E67E22', color: '#E67E22' }}>
                                 <Plus size={15} />
-                                Add Machine
+                                {t('add_machine_btn')}
                             </motion.button>
                         </div>
                     </motion.div>
@@ -274,7 +276,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
 
 // ─── Scanner Page ─────────────────────────────────────────────────────────────
 const ScannerPage = () => {
-    const { workerId, currentLang, trainingCount } = useAppContext();
+    const { workerId, currentLang, trainingCount, t } = useAppContext();
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
@@ -401,7 +403,7 @@ const ScannerPage = () => {
                         >
                             <div className="flex items-start justify-between px-5 pt-5 pb-3">
                                 <div className="flex-1 pr-3">
-                                    <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase mb-1">Safety Response</p>
+                                    <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase mb-1">{t('safety_response')}</p>
                                     {question && <p className="text-gray-500 text-sm font-medium leading-snug">{question}</p>}
                                 </div>
                                 <button onClick={handleDismissAnswer}
@@ -437,7 +439,7 @@ const ScannerPage = () => {
                         >
                             <div className="flex items-center justify-between px-5 pt-5 pb-3">
                                 <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase">
-                                    Machine Detected
+                                    {t('machine_detected')}
                                 </p>
                                 <button onClick={() => setDetections(null)}
                                     className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -450,7 +452,7 @@ const ScannerPage = () => {
                                     <p className="text-red-500 text-sm">{detections.error}</p>
                                 ) : detections.detections?.length > 0 ? (
                                     <>
-                                        <p className="text-xs text-gray-400 mb-3">Select the correct machine:</p>
+                                        <p className="text-xs text-gray-400 mb-3">{t('select_correct_machine')}</p>
                                         {detections.detections.slice(0, 3).map((d, i) => {
                                             const match = findMachine(d.class);
                                             const pct = Math.round((d.confidence ?? 0) * 100);
@@ -471,7 +473,7 @@ const ScannerPage = () => {
                                                     <div className="text-left min-w-0">
                                                         <p className="font-bold text-gray-800 text-sm truncate">{d.class}</p>
                                                         <p className="text-xs text-gray-400 truncate">
-                                                            {match ? match.model : 'Unknown machine'}
+                                                            {match ? match.model : t('unknown_machine')}
                                                         </p>
                                                     </div>
                                                     <span className="text-sm font-black shrink-0"
@@ -483,7 +485,7 @@ const ScannerPage = () => {
                                         })}
                                     </>
                                 ) : (
-                                    <p className="text-gray-500 text-sm">No machines detected. Try again with better lighting.</p>
+                                    <p className="text-gray-500 text-sm">{t('no_machines_detected')}</p>
                                 )}
                             </div>
                         </motion.div>
@@ -511,7 +513,7 @@ const ScannerPage = () => {
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                             className="w-12 h-12 rounded-full border-2 border-white/10 border-t-safety-orange" />
                         <p className="text-white/40 text-sm font-mono tracking-widest">
-                            {isTranscribing ? 'TRANSCRIBING…' : isDetecting ? 'DETECTING…' : 'PROCESSING…'}
+                            {isTranscribing ? t('transcribing_stat') : isDetecting ? t('detecting_stat') : t('processing_stat')}
                         </p>
                     </motion.div>
                 ) : (
@@ -544,7 +546,7 @@ const ScannerPage = () => {
                                     transition={{ repeat: Infinity, duration: 1.1, ease: 'easeInOut' }}
                                     className="w-2.5 h-2.5 rounded-full bg-red-500" />
                                 <span className="text-red-500 font-mono font-bold text-sm tracking-widest">{timer}</span>
-                                <span className="text-gray-400 text-xs font-semibold ml-1">Recording…</span>
+                                <span className="text-gray-400 text-xs font-semibold ml-1">{t('recording_stat')}</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <motion.button whileTap={{ scale: 0.88 }} onClick={handleMicCancel}
@@ -573,14 +575,14 @@ const ScannerPage = () => {
                         </div>
                         <div className="px-4 pt-3 pb-5">
                             <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-4">
-                                Ask anything about this machine
+                                {t('ask_anything')}
                             </p>
                             <div className="flex items-center gap-2 rounded-full px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
                                 <MentionInput
                                     value={question}
                                     onChange={setQuestion}
                                     onSubmit={handleSend}
-                                    placeholder="Type a question…"
+                                    placeholder={t('type_a_question')}
                                     disabled={isTranscribing || isQuerying}
                                 />
                                 <button onClick={() => setShowCamera(true)}
@@ -614,10 +616,10 @@ const ScannerPage = () => {
             <div className="shrink-0 flex items-center justify-around px-2 py-2 border-t"
                 style={{ backgroundColor: '#0D1B2A', borderColor: 'rgba(255,255,255,0.07)' }}>
                 {[
-                    { icon: Home,          label: 'Home',     path: '/scanner'  },
-                    { icon: Award,         label: 'My Certs', path: '/'         },
-                    { icon: AlertTriangle, label: 'Incident', path: '/incident' },
-                    { icon: Settings,      label: 'Settings', path: '/settings' },
+                    { icon: Home,          label: t('nav_home'),     path: '/scanner'  },
+                    { icon: Award,         label: t('nav_certs'),    path: '/'         },
+                    { icon: AlertTriangle, label: t('nav_incident'), path: '/incident' },
+                    { icon: Settings,      label: t('nav_settings'), path: '/settings' },
                 ].map(({ icon: Icon, label, path }) => {
                     const active = pathname === path;
                     return (

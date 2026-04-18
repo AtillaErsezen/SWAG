@@ -26,7 +26,7 @@ const SiteMarshallLogo = () => (
 );
 
 const LoginHub = () => {
-    const { login, currentLang, changeLanguage, availableLanguages } = useAppContext();
+    const { login, currentLang, changeLanguage, availableLanguages, t } = useAppContext();
     const navigate = useNavigate();
     const [operatorId, setOperatorId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ const LoginHub = () => {
 
     const handleLogin = async () => {
         if (operatorId.trim().length < 3) {
-            setError('Enter at least 3 characters');
+            setError(t('login_error_length'));
             return;
         }
         setLoading(true);
@@ -48,7 +48,7 @@ const LoginHub = () => {
                 login(operatorId.trim(), res.training_count ?? 0);
                 navigate('/site-selector');
             } else {
-                setError('Login failed. Try again.');
+                setError(t('login_failed'));
             }
         } catch (err) {
             console.warn('Backend unreachable, logging in offline:', err.message);
@@ -127,11 +127,11 @@ const LoginHub = () => {
                     transition={{ delay: 0.12, duration: 0.4 }}
                     className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl"
                 >
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Clock In</h1>
-                    <p className="text-gray-400 text-sm mb-7">Enter your Operator ID to begin</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('clock_in')}</h1>
+                    <p className="text-gray-400 text-sm mb-7">{t('enter_operator_id')}</p>
 
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                        Operator ID
+                        {t('operator_id_label')}
                     </label>
                     <div className="flex items-center gap-3 rounded-xl px-4 py-3.5 mb-2" style={{ backgroundColor: '#EEF2F7' }}>
                         <IdCard size={20} className="text-gray-400 shrink-0" />
@@ -140,7 +140,7 @@ const LoginHub = () => {
                             value={operatorId}
                             onChange={e => { setOperatorId(e.target.value); setError(null); }}
                             onKeyDown={handleKeyDown}
-                            placeholder="e.g. OP-1234"
+                            placeholder={t('operator_id_placeholder')}
                             autoFocus
                             className="bg-transparent outline-none text-gray-700 placeholder-gray-400 w-full text-base"
                         />
@@ -167,7 +167,7 @@ const LoginHub = () => {
                         style={{ backgroundColor: '#E67E22' }}
                     >
                         <span>👷</span>
-                        <span>{loading ? 'Logging in…' : 'Clock In'}</span>
+                        <span>{loading ? t('logging_in') : t('clock_in')}</span>
                     </button>
                 </motion.div>
 
@@ -179,7 +179,7 @@ const LoginHub = () => {
                     className="text-sm text-center"
                     style={{ color: 'rgba(255,255,255,0.35)' }}
                 >
-                    First time? Contact your site supervisor to get access.
+                    {t('first_time_contact')}
                 </motion.p>
             </div>
         </div>

@@ -126,6 +126,19 @@ UI_STRINGS = {
         "language_menu": "SÉLECTION DE LA LANGUE",
         "select_lang": "Entrez le numéro pour sélectionner la langue",
     },
+    "nld_Latn": {
+        "hold_space": "Houd [SPATIEBALK] in om te spreken, typ ':lang' voor het taalmenu, ':quit' om te sluiten",
+        "recording": "[OPNEMEN] Spreek nu... (Laat SPATIEBALK los om te eindigen)",
+        "transcribing": "Audio transcriberen...",
+        "translating_in": "Vertalen naar het Engels...",
+        "refining": "Zoekopdracht verfijnen...",
+        "analyzing": "Veiligheidsprotocollen analyseren...",
+        "translating_out": "Antwoord vertalen...",
+        "panel_title": "SWAG INTELLIGENTIE",
+        "source": "BRON",
+        "language_menu": "TAALSELECTIE",
+        "select_lang": "Voer een nummer in om de taal te selecteren",
+    },
 }
 
 # ============================================================================

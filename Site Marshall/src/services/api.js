@@ -139,7 +139,7 @@ export const healthCheck = () =>
  */
 export function playAudio(base64Audio) {
     if (!base64Audio) return;
-    const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+    const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
     audio.play().catch(() => { /* autoplay may be blocked */ });
 }
 

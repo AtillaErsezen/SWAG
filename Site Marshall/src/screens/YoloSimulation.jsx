@@ -12,7 +12,7 @@ import { detectImage } from '../services/api';
 // Camera Viewfinder Overlay
 // Uses getUserMedia for cross-platform camera access (desktop + mobile).
 // ─────────────────────────────────────────────────────────────────────────────
-const CameraViewfinder = ({ onCapture, onClose }) => {
+const CameraViewfinder = ({ onCapture, onClose, t }) => {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [ready, setReady] = useState(false);
@@ -39,7 +39,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                 }
             } catch (err) {
                 if (!cancelled) setCamError(err.name === 'NotAllowedError'
-                    ? 'Camera permission denied. Please allow camera access and try again.'
+                    ? t('camera_perm_denied_full')
                     : `Camera unavailable: ${err.message}`);
             }
         })();
@@ -110,7 +110,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             {/* Bottom-right */}
                             <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-electric-cyan" />
                             <p className="absolute -bottom-8 left-0 right-0 text-center text-white/50 text-xs font-mono tracking-widest">
-                                FRAME MACHINE
+                                {t('yolo_frame_machine')}
                             </p>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                             className="w-10 h-10 rounded-full border-2 border-white/20 border-t-electric-cyan"
                         />
-                        <p className="text-white/50 text-sm font-mono">Starting camera…</p>
+                        <p className="text-white/50 text-sm font-mono">{t('starting_camera_dots')}</p>
                     </div>
                 )}
 
@@ -137,7 +137,7 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                             onClick={onClose}
                             className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold"
                         >
-                            Go Back
+                            {t('go_back')}
                         </button>
                     </div>
                 )}
@@ -147,10 +147,10 @@ const CameraViewfinder = ({ onCapture, onClose }) => {
                     <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${ready ? 'bg-electric-cyan animate-pulse' : 'bg-white/30'}`} />
                         <span className="text-white text-xs font-mono tracking-wider">
-                            {ready ? 'LIVE' : 'INIT'}
+                            {ready ? t('yolo_live') : t('yolo_init')}
                         </span>
                     </div>
-                    <span className="text-white/40 text-xs font-mono">MARSHALL CV</span>
+                    <span className="text-white/40 text-xs font-mono">{t('yolo_marshall_cv')}</span>
                 </div>
             </div>
 
@@ -201,7 +201,7 @@ const YoloSimulation = () => {
     const frameIntervalRef = useRef(null);
 
     const navigate = useNavigate();
-    const { setActiveMachineId, workerId } = useAppContext();
+    const { setActiveMachineId, workerId, t } = useAppContext();
 
     // Cleanup on unmount
     useEffect(() => () => {
@@ -299,13 +299,13 @@ const YoloSimulation = () => {
                 <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full ${phase === 'scanning' ? 'bg-electric-cyan animate-pulse' : phase === 'idle' ? 'bg-white/40' : 'bg-sage-green'}`} />
                     <span className="text-white text-xs font-mono tracking-wider">
-                        {phase === 'idle' ? 'WAITING FOR IMAGE' : phase === 'scanning' ? 'DETECTING...' : 'DETECTION COMPLETE'}
+                        {phase === 'idle' ? t('yolo_waiting') : phase === 'scanning' ? t('detecting_stat') : t('yolo_detection_complete')}
                     </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-mono text-white/60 tracking-wider">
-                    <span>MARSHALL CV v3.1</span>
+                    <span>{t('yolo_marshall_cv')} v3.1</span>
                     {phase !== 'idle' && <span>{frameCount} frames</span>}
-                    {error && <span className="text-safety-orange">OFFLINE MODE</span>}
+                    {error && <span className="text-safety-orange">{t('yolo_offline_mode')}</span>}
                 </div>
             </div>
 
@@ -387,9 +387,9 @@ const YoloSimulation = () => {
                         className="absolute inset-0 z-30 flex flex-col items-center justify-center p-8 gap-6"
                     >
                         <div className="text-center">
-                            <p className="text-white/60 font-mono text-xs tracking-widest uppercase mb-2">MARSHALL CV</p>
-                            <h2 className="text-white font-black text-2xl">Identify a Machine</h2>
-                            <p className="text-white/50 text-sm mt-1">Take a photo or select one from your library</p>
+                            <p className="text-white/60 font-mono text-xs tracking-widest uppercase mb-2">{t('yolo_marshall_cv')}</p>
+                            <h2 className="text-white font-black text-2xl">{t('yolo_identify_machine')}</h2>
+                            <p className="text-white/50 text-sm mt-1">{t('yolo_take_or_select')}</p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
@@ -400,7 +400,7 @@ const YoloSimulation = () => {
                                 className="flex-1 flex flex-col items-center gap-3 bg-electric-cyan text-black font-black text-base px-6 py-5 rounded-2xl shadow-lg hover:brightness-110 transition-all"
                             >
                                 <Camera size={32} />
-                                TAKE PHOTO
+                                {t('yolo_take_photo')}
                             </motion.button>
 
                             {/* Upload from library */}
@@ -410,7 +410,7 @@ const YoloSimulation = () => {
                                 className="flex-1 flex flex-col items-center gap-3 bg-white/10 border border-white/20 text-white font-black text-base px-6 py-5 rounded-2xl hover:bg-white/20 transition-all"
                             >
                                 <Upload size={32} />
-                                UPLOAD
+                                {t('yolo_upload')}
                             </motion.button>
                         </div>
                     </motion.div>
@@ -432,6 +432,7 @@ const YoloSimulation = () => {
                     <CameraViewfinder
                         onCapture={(blob) => startScan(blob)}
                         onClose={() => setShowCamera(false)}
+                        t={t}
                     />
                 )}
             </AnimatePresence>
@@ -451,7 +452,7 @@ const YoloSimulation = () => {
                                 <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-sage-green" />
                                     <span className="text-white/60 text-[10px] font-mono tracking-widest uppercase">
-                                        {isAmbiguous ? 'MULTIPLE MATCHES — select one' : `${detections.length} match${detections.length !== 1 ? 'es' : ''} — tap to open`}
+                                        {isAmbiguous ? t('yolo_multiple_matches') : `${detections.length} ${t('yolo_matches_tap')}`}
                                     </span>
                                 </div>
                                 <button
@@ -483,7 +484,7 @@ const YoloSimulation = () => {
                                                         {machine ? machine.model : det.class}
                                                     </div>
                                                     <div className="text-white/40 text-[10px] font-mono">
-                                                        {machine ? machine.type : 'Unknown'}
+                                                        {machine ? machine.type : t('unknown')}
                                                     </div>
                                                 </div>
                                             </div>

@@ -3,15 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, CheckCircle, Circle, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { machineDB, checklistDB } from '../data/mockData';
+import { useAppContext } from '../context/AppContext';
 
 
 const PreShiftChecklist = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useAppContext();
     const machine = machineDB.find(m => m.id === id);
     const [checked, setChecked] = useState({});
 
-    if (!machine) return <div className="p-8">Machine Not Found</div>;
+    if (!machine) return <div className="p-8">{t('machine_not_found')}</div>;
 
     const items = checklistDB[machine.type] || checklistDB["Crawler Excavator"];
 
@@ -34,7 +36,7 @@ const PreShiftChecklist = () => {
                     <ChevronLeft size={28} />
                 </button>
                 <div className="ml-2">
-                    <h2 className="text-xl font-bold tracking-tight">Pre-Shift Inspection</h2>
+                    <h2 className="text-xl font-bold tracking-tight">{t('pre_shift_inspection')}</h2>
                     <p className="text-xs text-slate-gray font-medium uppercase tracking-widest">{machine.model} · {machine.type}</p>
                 </div>
             </div>
@@ -43,7 +45,7 @@ const PreShiftChecklist = () => {
                 {/* Progress */}
                 <div className="mb-6">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-black text-slate-gray uppercase tracking-widest">{totalChecked} of {items.length} items verified</span>
+                        <span className="text-sm font-black text-slate-gray uppercase tracking-widest">{totalChecked} {t('of')} {items.length} {t('items_verified')}</span>
                         <span className="text-sm font-black text-matte-indigo">{Math.round((totalChecked / items.length) * 100)}%</span>
                     </div>
                     <div className="w-full h-2 bg-slate-gray/10 rounded-full overflow-hidden">
@@ -58,7 +60,7 @@ const PreShiftChecklist = () => {
                 {criticalsMissing > 0 && (
                     <div className="bg-rust-red/10 border border-rust-red/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
                         <AlertTriangle size={24} className="text-rust-red flex-shrink-0" />
-                        <p className="text-rust-red font-bold text-sm">{criticalsMissing} critical item{criticalsMissing > 1 ? 's' : ''} remaining. Machine operation is prohibited until all critical items are verified.</p>
+                        <p className="text-rust-red font-bold text-sm">{criticalsMissing} {t('critical_items_remaining_part1')} {criticalsMissing > 1 ? 's' : ''} {t('critical_items_remaining_part2')}</p>
                     </div>
                 )}
 
@@ -83,10 +85,10 @@ const PreShiftChecklist = () => {
                             }
                             <div className="flex-1 min-w-0">
                                 <span className={`font-bold text-base leading-tight ${checked[item.id] ? 'opacity-50 line-through' : ''}`}>
-                                    {item.label}
+                                    {t(item.label)}
                                 </span>
                                 {item.critical && !checked[item.id] && (
-                                    <span className="block text-[10px] font-black text-rust-red uppercase tracking-widest mt-1">CRITICAL · MANDATORY</span>
+                                    <span className="block text-[10px] font-black text-rust-red uppercase tracking-widest mt-1">{t('critical_mandatory')}</span>
                                 )}
                             </div>
                         </motion.button>
@@ -105,7 +107,7 @@ const PreShiftChecklist = () => {
                         }`}
                 >
                     <ClipboardCheck size={24} />
-                    {allChecked ? 'SIGN OFF & PROCEED' : `${items.length - totalChecked} ITEMS REMAINING`}
+                    {allChecked ? t('sign_off_proceed') : `${items.length - totalChecked} ${t('items_remaining_caps')}`}
                 </button>
             </div>
         </div>
