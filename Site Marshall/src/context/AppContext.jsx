@@ -10,7 +10,6 @@ export const AppProvider = ({ children }) => {
     const [currentLang, setCurrentLang] = useState('en');
     const [activeMachineId, setActiveMachineId] = useState(null);
     const [activeSite, setActiveSite] = useState(null);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const t = (key) => {
         return translations[currentLang]?.[key] || translations['en'][key] || key;
@@ -29,7 +28,6 @@ export const AppProvider = ({ children }) => {
     };
 
     const changeLanguage = (code) => setCurrentLang(code);
-    const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
     return (
         <AppContext.Provider value={{
@@ -47,9 +45,6 @@ export const AppProvider = ({ children }) => {
             activeSite,
             setActiveSite,
             sites: constructionSites,
-            sidebarOpen,
-            setSidebarOpen,
-            toggleSidebar
         }}>
             {children}
         </AppContext.Provider>

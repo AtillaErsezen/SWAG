@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Menu, UserCircle } from 'lucide-react';
+import { Home, UserCircle } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import OfflineIndicator from '../OfflineIndicator';
@@ -8,7 +8,7 @@ import OfflineIndicator from '../OfflineIndicator';
 const HEADERLESS_ROUTES = ['/scanner'];
 
 const Header = () => {
-    const { workerId, toggleSidebar } = useAppContext();
+    const { workerId } = useAppContext();
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
@@ -16,16 +16,7 @@ const Header = () => {
 
     return (
         <header className="h-16 bg-matte-indigo text-app-bg flex items-center justify-between px-4 shadow-md sticky top-0 z-40">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={toggleSidebar}
-                    className="p-2 hover:bg-deep-concrete rounded-md transition-colors"
-                    aria-label="Toggle menu"
-                >
-                    <Menu size={24} />
-                </button>
-                <div className="font-bold text-lg">Site Marshall</div>
-            </div>
+            <div className="font-bold text-lg">Site Marshall</div>
 
             {workerId && (
                 <div className="flex items-center gap-3">
