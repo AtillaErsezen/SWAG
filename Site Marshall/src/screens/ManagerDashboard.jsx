@@ -22,14 +22,12 @@ const SUBTYPE_LABEL = {
 };
 
 const StatCard = ({ icon: Icon, label, value }) => (
-    <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: '#FFF5EC' }}>
-            <Icon size={18} style={{ color: '#E67E22' }} />
+    <div className="bg-white rounded-2xl p-3 flex flex-col items-center gap-1.5 shadow-sm min-w-0">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: '#FFF5EC' }}>
+            <Icon size={14} style={{ color: '#E67E22' }} />
         </div>
-        <div>
-            <p className="text-2xl font-black text-gray-800 leading-none">{value}</p>
-            <p className="text-xs text-gray-400 font-semibold mt-0.5">{label}</p>
-        </div>
+        <p className="text-xl font-black text-gray-800 leading-none">{value}</p>
+        <p className="text-[10px] text-gray-400 font-semibold text-center leading-tight">{label}</p>
     </div>
 );
 
@@ -340,10 +338,12 @@ if (e) throw new Error(e.message);
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-600 leading-snug">{r.content}</p>
-                                <div className="flex items-center gap-4 mt-2 text-[11px] text-gray-400">
-                                    {r.machine && <span>🔧 {r.machine}</span>}
-                                    {r.site    && <span>📍 {r.site}</span>}
-                                    <span className="ml-auto">{fmt(r.created_at)}</span>
+                                <div className="mt-2 text-[11px] text-gray-400 flex flex-col gap-0.5">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        {r.machine && <span className="truncate max-w-[45%]">🔧 {r.machine}</span>}
+                                        {r.site    && <span className="truncate max-w-[45%]">📍 {r.site}</span>}
+                                    </div>
+                                    <span>{fmt(r.created_at)}</span>
                                 </div>
                                 <button onClick={() => setForwardTarget(r)}
                                     className="mt-2.5 w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
@@ -382,9 +382,10 @@ const TeamTab = () => {
 
     const callWorker = async (worker) => {
         setCalling(worker.id);
+        if (!activeSite) return;
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            const siteName = activeSite ? activeSite.name : 'Unknown Site';
+            const siteName = activeSite.name;
             const row = {
                 sender_id:    session.user.id,
                 recipient_id: worker.id,
@@ -412,6 +413,13 @@ const TeamTab = () => {
                 <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
             </button>
 
+            {!activeSite && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-200">
+                    <AlertTriangle size={15} className="text-amber-500 shrink-0" />
+                    <p className="text-xs font-bold text-amber-700">Select a site before summoning workers.</p>
+                </div>
+            )}
+
             {error ? <p className="text-red-500 text-sm text-center py-8">{error}</p>
             : loading ? <Spinner />
             : workers.length === 0 ? <p className="text-gray-400 text-sm text-center py-12">No workers found.</p>
@@ -425,7 +433,7 @@ const TeamTab = () => {
                                 <p className="font-bold text-gray-800 text-sm truncate">{w.full_name}</p>
                                 <p className="text-xs text-gray-400 mt-0.5 capitalize">{w.role}</p>
                             </div>
-                            <button onClick={() => callWorker(w)} disabled={calling === w.id}
+                            <button onClick={() => callWorker(w)} disabled={calling === w.id || !activeSite}
                                 className="px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all disabled:opacity-90"
                                 style={{ backgroundColor: calling === w.id ? '#16a34a' : '#E67E22', color: 'white' }}>
                                 {calling === w.id ? (
@@ -549,37 +557,36 @@ const ManagerDashboard = () => {
 
     return (
         <div className="min-h-full flex flex-col bg-gray-50">
-            <div className="px-5 pt-10 pb-6 flex items-start justify-between" style={{ backgroundColor: '#E67E22' }}>
-                <button className="flex items-center gap-3 text-left active:opacity-80" onClick={() => navigate('/profile')}>
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+            <div className="px-4 pt-10 pb-5 flex items-center gap-3" style={{ backgroundColor: '#E67E22' }}>
+                <button className="flex items-center gap-3 text-left active:opacity-80 flex-1 min-w-0" onClick={() => navigate('/profile')}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
                         style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
-                        <span className="text-white font-black text-base">
+                        <span className="text-white font-black text-sm">
                             {(workerId ?? 'M').charAt(0).toUpperCase()}
                         </span>
                     </div>
-                    <div>
-                        <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Manager Dashboard</p>
-                        <h1 className="text-xl font-black text-white leading-tight">{workerId}</h1>
-                        {activeSite && <p className="text-white/70 text-sm mt-0.5">{activeSite.name}</p>}
+                    <div className="min-w-0">
+                        <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest">Manager Dashboard</p>
+                        <h1 className="text-base font-black text-white leading-tight truncate">{workerId}</h1>
+                        {activeSite && <p className="text-white/80 text-xs mt-0.5 truncate">{activeSite.name}</p>}
                     </div>
                 </button>
-                <button onClick={handleLogout}
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                <button onClick={handleLogout} className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                     style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                    <LogOut size={18} className="text-white" />
+                    <LogOut size={16} className="text-white" />
                 </button>
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-200 bg-white px-4">
+            <div className="flex border-b border-gray-200 bg-white overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                 {TABS.map(({ id, label, icon: Icon }) => (
                     <button key={id} onClick={() => setTab(id)}
-                        className="flex items-center gap-2 px-4 py-3.5 text-sm font-bold border-b-2 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-3 text-xs font-bold border-b-2 transition-colors shrink-0 whitespace-nowrap"
                         style={{
                             borderColor: tab === id ? '#E67E22' : 'transparent',
                             color: tab === id ? '#E67E22' : '#94a3b8',
                         }}>
-                        <Icon size={15} />
+                        <Icon size={13} />
                         {label}
                     </button>
                 ))}
