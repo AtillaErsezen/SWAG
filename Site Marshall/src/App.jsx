@@ -15,6 +15,7 @@ import BugReport from './screens/BugReport';
 import ManagerDashboard from './screens/ManagerDashboard';
 import WorkerInbox from './screens/WorkerInbox';
 import ProfilePage from './screens/ProfilePage';
+import Messages from './screens/Messages';
 
 const ManagerRoute = ({ children }) => {
     const { session, authLoading, userRole } = useAppContext();
@@ -39,6 +40,7 @@ function App() {
             <Route path="incident" element={<ProtectedRoute><IncidentReport /></ProtectedRoute>} />
             <Route path="bug-report" element={<ProtectedRoute><BugReport /></ProtectedRoute>} />
             <Route path="inbox" element={<ProtectedRoute><WorkerInbox /></ProtectedRoute>} />
+            <Route path="messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="manager" element={<ManagerRoute><ManagerDashboard /></ManagerRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, Send, CameraOff, X, Wrench, Home, AlertTriangle, Bug, LogOut, Bell } from 'lucide-react';
+import { Camera, Mic, Send, CameraOff, X, Wrench, Home, AlertTriangle, Bug, LogOut, Bell, MessageCircle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
@@ -258,8 +258,18 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogou
                             ))}
                         </div>
 
+                        {/* Messages Link */}
+                        <div className="px-5 pt-4 shrink-0 flex flex-col gap-2">
+                            <motion.button whileTap={{ scale: 0.97 }} onClick={() => { onClose(); navigate('/messages'); }}
+                                className="w-full py-3.5 rounded-2xl flex items-center gap-3 px-4 transition-colors"
+                                style={{ backgroundColor: 'rgba(230,126,34,0.1)' }}>
+                                <MessageCircle size={18} className="text-safety-orange" />
+                                <span className="font-bold text-sm text-safety-orange">Messages</span>
+                            </motion.button>
+                        </div>
+
                         {/* Logout */}
-                        <div className="px-5 py-4 shrink-0 flex flex-col gap-2">
+                        <div className="px-5 pb-4 pt-2 shrink-0 flex flex-col gap-2">
                             <motion.button whileTap={{ scale: 0.97 }} onClick={onLogout}
                                 className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
                                 style={{ borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)' }}>
