@@ -7,6 +7,7 @@ import OfflineIndicator from '../OfflineIndicator';
 const HEADERLESS_PREFIXES = [
     '/scanner', '/machine/', '/site-selector', '/permissions',
     '/manager', '/incident', '/bug-report', '/inbox', '/profile',
+    '/messages',
 ];
 
 const Header = () => {

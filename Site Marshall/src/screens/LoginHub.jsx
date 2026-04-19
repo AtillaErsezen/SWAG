@@ -31,7 +31,7 @@ const LoginHub = () => {
     const navigate = useNavigate();
 
     if (!authLoading && session) {
-        navigate(userRole === 'manager' ? '/manager' : '/scanner', { replace: true });
+        navigate('/site-selector', { replace: true });
         return null;
     }
 

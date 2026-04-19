@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Users, BookOpen, Award, RefreshCw, AlertTriangle, ClipboardList, X, Send, CheckCircle } from 'lucide-react';
+import { LogOut, Users, BookOpen, Award, RefreshCw, AlertTriangle, ClipboardList, X, Send, CheckCircle, MessageSquare, Megaphone } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
@@ -360,10 +360,184 @@ if (e) throw new Error(e.message);
     );
 };
 
+// ── Team Tab ───────────────────────────────────────────────────────────
+const TeamTab = () => {
+    const { activeSite } = useAppContext();
+    const [workers, setWorkers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [calling, setCalling] = useState(null);
+
+    const fetch = async () => {
+        setLoading(true); setError(null);
+        try {
+            const { data, error: e } = await supabase.from('profiles').select('*').eq('role', 'worker');
+            if (e) throw new Error(e.message);
+            setWorkers(data ?? []);
+        } catch (e) { setError(e.message); }
+        finally { setLoading(false); }
+    };
+
+    useEffect(() => { fetch(); }, []);
+
+    const callWorker = async (worker) => {
+        setCalling(worker.id);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const siteName = activeSite ? activeSite.name : 'Unknown Site';
+            const row = {
+                sender_id:    session.user.id,
+                recipient_id: worker.id,
+                message_type: 'broadcast',
+                subtype:      'call',
+                site:         siteName,
+                content:      `Manager is waiting for you at ${siteName}.`
+            };
+            const { error } = await supabase.from('messages').insert([row]);
+            if (error) throw error;
+        } catch (e) { console.error(e); }
+        finally {
+            setTimeout(() => setCalling(null), 1500);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-3">
+                <StatCard icon={Users} label="Total Field Workers" value={workers.length} />
+            </div>
+
+            <button onClick={fetch} disabled={loading}
+                className="flex items-center gap-2 self-end text-xs font-bold text-gray-400 hover:text-safety-orange transition-colors">
+                <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+
+            {error ? <p className="text-red-500 text-sm text-center py-8">{error}</p>
+            : loading ? <Spinner />
+            : workers.length === 0 ? <p className="text-gray-400 text-sm text-center py-12">No workers found.</p>
+            : (
+                <div className="flex flex-col gap-2">
+                    {workers.map((w, i) => (
+                        <motion.div key={w.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.03 }}
+                            className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center justify-between gap-3 border border-gray-100">
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-800 text-sm truncate">{w.full_name}</p>
+                                <p className="text-xs text-gray-400 mt-0.5 capitalize">{w.role}</p>
+                            </div>
+                            <button onClick={() => callWorker(w)} disabled={calling === w.id}
+                                className="px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all disabled:opacity-90"
+                                style={{ backgroundColor: calling === w.id ? '#16a34a' : '#E67E22', color: 'white' }}>
+                                {calling === w.id ? (
+                                    <><CheckCircle size={14} /> Summoned!</>
+                                ) : (
+                                    <><AlertTriangle size={14} /> Summon</>
+                                )}
+                            </button>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ── Sent Messages Tab ─────────────────────────────────────────────────────────
+const SentMessagesTab = () => {
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading]   = useState(true);
+    const [error, setError]       = useState(null);
+
+    const fetch = async () => {
+        setLoading(true); setError(null);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data, error: e } = await supabase
+                .from('messages')
+                .select('*, profiles!messages_recipient_id_fkey(full_name)')
+                .eq('sender_id', session.user.id)
+                .in('message_type', ['broadcast'])
+                .order('created_at', { ascending: false });
+            if (e) throw new Error(e.message);
+            setMessages(data ?? []);
+        } catch (e) { setError(e.message); }
+        finally { setLoading(false); }
+    };
+
+    useEffect(() => { fetch(); }, []);
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+                <StatCard icon={MessageSquare} label="Sent"      value={messages.length} />
+                <StatCard icon={CheckCircle}   label="Confirmed" value={messages.filter(m => m.confirmed).length} />
+            </div>
+
+            <button onClick={fetch} disabled={loading}
+                className="flex items-center gap-2 self-end text-xs font-bold text-gray-400 hover:text-safety-orange transition-colors">
+                <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+
+            {error ? <p className="text-red-500 text-sm text-center py-8">{error}</p>
+            : loading ? <Spinner />
+            : messages.length === 0 ? <p className="text-gray-400 text-sm text-center py-12">No messages sent yet.</p>
+            : (
+                <div className="flex flex-col gap-2">
+                    {messages.map((m, i) => {
+                        const isSummon = m.subtype === 'call';
+                        return (
+                            <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                                className="rounded-2xl px-4 py-3.5 shadow-sm border-2"
+                                style={{
+                                    backgroundColor: isSummon ? '#fff9f5' : 'white',
+                                    borderColor: isSummon ? '#E67E22' : '#f1f5f9',
+                                }}>
+                                <div className="flex items-start justify-between gap-2 mb-1.5">
+                                    <div className="flex items-center gap-2">
+                                        {isSummon && (
+                                            <div className="w-7 h-7 rounded-full bg-safety-orange flex items-center justify-center shrink-0">
+                                                <Megaphone size={13} className="text-white" />
+                                            </div>
+                                        )}
+                                        <div>
+                                            {isSummon && <p className="text-[10px] font-black text-safety-orange uppercase tracking-widest leading-none">Summon</p>}
+                                            <p className="font-bold text-gray-800 text-sm">{m.profiles?.full_name ?? 'Worker'}</p>
+                                        </div>
+                                    </div>
+                                    {m.confirmed ? (
+                                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-600 shrink-0">
+                                            <CheckCircle size={11} /> Confirmed
+                                        </span>
+                                    ) : (
+                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-400 shrink-0">
+                                            Pending
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-600 leading-snug">{m.content}</p>
+                                <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
+                                    {m.site && <span>📍 {m.site}</span>}
+                                    <span className="ml-auto">{fmt(m.created_at)}</span>
+                                </div>
+                                {m.confirmed && m.confirmed_at && (
+                                    <p className="text-[11px] text-green-500 mt-1">✓ Confirmed {fmt(m.confirmed_at)}</p>
+                                )}
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ── Dashboard Shell ───────────────────────────────────────────────────────────
 const TABS = [
     { id: 'incidents', label: 'Incidents', icon: AlertTriangle },
     { id: 'trainings', label: 'Trainings', icon: ClipboardList },
+    { id: 'messages',  label: 'Messages',  icon: MessageSquare },
+    { id: 'team',      label: 'Team',      icon: Users },
 ];
 
 const ManagerDashboard = () => {
@@ -415,7 +589,7 @@ const ManagerDashboard = () => {
                 <AnimatePresence mode="wait">
                     <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
-                        {tab === 'incidents' ? <IncidentsTab /> : <TrainingsTab />}
+                        {tab === 'incidents' ? <IncidentsTab /> : tab === 'trainings' ? <TrainingsTab /> : tab === 'messages' ? <SentMessagesTab /> : <TeamTab />}
                     </motion.div>
                 </AnimatePresence>
             </div>
