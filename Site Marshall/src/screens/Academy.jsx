@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronDown, BookOpen, FileText, CheckCircle, XCircle, Send, Play, Layers, Trophy, RotateCcw } from 'lucide-react';
 import { machineDB } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 
 const getCriticalityStyle = (crit) => {
     switch (crit) {
@@ -18,13 +19,30 @@ const getCriticalityStyle = (crit) => {
 const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
 // ─── Multiple-Choice Quiz Component ──────────────────────────────────────────
-const MultipleChoiceQuiz = ({ cards }) => {
+const MultipleChoiceQuiz = ({ cards, machineName, siteName }) => {
     const { t } = useAppContext();
     const [qIndex, setQIndex] = useState(0);
-    const [selected, setSelected] = useState(null);   // index of chosen option
-    const [revealed, setRevealed] = useState(false);  // answer revealed?
+    const [selected, setSelected] = useState(null);
+    const [revealed, setRevealed] = useState(false);
     const [score, setScore] = useState(0);
     const [finished, setFinished] = useState(false);
+
+    useEffect(() => {
+        if (!finished) return;
+        const pct = Math.round((score / cards.length) * 100);
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) { console.error('[Training] no session'); return; }
+            const { error } = await supabase.from('trainings').insert({
+                user_id: session.user.id,
+                machine: machineName ?? null,
+                site: siteName ?? null,
+                training_type: 'quiz',
+                quiz_result: pct,
+            });
+            if (error) console.error('[Training] quiz insert error:', error.message, error.details);
+            else console.log('[Training] quiz saved', pct + '%');
+        });
+    }, [finished]);
 
     const total = cards.length;
     const card = cards[qIndex];
@@ -235,7 +253,7 @@ const MultipleChoiceQuiz = ({ cards }) => {
 const Academy = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useAppContext();
+    const { t, activeSite } = useAppContext();
 
     const [view, setView] = useState('overview');
     const [activeSection, setActiveSection] = useState(null);
@@ -475,13 +493,25 @@ const Academy = () => {
                                                         initial={{ opacity: 0, y: 10 }}
                                                         animate={{ opacity: 1, y: 0 }}
                                                         exit={{ opacity: 0, y: 10 }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // Prevent the card from flipping back immediately
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            if (curCard === activeSection.learnCards.length - 1) {
+                                                                const { data: { session } } = await supabase.auth.getSession();
+                                                                if (session) {
+                                                                    supabase.from('trainings').insert({
+                                                                        user_id: session.user.id,
+                                                                        machine: machine.model,
+                                                                        site: activeSite?.name ?? null,
+                                                                        training_type: 'flashcard',
+                                                                        quiz_result: null,
+                                                                    });
+                                                                }
+                                                            }
                                                             setIsFlipped(false);
                                                             setTimeout(() => {
                                                                 if (curCard < activeSection.learnCards.length - 1) setCurCard(c => c + 1);
                                                                 else setCurCard(0);
-                                                            }, 150); // Small delay to let the card flip back before content changes
+                                                            }, 150);
                                                         }}
                                                         className="w-full py-5 bg-safety-orange text-white font-black text-xl rounded-2xl shadow-md active:scale-95 transition-transform"
                                                     >
@@ -519,6 +549,8 @@ const Academy = () => {
                                                 <MultipleChoiceQuiz
                                                     key={activeSection.id}
                                                     cards={activeSection.learnCards}
+                                                    machineName={machine.model}
+                                                    siteName={activeSite?.name ?? null}
                                                 />
                                             </>
                                         ) : (

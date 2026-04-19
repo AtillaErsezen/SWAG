@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, Award, AlertTriangle, Bug, LogOut } from 'lucide-react';
+import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, AlertTriangle, Bug, LogOut } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
@@ -624,9 +624,8 @@ const ScannerPage = () => {
                 style={{ backgroundColor: '#0D1B2A', borderColor: 'rgba(255,255,255,0.07)' }}>
                 {[
                     { icon: Home,          label: t('nav_home'),     path: '/scanner'  },
-                    { icon: Award,         label: t('nav_certs'),    path: '/'         },
                     { icon: AlertTriangle, label: t('nav_incident'), path: '/incident' },
-                    { icon: Bug,           label: 'Bug Report', path: '/bug-report' },
+                    { icon: Bug,           label: 'Bug Report',      path: '/bug-report' },
                 ].map(({ icon: Icon, label, path }) => {
                     const active = pathname === path;
                     return (
