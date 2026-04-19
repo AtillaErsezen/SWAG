@@ -607,21 +607,23 @@ const ScannerPage = () => {
                                 <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-4">
                                     {t('ask_anything')}
                                 </p>
-                                <div className="flex items-center gap-2 rounded-full px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
-                                    <MentionInput
-                                        value={question}
-                                        onChange={setQuestion}
-                                        onSubmit={handleSend}
-                                        placeholder={t('type_a_question')}
-                                        disabled={isTranscribing || isQuerying}
-                                    />
+                                <div className="flex items-end gap-2 rounded-2xl px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
+                                    <div className="flex-1 min-w-0 min-h-[1.5rem]">
+                                        <MentionInput
+                                            value={question}
+                                            onChange={setQuestion}
+                                            onSubmit={handleSend}
+                                            placeholder={t('type_a_question')}
+                                            disabled={isTranscribing || isQuerying}
+                                        />
+                                    </div>
                                     <button onClick={() => setShowCamera(true)}
-                                        className="p-1 text-gray-400 hover:text-safety-orange transition-colors">
+                                        className="p-1 text-gray-400 hover:text-safety-orange transition-colors shrink-0">
                                         <Camera size={21} />
                                     </button>
                                     <motion.button onClick={handleMicStart} whileTap={{ scale: 0.85 }}
                                         disabled={isTranscribing || isQuerying}
-                                        className={`p-1 transition-colors ${isTranscribing || isQuerying ? 'text-safety-orange/50' : 'text-gray-400 hover:text-safety-orange'}`}>
+                                        className={`p-1 transition-colors shrink-0 ${isTranscribing || isQuerying ? 'text-safety-orange/50' : 'text-gray-400 hover:text-safety-orange'}`}>
                                         <Mic size={21} />
                                     </motion.button>
                                     <AnimatePresence>
@@ -630,7 +632,7 @@ const ScannerPage = () => {
                                                 initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                                                 exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}
                                                 onClick={handleSend}
-                                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mb-0.5"
                                                 style={{ backgroundColor: '#E67E22' }}>
                                                 <Send size={15} className="text-white translate-x-px" />
                                             </motion.button>
