@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, AlertTriangle, Bug, LogOut } from 'lucide-react';
+import { Camera, Mic, Send, CameraOff, X, Wrench, Home, AlertTriangle, Bug, LogOut, Bell } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
@@ -184,7 +184,7 @@ const findMachine = (detectedClass) => {
 };
 
 // ─── Fleet Drawer ─────────────────────────────────────────────────────────────
-const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogout }) => {
+const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogout, onProfile }) => {
     const { t } = useAppContext();
     const certified = machineDB.filter(m => m.trainingProgress === 100).length;
     return (
@@ -206,8 +206,8 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogou
                         {/* Profile header */}
                         <div className="px-5 pt-10 pb-5 shrink-0">
                             <div className="flex items-start justify-between mb-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shrink-0"
+                                <button className="flex items-center gap-3 text-left" onClick={() => { onClose(); onProfile(); }}>
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shrink-0 active:opacity-80"
                                         style={{ backgroundColor: '#E67E22' }}>
                                         <span className="text-white font-bold text-lg">{trainingCount || '1'}</span>
                                     </div>
@@ -215,7 +215,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogou
                                         <p className="text-white font-bold text-xl leading-tight">{workerId ?? 'Operator'}</p>
                                         <p className="text-white/40 text-xs mt-0.5">{t('operator_subtitle')}</p>
                                     </div>
-                                </div>
+                                </button>
                                 <button onClick={onClose}
                                     className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1"
                                     style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
@@ -258,14 +258,8 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogou
                             ))}
                         </div>
 
-                        {/* Add Machine + Logout */}
+                        {/* Logout */}
                         <div className="px-5 py-4 shrink-0 flex flex-col gap-2">
-                            <motion.button whileTap={{ scale: 0.97 }}
-                                className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
-                                style={{ borderColor: '#E67E22', color: '#E67E22' }}>
-                                <Plus size={15} />
-                                {t('add_machine_btn')}
-                            </motion.button>
                             <motion.button whileTap={{ scale: 0.97 }} onClick={onLogout}
                                 className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
                                 style={{ borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)' }}>
@@ -370,7 +364,46 @@ const ScannerPage = () => {
         }
     }, [question, workerId, currentLang]);
 
-    const handleDismissAnswer = useCallback(() => { setAnswer(null); setQuestion(''); }, []);
+    const SHEET_MIN = 170;
+    const dragRef    = useRef({ active: false, startY: 0, startH: SHEET_MIN });
+    const [sheetH, setSheetH]       = useState(SHEET_MIN);
+    const [isDragging, setIsDragging] = useState(false);
+
+    useEffect(() => {
+        if (answer) setSheetH(Math.round(window.innerHeight * 0.55));
+    }, [answer]);
+
+    const snapSheet = useCallback((h) => {
+        const vh = window.innerHeight;
+        const positions = [SHEET_MIN, Math.round(vh * 0.5), Math.round(vh * 0.85)];
+        return positions.reduce((a, b) => Math.abs(b - h) < Math.abs(a - h) ? b : a);
+    }, []);
+
+    const onDragStart = useCallback((e) => {
+        setIsDragging(true);
+        dragRef.current = { active: true, startY: e.clientY, startH: sheetH };
+        e.currentTarget.setPointerCapture(e.pointerId);
+    }, [sheetH]);
+
+    const onDragMove = useCallback((e) => {
+        if (!dragRef.current.active) return;
+        const delta = dragRef.current.startY - e.clientY;
+        const max   = Math.round(window.innerHeight * 0.85);
+        setSheetH(Math.min(Math.max(dragRef.current.startH + delta, SHEET_MIN), max));
+    }, []);
+
+    const onDragEnd = useCallback(() => {
+        if (!dragRef.current.active) return;
+        dragRef.current.active = false;
+        setIsDragging(false);
+        setSheetH(h => snapSheet(h));
+    }, [snapSheet]);
+
+    const handleDismissAnswer = useCallback(() => {
+        setAnswer(null);
+        setQuestion('');
+        setSheetH(SHEET_MIN);
+    }, []);
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: '#0D1B2A' }}>
@@ -383,6 +416,7 @@ const ScannerPage = () => {
                 trainingCount={trainingCount}
                 navigate={navigate}
                 onLogout={async () => { await logout(); navigate('/'); }}
+                onProfile={() => navigate('/profile')}
             />
 
             {/* Camera viewfinder */}
@@ -390,42 +424,6 @@ const ScannerPage = () => {
                 {showCamera && <CameraViewfinder onClose={handleCameraClose} />}
             </AnimatePresence>
 
-            {/* Answer modal */}
-            <AnimatePresence>
-                {answer && (
-                    <>
-                        <motion.div key="scrim"
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="absolute inset-0 z-30 bg-black/70"
-                            onClick={handleDismissAnswer}
-                        />
-                        <motion.div key="answer-card"
-                            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 30, scale: 0.96 }}
-                            transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-                            className="absolute inset-x-5 top-[12%] z-40 bg-white rounded-3xl shadow-2xl overflow-hidden"
-                            style={{ maxHeight: '65vh' }}
-                        >
-                            <div className="flex items-start justify-between px-5 pt-5 pb-3">
-                                <div className="flex-1 pr-3">
-                                    <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase mb-1">{t('safety_response')}</p>
-                                    {question && <p className="text-gray-500 text-sm font-medium leading-snug">{question}</p>}
-                                </div>
-                                <button onClick={handleDismissAnswer}
-                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                                    <X size={16} className="text-gray-500" />
-                                </button>
-                            </div>
-                            <div className="h-px bg-gray-100 mx-5" />
-                            <div className="px-5 py-4 overflow-y-auto" style={{ maxHeight: 'calc(65vh - 100px)' }}>
-                                <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{answer}</p>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
 
             {/* Detections modal */}
             <AnimatePresence>
@@ -536,95 +534,121 @@ const ScannerPage = () => {
                 )}
             </div>
 
-            {/* ── Bottom sheet ── */}
-            <AnimatePresence mode="wait">
-                {isListening ? (
-                    <motion.div key="recording"
-                        initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                        className="bg-white rounded-t-3xl shrink-0"
-                    >
-                        <div className="flex justify-center pt-3 pb-1">
-                            <div className="w-10 h-1 rounded-full bg-gray-200" />
-                        </div>
-                        <div className="px-5 pt-2 pb-5">
-                            <div className="flex items-center gap-2 mb-4">
-                                <motion.div animate={{ opacity: [1, 0.2, 1] }}
-                                    transition={{ repeat: Infinity, duration: 1.1, ease: 'easeInOut' }}
-                                    className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                                <span className="text-red-500 font-mono font-bold text-sm tracking-widest">{timer}</span>
-                                <span className="text-gray-400 text-xs font-semibold ml-1">{t('recording_stat')}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <motion.button whileTap={{ scale: 0.88 }} onClick={handleMicCancel}
-                                    className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                                    <X size={20} className="text-gray-500" />
-                                </motion.button>
-                                <div className="flex-1 overflow-hidden flex items-center justify-center">
-                                    <WaveformBars />
+            {/* ── Draggable Bottom Sheet ── */}
+            <div className="bg-white rounded-t-3xl shrink-0 flex flex-col overflow-hidden"
+                style={{
+                    height: sheetH,
+                    transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.32,0.72,0,1)',
+                }}>
+
+                {/* Drag handle */}
+                <div className="flex justify-center pt-3 pb-1 shrink-0 touch-none cursor-grab active:cursor-grabbing"
+                    onPointerDown={onDragStart}
+                    onPointerMove={onDragMove}
+                    onPointerUp={onDragEnd}
+                    onPointerCancel={onDragEnd}>
+                    <div className="w-10 h-1 rounded-full bg-gray-200" />
+                </div>
+
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto">
+
+                    {/* Inline answer */}
+                    <AnimatePresence>
+                        {answer && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="px-5 pt-2 pb-4 border-b border-gray-100">
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[11px] font-bold text-safety-orange tracking-widest uppercase mb-1">{t('safety_response')}</p>
+                                        {question && <p className="text-gray-500 text-xs font-medium leading-snug">{question}</p>}
+                                    </div>
+                                    <button onClick={handleDismissAnswer}
+                                        className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                        <X size={14} className="text-gray-500" />
+                                    </button>
                                 </div>
-                                <motion.button whileTap={{ scale: 0.88 }} onClick={handleRecordingStop}
-                                    className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 shadow-lg"
-                                    style={{ backgroundColor: '#E67E22' }}>
-                                    <Mic size={20} className="text-white" />
-                                </motion.button>
-                            </div>
-                        </div>
-                    </motion.div>
-                ) : (
-                    <motion.div key="input"
-                        initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                        className="bg-white rounded-t-3xl shrink-0"
-                    >
-                        <div className="flex justify-center pt-3 pb-1">
-                            <div className="w-10 h-1 rounded-full bg-gray-200" />
-                        </div>
-                        <div className="px-4 pt-3 pb-5">
-                            <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-4">
-                                {t('ask_anything')}
-                            </p>
-                            <div className="flex items-center gap-2 rounded-full px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
-                                <MentionInput
-                                    value={question}
-                                    onChange={setQuestion}
-                                    onSubmit={handleSend}
-                                    placeholder={t('type_a_question')}
-                                    disabled={isTranscribing || isQuerying}
-                                />
-                                <button onClick={() => setShowCamera(true)}
-                                    className="p-1 text-gray-400 hover:text-safety-orange transition-colors">
-                                    <Camera size={21} />
-                                </button>
-                                <motion.button onClick={handleMicStart} whileTap={{ scale: 0.85 }}
-                                    disabled={isTranscribing || isQuerying}
-                                    className={`p-1 transition-colors ${isTranscribing || isQuerying ? 'text-safety-orange/50' : 'text-gray-400 hover:text-safety-orange'}`}>
-                                    <Mic size={21} />
-                                </motion.button>
-                                <AnimatePresence>
-                                    {question.trim() && !isQuerying && (
-                                        <motion.button
-                                            initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                                            exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}
-                                            onClick={handleSend}
-                                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                                            style={{ backgroundColor: '#E67E22' }}>
-                                            <Send size={15} className="text-white translate-x-px" />
-                                        </motion.button>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{answer}</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Recording or input */}
+                    <AnimatePresence mode="wait">
+                        {isListening ? (
+                            <motion.div key="recording" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="px-5 pt-3 pb-5">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <motion.div animate={{ opacity: [1, 0.2, 1] }}
+                                        transition={{ repeat: Infinity, duration: 1.1, ease: 'easeInOut' }}
+                                        className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                                    <span className="text-red-500 font-mono font-bold text-sm tracking-widest">{timer}</span>
+                                    <span className="text-gray-400 text-xs font-semibold ml-1">{t('recording_stat')}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <motion.button whileTap={{ scale: 0.88 }} onClick={handleMicCancel}
+                                        className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                        <X size={20} className="text-gray-500" />
+                                    </motion.button>
+                                    <div className="flex-1 overflow-hidden flex items-center justify-center">
+                                        <WaveformBars />
+                                    </div>
+                                    <motion.button whileTap={{ scale: 0.88 }} onClick={handleRecordingStop}
+                                        className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 shadow-lg"
+                                        style={{ backgroundColor: '#E67E22' }}>
+                                        <Mic size={20} className="text-white" />
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="px-4 pt-3 pb-5">
+                                <p className="text-xs font-bold text-safety-orange tracking-widest uppercase mb-4">
+                                    {t('ask_anything')}
+                                </p>
+                                <div className="flex items-center gap-2 rounded-full px-4 py-3" style={{ backgroundColor: '#EEF2F7' }}>
+                                    <MentionInput
+                                        value={question}
+                                        onChange={setQuestion}
+                                        onSubmit={handleSend}
+                                        placeholder={t('type_a_question')}
+                                        disabled={isTranscribing || isQuerying}
+                                    />
+                                    <button onClick={() => setShowCamera(true)}
+                                        className="p-1 text-gray-400 hover:text-safety-orange transition-colors">
+                                        <Camera size={21} />
+                                    </button>
+                                    <motion.button onClick={handleMicStart} whileTap={{ scale: 0.85 }}
+                                        disabled={isTranscribing || isQuerying}
+                                        className={`p-1 transition-colors ${isTranscribing || isQuerying ? 'text-safety-orange/50' : 'text-gray-400 hover:text-safety-orange'}`}>
+                                        <Mic size={21} />
+                                    </motion.button>
+                                    <AnimatePresence>
+                                        {question.trim() && !isQuerying && (
+                                            <motion.button
+                                                initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                                                exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.15 }}
+                                                onClick={handleSend}
+                                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                                                style={{ backgroundColor: '#E67E22' }}>
+                                                <Send size={15} className="text-white translate-x-px" />
+                                            </motion.button>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
 
             {/* ── Bottom Nav ── */}
             <div className="shrink-0 flex items-center justify-around px-2 py-2 border-t"
                 style={{ backgroundColor: '#0D1B2A', borderColor: 'rgba(255,255,255,0.07)' }}>
                 {[
-                    { icon: Home,          label: t('nav_home'),     path: '/scanner'  },
-                    { icon: AlertTriangle, label: t('nav_incident'), path: '/incident' },
+                    { icon: Home,          label: t('nav_home'),     path: '/scanner'    },
+                    { icon: Bell,          label: 'Inbox',           path: '/inbox'      },
+                    { icon: AlertTriangle, label: t('nav_incident'), path: '/incident'   },
                     { icon: Bug,           label: 'Bug Report',      path: '/bug-report' },
                 ].map(({ icon: Icon, label, path }) => {
                     const active = pathname === path;

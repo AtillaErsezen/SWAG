@@ -4,15 +4,17 @@ import { useAppContext } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import OfflineIndicator from '../OfflineIndicator';
 
-// Routes that manage their own full-screen layout — hide the shared header.
-const HEADERLESS_ROUTES = ['/scanner'];
+const HEADERLESS_PREFIXES = [
+    '/scanner', '/machine/', '/site-selector', '/permissions',
+    '/manager', '/incident', '/bug-report', '/inbox', '/profile',
+];
 
 const Header = () => {
     const { workerId } = useAppContext();
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
-    if (HEADERLESS_ROUTES.includes(pathname)) return null;
+    if (HEADERLESS_PREFIXES.some(p => pathname.startsWith(p))) return null;
 
     return (
         <header className="h-16 bg-matte-indigo text-app-bg flex items-center justify-between px-4 shadow-md sticky top-0 z-40">

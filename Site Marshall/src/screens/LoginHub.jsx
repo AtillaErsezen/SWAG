@@ -27,8 +27,13 @@ const Field = ({ icon: Icon, type, value, onChange, onKeyDown, placeholder, righ
 );
 
 const LoginHub = () => {
-    const { currentLang, changeLanguage, availableLanguages, t } = useAppContext();
+    const { currentLang, changeLanguage, availableLanguages, t, session, userRole, authLoading } = useAppContext();
     const navigate = useNavigate();
+
+    if (!authLoading && session) {
+        navigate(userRole === 'manager' ? '/manager' : '/scanner', { replace: true });
+        return null;
+    }
 
     const [mode, setMode]             = useState('login'); // 'login' | 'signup'
     const [role, setRole]             = useState('worker');

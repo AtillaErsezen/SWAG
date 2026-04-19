@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Users, BookOpen, Award, RefreshCw, AlertTriangle, ClipboardList } from 'lucide-react';
+import { LogOut, Users, BookOpen, Award, RefreshCw, AlertTriangle, ClipboardList, X, Send, CheckCircle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
@@ -39,6 +39,130 @@ const Spinner = () => (
             className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-safety-orange" />
     </div>
 );
+
+// ── Forward Modal ─────────────────────────────────────────────────────────────
+const ForwardModal = ({ incident, onClose }) => {
+    const [workers, setWorkers]     = useState([]);
+    const [selected, setSelected]   = useState(new Set());
+    const [note, setNote]           = useState(incident.content);
+    const [sending, setSending]     = useState(false);
+    const [done, setDone]           = useState(false);
+
+    useEffect(() => {
+        supabase.from('profiles').select('id, full_name').eq('role', 'worker')
+            .then(({ data }) => setWorkers(data ?? []));
+    }, []);
+
+    const toggle = (id) => setSelected(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+    });
+
+    const allSelected = workers.length > 0 && selected.size === workers.length;
+    const toggleAll   = () => allSelected
+        ? setSelected(new Set())
+        : setSelected(new Set(workers.map(w => w.id)));
+
+    const handleSend = async () => {
+        if (!selected.size || !note.trim()) return;
+        setSending(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const rows = [...selected].map(workerId => ({
+                sender_id:    session.user.id,
+                recipient_id: workerId,
+                message_type: 'broadcast',
+                subtype:      incident.subtype,
+                severity:     incident.severity,
+                content:      note.trim(),
+                machine:      incident.machine ?? null,
+                site:         incident.site ?? null,
+            }));
+            const { error } = await supabase.from('messages').insert(rows);
+            if (error) throw error;
+            setDone(true);
+            setTimeout(onClose, 1400);
+        } catch (e) { console.error(e); }
+        finally { setSending(false); }
+    };
+
+    if (done) return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                className="bg-white rounded-3xl p-8 flex flex-col items-center gap-3 shadow-2xl">
+                <CheckCircle size={56} className="text-green-500" />
+                <p className="text-xl font-black text-gray-800">
+                    Sent to {selected.size} worker{selected.size !== 1 ? 's' : ''}
+                </p>
+            </motion.div>
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end">
+            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="bg-white w-full rounded-t-3xl flex flex-col max-h-[85vh]">
+
+                <div className="flex justify-center pt-3 pb-2 shrink-0">
+                    <div className="w-10 h-1 rounded-full bg-gray-200" />
+                </div>
+
+                <div className="px-5 pb-3 flex items-center justify-between shrink-0">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-800">Forward to Workers</h2>
+                        <p className="text-xs text-gray-400 mt-0.5">{selected.size} selected</p>
+                    </div>
+                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <X size={16} className="text-gray-500" />
+                    </button>
+                </div>
+
+                <div className="px-5 pb-6 overflow-y-auto flex flex-col gap-4">
+                    <div>
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>Message</p>
+                        <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
+                            className="w-full px-4 py-3 text-sm rounded-2xl resize-none focus:outline-none"
+                            style={{ backgroundColor: '#EEF2F7' }} />
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: '#E67E22' }}>Workers</p>
+                            <button onClick={toggleAll} className="text-xs font-bold" style={{ color: '#E67E22' }}>
+                                {allSelected ? 'Deselect All' : 'Select All'}
+                            </button>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {workers.map(w => {
+                                const active = selected.has(w.id);
+                                return (
+                                    <button key={w.id} onClick={() => toggle(w.id)}
+                                        className="flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all text-left"
+                                        style={{ borderColor: active ? '#E67E22' : '#e2e8f0', backgroundColor: active ? '#FFF5EC' : 'white' }}>
+                                        <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
+                                            style={{ borderColor: active ? '#E67E22' : '#cbd5e1', backgroundColor: active ? '#E67E22' : 'white' }}>
+                                            {active && <div className="w-2 h-2 rounded-full bg-white" />}
+                                        </div>
+                                        <span className="font-semibold text-sm text-gray-800">{w.full_name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <button onClick={handleSend} disabled={!selected.size || !note.trim() || sending}
+                        className="w-full py-4 rounded-full text-white font-black text-sm disabled:opacity-40 flex items-center justify-center gap-2"
+                        style={{ backgroundColor: '#E67E22' }}>
+                        <Send size={16} />
+                        {sending ? 'Sending…' : `Send to ${selected.size || 0} worker${selected.size !== 1 ? 's' : ''}`}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
 
 // ── Trainings Tab ─────────────────────────────────────────────────────────────
 const TrainingsTab = () => {
@@ -128,10 +252,11 @@ const TrainingsTab = () => {
 
 // ── Incidents Tab ─────────────────────────────────────────────────────────────
 const IncidentsTab = () => {
-    const [incidents, setIncidents] = useState([]);
-    const [loading, setLoading]     = useState(true);
-    const [error, setError]         = useState(null);
-    const [filter, setFilter]       = useState('all');
+    const [incidents, setIncidents]       = useState([]);
+    const [loading, setLoading]           = useState(true);
+    const [error, setError]               = useState(null);
+    const [filter, setFilter]             = useState('all');
+    const [forwardTarget, setForwardTarget] = useState(null);
 
     const fetch = async () => {
         setLoading(true); setError(null);
@@ -156,6 +281,10 @@ if (e) throw new Error(e.message);
     const highCount  = incidents.filter(r => r.severity === 'high').length;
 
     return (
+        <>
+        <AnimatePresence>
+            {forwardTarget && <ForwardModal incident={forwardTarget} onClose={() => setForwardTarget(null)} />}
+        </AnimatePresence>
         <div className="flex flex-col gap-4">
             <div className="grid grid-cols-3 gap-3">
                 <StatCard icon={AlertTriangle} label="Total"    value={incidents.length} />
@@ -216,12 +345,18 @@ if (e) throw new Error(e.message);
                                     {r.site    && <span>📍 {r.site}</span>}
                                     <span className="ml-auto">{fmt(r.created_at)}</span>
                                 </div>
+                                <button onClick={() => setForwardTarget(r)}
+                                    className="mt-2.5 w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                                    style={{ backgroundColor: '#FFF5EC', color: '#E67E22' }}>
+                                    <Send size={12} /> Forward to Workers
+                                </button>
                             </motion.div>
                         );
                     })}
                 </div>
             )}
         </div>
+        </>
     );
 };
 
@@ -241,11 +376,19 @@ const ManagerDashboard = () => {
     return (
         <div className="min-h-full flex flex-col bg-gray-50">
             <div className="px-5 pt-10 pb-6 flex items-start justify-between" style={{ backgroundColor: '#E67E22' }}>
-                <div>
-                    <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-1">Manager Dashboard</p>
-                    <h1 className="text-2xl font-black text-white">{workerId}</h1>
-                    {activeSite && <p className="text-white/70 text-sm mt-0.5">{activeSite.name}</p>}
-                </div>
+                <button className="flex items-center gap-3 text-left active:opacity-80" onClick={() => navigate('/profile')}>
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
+                        <span className="text-white font-black text-base">
+                            {(workerId ?? 'M').charAt(0).toUpperCase()}
+                        </span>
+                    </div>
+                    <div>
+                        <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Manager Dashboard</p>
+                        <h1 className="text-xl font-black text-white leading-tight">{workerId}</h1>
+                        {activeSite && <p className="text-white/70 text-sm mt-0.5">{activeSite.name}</p>}
+                    </div>
+                </button>
                 <button onClick={handleLogout}
                     className="w-10 h-10 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
