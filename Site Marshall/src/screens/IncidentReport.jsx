@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Clock, MapPin, CheckCircle, X, AlertTriangle } from 'lucide-react';
+import { Clock, MapPin, CheckCircle, X, AlertTriangle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
-import { startRecording, transcribeAudio } from '../services/api';
 import { supabase } from '../lib/supabase';
 
 const REPORT_TYPES = ['near_miss', 'incident', 'unsafe_condition'];
@@ -32,39 +31,14 @@ const IncidentReport = () => {
     const [description, setDescription] = useState('');
     const [managerId, setManagerId]     = useState('');
     const [managers, setManagers]       = useState([]);
-    const [isRecording, setIsRecording] = useState(false);
-    const [isTranscribing, setIsTranscribing] = useState(false);
     const [submitting, setSubmitting]   = useState(false);
     const [submitted, setSubmitted]     = useState(false);
     const [error, setError]             = useState(null);
-    const recorderRef = useRef(null);
 
     useEffect(() => {
         supabase.from('profiles').select('id, full_name').eq('role', 'manager')
             .then(({ data }) => setManagers(data ?? []));
     }, []);
-
-    const handleMicDown = async () => {
-        setIsRecording(true);
-        try { recorderRef.current = await startRecording(); }
-        catch { setIsRecording(false); }
-    };
-
-    const handleMicUp = async () => {
-        if (!recorderRef.current) { setIsRecording(false); return; }
-        setIsRecording(false);
-        setIsTranscribing(true);
-        try {
-            const blob = await recorderRef.current.stop();
-            recorderRef.current = null;
-            const res = await transcribeAudio(blob);
-            if (res.transcription) setDescription(prev => (prev ? prev + ' ' : '') + res.transcription);
-        } catch (err) {
-            console.error('Transcription error:', err);
-        } finally {
-            setIsTranscribing(false);
-        }
-    };
 
     const handleSubmit = async () => {
         if (!description.trim() || !managerId) return;
@@ -215,22 +189,10 @@ const IncidentReport = () => {
                     {/* Description */}
                     <div className="mb-5">
                         <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>{t('report_desc')}</p>
-                        <div className="flex gap-2 items-stretch">
-                            <textarea value={description} onChange={e => setDescription(e.target.value)}
-                                placeholder={t('report_desc_placeholder')}
-                                className="flex-1 px-4 py-3.5 text-sm font-medium placeholder-gray-400 resize-none focus:outline-none"
-                                style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }} />
-                            <motion.button onPointerDown={handleMicDown} onPointerUp={handleMicUp} onPointerLeave={handleMicUp}
-                                whileTap={{ scale: 0.9 }} disabled={isTranscribing}
-                                className="w-14 flex flex-col items-center justify-center shrink-0 transition-all border-2"
-                                style={{ borderRadius: '14px', borderColor: '#E67E22', backgroundColor: isRecording ? '#FFF5EC' : 'white' }}>
-                                {isTranscribing
-                                    ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                                        className="w-5 h-5 rounded-full border-2 border-safety-orange/30 border-t-safety-orange" />
-                                    : <Mic size={20} style={{ color: '#E67E22' }} />
-                                }
-                            </motion.button>
-                        </div>
+                        <textarea value={description} onChange={e => setDescription(e.target.value)}
+                            placeholder={t('report_desc_placeholder')}
+                            className="w-full px-4 py-3.5 text-sm font-medium placeholder-gray-400 resize-none focus:outline-none"
+                            style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }} />
                         <div className="flex items-center gap-5 mt-3 text-[10px] font-semibold text-gray-500">
                             <div className="flex items-center gap-1.5 pl-1">
                                 <Clock size={12} className="text-gray-400" />
