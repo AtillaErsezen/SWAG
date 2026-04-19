@@ -1,10 +1,9 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { useAppContext } from './context/AppContext';
 import MainLayout from './components/Layout/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Screen Imports
 import LoginHub from './screens/LoginHub';
 import SiteSelector from './screens/SiteSelector';
 import MediaPermissions from './screens/MediaPermissions';
@@ -17,6 +16,15 @@ import PreShiftChecklist from './screens/PreShiftChecklist';
 import SupervisorDashboard from './screens/SupervisorDashboard';
 import IncidentReport from './screens/IncidentReport';
 import BugReport from './screens/BugReport';
+import ManagerDashboard from './screens/ManagerDashboard';
+
+const ManagerRoute = ({ children }) => {
+    const { session, authLoading, userRole } = useAppContext();
+    if (authLoading) return null;
+    if (!session) return <Navigate to="/" replace />;
+    if (userRole !== 'manager') return <Navigate to="/scanner" replace />;
+    return children;
+};
 
 function App() {
   return (
@@ -36,6 +44,7 @@ function App() {
             <Route path="supervisor" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
             <Route path="incident" element={<ProtectedRoute><IncidentReport /></ProtectedRoute>} />
             <Route path="bug-report" element={<ProtectedRoute><BugReport /></ProtectedRoute>} />
+            <Route path="manager" element={<ManagerRoute><ManagerDashboard /></ManagerRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

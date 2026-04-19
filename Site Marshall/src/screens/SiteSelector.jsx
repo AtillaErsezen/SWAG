@@ -27,7 +27,7 @@ const shortName = (model) => {
 };
 
 const SiteSelector = () => {
-    const { workerId, sites, setActiveSite, t } = useAppContext();
+    const { workerId, userRole, sites, setActiveSite, t } = useAppContext();
     const navigate = useNavigate();
     const [selectedSite, setSelectedSite] = useState(null);
 
@@ -39,7 +39,7 @@ const SiteSelector = () => {
 
     const handleStartShift = () => {
         setActiveSite(selectedSite);
-        navigate('/permissions');
+        navigate(userRole === 'manager' ? '/manager' : '/permissions');
     };
 
     return (

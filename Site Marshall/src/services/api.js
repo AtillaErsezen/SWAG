@@ -22,10 +22,17 @@ export const toLang = (code) => LANG_MAP[code] ?? 'eng_Latn';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+import { supabase } from '../lib/supabase';
+
+async function authHeader() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+}
+
 async function POST(path, body) {
     const res = await fetch(path, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...await authHeader() },
         body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -41,7 +48,7 @@ async function MULTIPART(path, blob, fileFieldName, fields = {}, filename = null
     for (const [key, val] of Object.entries(fields)) {
         form.append(key, val);
     }
-    const res = await fetch(path, { method: 'POST', body: form });
+    const res = await fetch(path, { method: 'POST', body: form, headers: await authHeader() });
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(err.error ?? 'Request failed');

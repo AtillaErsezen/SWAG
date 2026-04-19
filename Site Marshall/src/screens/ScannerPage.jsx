@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, Award, AlertTriangle, Bug } from 'lucide-react';
+import { Camera, Mic, Send, CameraOff, X, Wrench, Plus, Home, Award, AlertTriangle, Bug, LogOut } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio, queryText, playAudio, detectImage } from '../services/api';
@@ -184,7 +184,7 @@ const findMachine = (detectedClass) => {
 };
 
 // ─── Fleet Drawer ─────────────────────────────────────────────────────────────
-const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
+const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogout }) => {
     const { t } = useAppContext();
     const certified = machineDB.filter(m => m.trainingProgress === 100).length;
     return (
@@ -258,13 +258,19 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
                             ))}
                         </div>
 
-                        {/* Add Machine */}
-                        <div className="px-5 py-4 shrink-0">
+                        {/* Add Machine + Logout */}
+                        <div className="px-5 py-4 shrink-0 flex flex-col gap-2">
                             <motion.button whileTap={{ scale: 0.97 }}
                                 className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
                                 style={{ borderColor: '#E67E22', color: '#E67E22' }}>
                                 <Plus size={15} />
                                 {t('add_machine_btn')}
+                            </motion.button>
+                            <motion.button whileTap={{ scale: 0.97 }} onClick={onLogout}
+                                className="w-full py-3.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2"
+                                style={{ borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.4)' }}>
+                                <LogOut size={15} />
+                                Sign Out
                             </motion.button>
                         </div>
                     </motion.div>
@@ -276,7 +282,7 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate }) => {
 
 // ─── Scanner Page ─────────────────────────────────────────────────────────────
 const ScannerPage = () => {
-    const { workerId, currentLang, trainingCount, t } = useAppContext();
+    const { workerId, currentLang, trainingCount, logout, t } = useAppContext();
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
@@ -376,6 +382,7 @@ const ScannerPage = () => {
                 workerId={workerId}
                 trainingCount={trainingCount}
                 navigate={navigate}
+                onLogout={async () => { await logout(); navigate('/'); }}
             />
 
             {/* Camera viewfinder */}

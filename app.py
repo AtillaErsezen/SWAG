@@ -36,6 +36,9 @@ from google import genai
 from google.genai import types as genai_types
 import smtplib
 from email.message import EmailMessage
+import jwt
+import requests as http_requests
+from functools import wraps
 
 # ── Vector store (local, lightweight) ─────────────────────────────────────────
 from langchain_core.documents import Document
@@ -59,9 +62,12 @@ CONFIDENCE_THRESHOLD = 0.4
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY    = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY    = os.getenv("GOOGLE_API_KEY")
-GMAIL_USER        = os.getenv("GMAIL_USER")
+GMAIL_USER         = os.getenv("GMAIL_USER")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
-BUG_REPORT_TO     = os.getenv("BUG_REPORT_TO", "ersezenatilla@gmail.com")
+BUG_REPORT_TO      = os.getenv("BUG_REPORT_TO", "ersezenatilla@gmail.com")
+SUPABASE_JWT_SECRET  = os.getenv("SUPABASE_JWT_SECRET")
+SUPABASE_URL         = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 SUPPORTED_LANGUAGES: Dict[str, Dict] = {
     "eng_Latn": {"name": "English",    "flag": "EN"},
@@ -89,6 +95,27 @@ CORS(app)
 
 models_cache = {}
 _yolo_lock   = threading.Lock()
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        header = request.headers.get("Authorization", "")
+        if not header.startswith("Bearer "):
+            return jsonify({"error": "Unauthorized"}), 401
+        token = header[7:]
+        try:
+            payload = jwt.decode(
+                token, SUPABASE_JWT_SECRET,
+                algorithms=["HS256"], audience="authenticated"
+            )
+            request.user_id   = payload["sub"]
+            request.user_role = payload.get("user_metadata", {}).get("role", "worker")
+        except Exception:
+            return jsonify({"error": "Invalid token"}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 # ── Lazy API clients ──────────────────────────────────────────────────────────
 _anthropic_client = None
@@ -438,6 +465,7 @@ def login():
 
 
 @app.route('/api/query/text', methods=['POST'])
+@require_auth
 def query_text():
     t_total = time.time()
     data    = request.json
@@ -491,6 +519,7 @@ def query_text():
 
 
 @app.route('/api/transcribe', methods=['POST'])
+@require_auth
 def transcribe_only():
     """STT only — no RAG, no LLM."""
     if 'audio' not in request.files:
@@ -508,6 +537,7 @@ def transcribe_only():
 
 
 @app.route('/api/query/voice', methods=['POST'])
+@require_auth
 def query_voice():
     t_total = time.time()
     if 'audio' not in request.files:
@@ -569,6 +599,7 @@ def query_voice():
 
 
 @app.route('/api/verify/<int:log_id>', methods=['POST'])
+@require_auth
 def verify_log(log_id):
     try:
         verify_training(log_id)
@@ -586,6 +617,7 @@ def training_count(user_id):
 
 
 @app.route('/api/bug-report', methods=['POST'])
+@require_auth
 def bug_report():
     data        = request.json
     description = data.get('description', '').strip()
@@ -623,7 +655,29 @@ def bug_report():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/manager/trainings', methods=['GET'])
+@require_auth
+def manager_trainings():
+    if request.user_role != 'manager':
+        return jsonify({"error": "Forbidden"}), 403
+    try:
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        }
+        res = http_requests.get(
+            f"{SUPABASE_URL}/rest/v1/trainings"
+            "?select=*,profiles(full_name,role)&order=completed_at.desc",
+            headers=headers, timeout=10
+        )
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        print(f"[MANAGER] Trainings fetch failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/detect', methods=['POST'])
+@require_auth
 def detect_objects():
     """Image classification — local YOLO (unchanged)."""
     t_total = time.time()

@@ -1,40 +1,48 @@
-import React, { createContext, useContext, useState } from 'react';
-import { translations, languages } from '../data/mockData';
-import { constructionSites } from '../data/mockData';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { translations, languages, constructionSites } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-    const [workerId, setWorkerId] = useState(null);
+    const [session, setSession]           = useState(null);
+    const [userRole, setUserRole]         = useState(null);
+    const [loading, setLoading]           = useState(true);
     const [trainingCount, setTrainingCount] = useState(0);
-    const [currentLang, setCurrentLang] = useState('en');
+    const [currentLang, setCurrentLang]   = useState('en');
     const [activeMachineId, setActiveMachineId] = useState(null);
-    const [activeSite, setActiveSite] = useState(null);
+    const [activeSite, setActiveSite]     = useState(null);
 
-    const t = (key) => {
-        return translations[currentLang]?.[key] || translations['en'][key] || key;
-    };
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUserRole(session?.user?.user_metadata?.role ?? 'worker');
+            setLoading(false);
+        }).catch(() => setLoading(false));
 
-    /** Called after a successful backend login. count comes from the API response. */
-    const login = (id, count = 0) => {
-        setWorkerId(id);
-        setTrainingCount(count);
-    };
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUserRole(session?.user?.user_metadata?.role ?? 'worker');
+        });
 
-    const logout = () => {
-        setWorkerId(null);
-        setTrainingCount(0);
-        setActiveSite(null);
-    };
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const t = (key) =>
+        translations[currentLang]?.[key] || translations['en'][key] || key;
+
+    const logout = () => supabase.auth.signOut();
 
     const changeLanguage = (code) => setCurrentLang(code);
 
     return (
         <AppContext.Provider value={{
-            workerId,
+            session,
+            user: session?.user ?? null,
+            workerId: session?.user?.email ?? null,
+            userRole,
             trainingCount,
             setTrainingCount,
-            login,
             logout,
             currentLang,
             changeLanguage,
@@ -45,12 +53,11 @@ export const AppProvider = ({ children }) => {
             activeSite,
             setActiveSite,
             sites: constructionSites,
+            authLoading: loading,
         }}>
             {children}
         </AppContext.Provider>
     );
 };
 
-export const useAppContext = () => {
-    return useContext(AppContext);
-};
+export const useAppContext = () => useContext(AppContext);

@@ -1,15 +1,12 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
 const ProtectedRoute = ({ children }) => {
-    const { workerId } = useAppContext();
+    const { session, authLoading } = useAppContext();
     const location = useLocation();
 
-    if (!workerId) {
-        return <Navigate to="/" state={{ from: location }} replace />;
-    }
-
+    if (authLoading) return null;
+    if (!session) return <Navigate to="/" state={{ from: location }} replace />;
     return children;
 };
 

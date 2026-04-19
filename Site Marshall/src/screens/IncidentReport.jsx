@@ -1,12 +1,20 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Mic, Camera, Clock, MapPin, CheckCircle, X } from 'lucide-react';
+import { Mic, Clock, MapPin, CheckCircle, X, AlertTriangle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { machineDB } from '../data/mockData';
 import { startRecording, transcribeAudio } from '../services/api';
+import { supabase } from '../lib/supabase';
 
 const REPORT_TYPES = ['near_miss', 'incident', 'unsafe_condition'];
+const SEVERITIES   = ['low', 'medium', 'high'];
+
+const SEVERITY_STYLE = {
+    low:    { bg: '#f0fdf4', color: '#16a34a', border: '#16a34a' },
+    medium: { bg: '#FFF5EC', color: '#E67E22', border: '#E67E22' },
+    high:   { bg: '#fef2f2', color: '#ef4444', border: '#ef4444' },
+};
 
 const now = () => {
     const d = new Date();
@@ -16,26 +24,30 @@ const now = () => {
 
 const IncidentReport = () => {
     const navigate = useNavigate();
-    const { workerId, activeSite, t } = useAppContext();
+    const { activeSite, t } = useAppContext();
 
-    const [reportType, setReportType] = useState('incident');
-    const [machineId, setMachineId] = useState('');
+    const [reportType, setReportType]   = useState('incident');
+    const [severity, setSeverity]       = useState('medium');
+    const [machineId, setMachineId]     = useState('');
     const [description, setDescription] = useState('');
-    const [photo, setPhoto] = useState(null);
+    const [managerId, setManagerId]     = useState('');
+    const [managers, setManagers]       = useState([]);
     const [isRecording, setIsRecording] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
-
+    const [submitting, setSubmitting]   = useState(false);
+    const [submitted, setSubmitted]     = useState(false);
+    const [error, setError]             = useState(null);
     const recorderRef = useRef(null);
-    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        supabase.from('profiles').select('id, full_name').eq('role', 'manager')
+            .then(({ data }) => setManagers(data ?? []));
+    }, []);
 
     const handleMicDown = async () => {
         setIsRecording(true);
-        try {
-            recorderRef.current = await startRecording();
-        } catch {
-            setIsRecording(false);
-        }
+        try { recorderRef.current = await startRecording(); }
+        catch { setIsRecording(false); }
     };
 
     const handleMicUp = async () => {
@@ -54,16 +66,35 @@ const IncidentReport = () => {
         }
     };
 
-    const handlePhoto = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setPhoto(URL.createObjectURL(file));
-    };
+    const handleSubmit = async () => {
+        if (!description.trim() || !managerId) return;
+        setSubmitting(true);
+        setError(null);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const machine = machineId && machineId !== 'none'
+                ? machineDB.find(m => m.id === machineId)?.model ?? null
+                : null;
 
-    const handleSubmit = () => {
-        if (!description.trim()) return;
-        setSubmitted(true);
-        setTimeout(() => navigate('/scanner'), 2200);
+            const { error: dbError } = await supabase.from('messages').insert({
+                sender_id:    session.user.id,
+                message_type: 'incident',
+                subtype:      reportType,
+                severity,
+                content:      description.trim(),
+                machine,
+                site:         activeSite?.name ?? null,
+                recipient_id: managerId,
+            });
+
+            if (dbError) throw new Error(dbError.message);
+            setSubmitted(true);
+            setTimeout(() => navigate('/scanner'), 2200);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (submitted) {
@@ -81,30 +112,27 @@ const IncidentReport = () => {
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-center items-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
-            <motion.div
-                initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+            <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                 className="bg-white w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col relative shadow-2xl"
-                style={{ maxHeight: '90vh' }}
-            >
-                {/* Drag Handle */}
+                style={{ maxHeight: '90vh' }}>
+
                 <div className="flex justify-center pt-3 pb-2 shrink-0">
                     <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: '#E2E8F0' }} />
                 </div>
 
                 <div className="px-6 pb-6 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+
                     {/* Header */}
                     <div className="pb-4 pt-1 flex items-center justify-between">
                         <h1 className="text-2xl font-black text-slate-800">{t('report_issue')}</h1>
-                        <button 
-                            onClick={() => navigate('/scanner')}
-                            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all"
-                        >
+                        <button onClick={() => navigate('/scanner')}
+                            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all">
                             <X size={18} />
                         </button>
                     </div>
 
                     {/* Report Type */}
-                    <div className="mb-6">
+                    <div className="mb-5">
                         <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>{t('report_type')}</p>
                         <div className="flex gap-2">
                             {REPORT_TYPES.map(type => (
@@ -122,18 +150,58 @@ const IncidentReport = () => {
                         </div>
                     </div>
 
-                    {/* Machine / Equipment */}
-                    <div className="mb-6">
+                    {/* Severity */}
+                    <div className="mb-5">
                         <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>
-                            {t('report_machine')} <span className="text-gray-400 normal-case font-semibold">({t('report_optional')})</span>
+                            Severity
+                        </p>
+                        <div className="flex gap-2">
+                            {SEVERITIES.map(s => {
+                                const style = SEVERITY_STYLE[s];
+                                const active = severity === s;
+                                return (
+                                    <button key={s} onClick={() => setSeverity(s)}
+                                        className="flex-1 py-3 font-bold text-xs capitalize transition-all active:scale-[0.98]"
+                                        style={{
+                                            borderRadius: '14px',
+                                            backgroundColor: active ? style.bg : '#F8FAFC',
+                                            color: active ? style.color : '#64748B',
+                                            border: active ? `1px solid ${style.border}` : '1px solid #E2E8F0',
+                                        }}>
+                                        {s}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Manager */}
+                    <div className="mb-5">
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>
+                            Send to Manager *
                         </p>
                         <div className="relative">
-                            <select
-                                value={machineId}
-                                onChange={e => setMachineId(e.target.value)}
+                            <select value={managerId} onChange={e => setManagerId(e.target.value)}
                                 className="w-full appearance-none px-4 py-3.5 text-sm font-medium focus:outline-none"
-                                style={{ backgroundColor: '#EEF2F7', color: machineId ? '#333' : '#9ca3af', border: 'none', borderRadius: '14px' }}
-                            >
+                                style={{ backgroundColor: '#EEF2F7', color: managerId ? '#333' : '#9ca3af', border: 'none', borderRadius: '14px' }}>
+                                <option value="" disabled>Select a manager…</option>
+                                {managers.map(m => (
+                                    <option key={m.id} value={m.id}>{m.full_name}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</div>
+                        </div>
+                    </div>
+
+                    {/* Machine */}
+                    <div className="mb-5">
+                        <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>
+                            Machine <span className="text-gray-400 normal-case font-semibold">(optional)</span>
+                        </p>
+                        <div className="relative">
+                            <select value={machineId} onChange={e => setMachineId(e.target.value)}
+                                className="w-full appearance-none px-4 py-3.5 text-sm font-medium focus:outline-none"
+                                style={{ backgroundColor: '#EEF2F7', color: machineId ? '#333' : '#9ca3af', border: 'none', borderRadius: '14px' }}>
                                 <option value="" disabled className="text-gray-400">{t('report_select_machine')}</option>
                                 <option value="none">{t('report_none')}</option>
                                 {machineDB.map(m => (
@@ -145,28 +213,17 @@ const IncidentReport = () => {
                     </div>
 
                     {/* Description */}
-                    <div className="mb-6">
+                    <div className="mb-5">
                         <p className="text-[10px] font-black tracking-widest uppercase mb-2" style={{ color: '#E67E22' }}>{t('report_desc')}</p>
                         <div className="flex gap-2 items-stretch">
-                            <textarea
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
+                            <textarea value={description} onChange={e => setDescription(e.target.value)}
                                 placeholder={t('report_desc_placeholder')}
                                 className="flex-1 px-4 py-3.5 text-sm font-medium placeholder-gray-400 resize-none focus:outline-none"
-                                style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }}
-                            />
-                            <motion.button
-                                onPointerDown={handleMicDown}
-                                onPointerUp={handleMicUp}
-                                onPointerLeave={handleMicUp}
-                                whileTap={{ scale: 0.9 }}
-                                disabled={isTranscribing}
+                                style={{ backgroundColor: '#EEF2F7', color: '#333', border: 'none', borderRadius: '14px', minHeight: '100px' }} />
+                            <motion.button onPointerDown={handleMicDown} onPointerUp={handleMicUp} onPointerLeave={handleMicUp}
+                                whileTap={{ scale: 0.9 }} disabled={isTranscribing}
                                 className="w-14 flex flex-col items-center justify-center shrink-0 transition-all border-2"
-                                style={{
-                                    borderRadius: '14px',
-                                    borderColor: '#E67E22',
-                                    backgroundColor: isRecording ? '#FFF5EC' : 'white',
-                                }}>
+                                style={{ borderRadius: '14px', borderColor: '#E67E22', backgroundColor: isRecording ? '#FFF5EC' : 'white' }}>
                                 {isTranscribing
                                     ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                                         className="w-5 h-5 rounded-full border-2 border-safety-orange/30 border-t-safety-orange" />
@@ -174,8 +231,6 @@ const IncidentReport = () => {
                                 }
                             </motion.button>
                         </div>
-                        
-                        {/* Timestamp + Site */}
                         <div className="flex items-center gap-5 mt-3 text-[10px] font-semibold text-gray-500">
                             <div className="flex items-center gap-1.5 pl-1">
                                 <Clock size={12} className="text-gray-400" />
@@ -188,37 +243,22 @@ const IncidentReport = () => {
                         </div>
                     </div>
 
-                    {/* Photo */}
-                    <div className="mb-6">
-                        <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
-                            className="hidden" onChange={handlePhoto} />
-                        <button onClick={() => fileInputRef.current?.click()}
-                            className="w-full border-2 border-dashed py-8 flex flex-col items-center gap-2 transition-all active:scale-[0.98]"
-                            style={{ borderRadius: '14px', borderColor: '#E67E22', backgroundColor: 'white' }}>
-                            {photo
-                                ? <img src={photo} alt="attached" className="w-full h-32 object-cover rounded-xl mt-[-20px] mb-[-20px]" />
-                                : <>
-                                    <Camera size={26} style={{ color: '#E67E22' }} />
-                                    <span className="text-xs font-bold" style={{ color: '#E67E22' }}>{t('report_tap_photo')}</span>
-                                  </>
-                            }
-                        </button>
-                    </div>
+                    {/* Error */}
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                className="flex items-center gap-2 text-red-500 text-sm mb-3">
+                                <AlertTriangle size={14} />{error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Submit */}
-                    <div className="pt-1">
-                        <button onClick={handleSubmit} disabled={!description.trim()}
-                            className="w-full py-3.5 rounded-full text-white font-black text-sm transition-all active:scale-[0.98] disabled:opacity-40"
-                            style={{ backgroundColor: '#E67E22' }}>
-                            {t('submit_report')}
-                        </button>
-                        <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case hidden sm:block">
-                            {t('submitted_visible_kam')}
-                        </p>
-                        <p className="text-center text-[10px] font-medium text-gray-400 mt-3 normally-case sm:hidden">
-                            {t('submitted_visible_kam')}
-                        </p>
-                    </div>
+                    <button onClick={handleSubmit} disabled={!description.trim() || !managerId || submitting}
+                        className="w-full py-3.5 rounded-full text-white font-black text-sm transition-all active:scale-[0.98] disabled:opacity-40"
+                        style={{ backgroundColor: '#E67E22' }}>
+                        {submitting ? 'Submitting…' : t('submit_report')}
+                    </button>
                 </div>
             </motion.div>
         </div>
