@@ -60,7 +60,7 @@ const Messages = () => {
     };
 
     return (
-        <div className="min-h-full flex flex-col bg-gray-50">
+        <div className="fixed inset-0 flex flex-col bg-gray-50">
             <div className="px-5 pt-10 pb-6 flex items-center gap-3" style={{ backgroundColor: '#0D1B2A' }}>
                 <button onClick={() => navigate('/scanner')}
                     className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
@@ -78,7 +78,7 @@ const Messages = () => {
                 </button>
             </div>
 
-            <div className="px-4 pt-5 pb-24 flex flex-col gap-3">
+            <div className="flex-1 overflow-y-auto px-4 pt-5 pb-8 flex flex-col gap-3">
                 {error ? <p className="text-red-500 text-sm text-center py-8">{error}</p>
                     : loading ? <Spinner />
                     : messages.length === 0

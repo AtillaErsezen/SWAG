@@ -206,13 +206,13 @@ const FleetDrawer = ({ open, onClose, workerId, trainingCount, navigate, onLogou
                         {/* Profile header */}
                         <div className="px-5 pt-10 pb-5 shrink-0">
                             <div className="flex items-start justify-between mb-5">
-                                <button className="flex items-center gap-3 text-left" onClick={() => { onClose(); onProfile(); }}>
+                                <button className="flex items-center gap-3 text-left min-w-0 flex-1" onClick={() => { onClose(); onProfile(); }}>
                                     <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shrink-0 active:opacity-80"
                                         style={{ backgroundColor: '#E67E22' }}>
                                         <span className="text-white font-bold text-lg">{trainingCount || '1'}</span>
                                     </div>
-                                    <div>
-                                        <p className="text-white font-bold text-xl leading-tight">{workerId ?? 'Operator'}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-white font-bold text-sm leading-tight truncate">{workerId ?? 'Operator'}</p>
                                         <p className="text-white/40 text-xs mt-0.5">{t('operator_subtitle')}</p>
                                     </div>
                                 </button>
