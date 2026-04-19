@@ -121,10 +121,10 @@ const CameraViewfinder = ({ onClose }) => {
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
                         <CameraOff size={40} className="text-white/30" />
                         <p className="text-white font-semibold">{error}</p>
-                        <button onClick={onClose} className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold">{t('go_back')}</button>
+                        <button onClick={() => onClose(null)} className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold">{t('go_back')}</button>
                     </div>
                 )}
-                <button onClick={onClose} className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white">
+                <button onClick={() => onClose(null)} className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white">
                     <X size={20} />
                 </button>
             </div>
