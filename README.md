@@ -12,12 +12,6 @@
 ### Safe Walk Augmented Generation
 **Multilingual AI safety co-pilot for heavy machinery operators**
 
-<br/>
-
-![Demo](assets/machines.jpeg)
-
-<br/>
-
 <!-- Stack badges -->
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.0+-000000?style=for-the-badge&logo=flask&logoColor=white)
@@ -117,7 +111,7 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
 
 <div align="center">
 
-[![Demo Video](assets/manager_s.jpeg)](assets/text_cropped.mp4)
+[![Demo Video](assets/text_cropped.mp4)](assets/text_cropped.mp4)
 > Click to watch the full walkthrough
 
 </div>
