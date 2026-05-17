@@ -14,7 +14,7 @@
 
 <br/>
 
-![Demo](assets/images/screenshot_query.png)
+![Demo](assets/machines.jpeg)
 
 <br/>
 
@@ -87,7 +87,7 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
 
 <div align="center">
 
-![Architecture Diagram](assets/images/architecture.png)
+![Demo](assets/machines.jpeg)
 
 </div>
 
@@ -97,9 +97,17 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
 
 <div align="center">
 
-| Query Interface | DANGER Response | Mobile PWA |
+| Camera / Query | Manager Dashboard | Checklist |
 |:-:|:-:|:-:|
-| ![Query](assets/images/screenshot_query.png) | ![Danger](assets/images/screenshot_danger.png) | ![Mobile](assets/images/screenshot_mobile.png) |
+| ![Camera](assets/kamera.jpeg) | ![Manager](assets/manager.jpeg) | ![Checklist](assets/checklist.jpeg) |
+
+| Machine Page | Academy | Quiz |
+|:-:|:-:|:-:|
+| ![Machine](assets/machine_page.jpeg) | ![Academy](assets/academy.jpeg) | ![Quiz](assets/quiz.jpeg) |
+
+| Issue Report | Register | Summary |
+|:-:|:-:|:-:|
+| ![Issue](assets/issue.jpeg) | ![Register](assets/register.jpeg) | ![Summary](assets/summary.jpeg) |
 
 </div>
 
@@ -109,7 +117,7 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
 
 <div align="center">
 
-[![Demo Video](assets/images/screenshot_query.png)](assets/videos/demo.mp4)
+[![Demo Video](assets/manager_s.jpeg)](assets/text_cropped.mp4)
 > Click to watch the full walkthrough
 
 </div>
@@ -176,9 +184,7 @@ GOOGLE_API_KEY=...
 
 ```
 SWAG/
-├── assets/                  ← README media
-│   ├── images/              ← screenshots, logo, architecture diagram
-│   └── videos/              ← demo and safety clips
+├── assets/                  ← README media (screenshots + demo video)
 ├── pipeline/                ← classifier, director, ingestion
 ├── swag_db/                 ← ChromaDB vector store (persisted)
 ├── output/                  ← classified rules (JSON) + manuals (MD)
