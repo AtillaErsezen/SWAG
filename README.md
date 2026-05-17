@@ -104,7 +104,7 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
 
 <div align="center">
 
-![Demo](https://github.com/user-attachments/assets/2af78c7d-7a59-48bc-8a67-c482fe09912b)
+![Watch demo here](https://github.com/user-attachments/assets/2af78c7d-7a59-48bc-8a67-c482fe09912b)
 
 </div>
 
