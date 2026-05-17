@@ -78,13 +78,6 @@ SWAG delivers real-time, context-aware safety guidance to field operators workin
        ▼
   [gTTS + UI]  ────────────────────────  voice + text output
 ```
-
-<div align="center">
-
-![Demo](assets/machines.jpeg)
-
-</div>
-
 ---
 
 ## Screenshots
